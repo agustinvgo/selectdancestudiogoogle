@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply box-border;
+  }
+  
+  body {
+    @apply bg-gray-900 text-gray-100 font-sans antialiased;
+  }
+}
+
+@layer components {
+  /* Botones */
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+  
+  .btn-primary {
+    @apply bg-sds-red hover:bg-sds-red-dark text-white focus:ring-sds-red;
+  }
+  
+  .btn-secondary {
+    @apply bg-sds-gray hover:bg-sds-gray-light text-white focus:ring-gray-500;
+  }
+  
+  .btn-outline {
+    @apply border-2 border-sds-red text-sds-red hover:bg-sds-red hover:text-white focus:ring-sds-red;
+  }
+  
+  /* Inputs */
+  .input {
+    @apply w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sds-red focus:border-transparent;
+  }
+  
+  /* Cards */
+  .card {
+    @apply bg-gray-800 rounded-xl shadow-lg border border-gray-700;
+  }
+  
+  .card-header {
+    @apply px-6 py-4 border-b border-gray-700;
+  }
+  
+  .card-body {
+    @apply p-6;
+  }
+  
+  /* Tables */
+  .table {
+    @apply w-full text-left;
+  }
+  
+  .table thead {
+    @apply bg-gray-900;
+  }
+  
+  .table th {
+    @apply px-6 py-3 text-xs font-medium text-gray-400 uppercase tracking-wider;
+  }
+  
+  .table td {
+    @apply px-6 py-4 text-sm;
+  }
+  
+  .table tbody tr {
+    @apply border-b border-gray-700 hover:bg-gray-700 transition-colors;
+  }
+  
+  /* Badges */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+  }
+  
+  .badge-success {
+    @apply bg-green-900 text-green-200;
+  }
+  
+  .badge-warning {
+    @apply bg-yellow-900 text-yellow-200;
+  }
+  
+  .badge-error {
+    @apply bg-red-900 text-red-200;
+  }
+  
+  .badge-info {
+    @apply bg-blue-900 text-blue-200;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
