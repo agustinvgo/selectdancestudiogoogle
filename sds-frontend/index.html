@@ -1,17 +1,64 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Select Dance Studio - Sistema de gestión integral para escuelas de danza" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <title>Select Dance Studio</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Primary Meta Tags (react-helmet-async sobreescribe estas por página) -->
+  <title>Select Dance Studio — Palermo, Buenos Aires</title>
+  <meta name="description"
+    content="Academia de danza de alto rendimiento en Palermo, Buenos Aires. Clases de ballet, gimnasia,preparacion para competencias, para niñas y adolescentes." />
+  <meta name="author" content="Select Dance Studio" />
+  <meta name="theme-color" content="#111827" />
+
+  <!-- Resource hints: mejorar LCP -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <!-- Preload del hero image (LCP crítico) -->
+  <link rel="preload" as="image" href="/src/assets/hero_bg.jpg" fetchpriority="high" />
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet" />
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-2HLVNLJF9H"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-2HLVNLJF9H');
+  </script>
+</head>
+
+<body>
+  <div id="root">
+    <!-- SEO Fallback Content (Overwritten by React) -->
+    <header style="display:none;">
+      <h1>Select Dance Studio — Academia de Danza y Gimnasia en Palermo</h1>
+      <p>Formación técnica en danza clásica, ballet, lyrical jazz y gimnasia artística para niñas y adolescentes en
+        Buenos Aires.</p>
+      <nav>
+        <ul>
+          <li><a href="/">Inicio</a></li>
+          <li><a href="/cursos">Cursos y Horarios</a></li>
+          <li><a href="/competition">Elite Competition</a></li>
+          <li><a href="/nosotros">Quiénes Somos</a></li>
+          <li><a href="/login">Acceso Alumnos</a></li>
+        </ul>
+      </nav>
+    </header>
+  </div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
 </html>
