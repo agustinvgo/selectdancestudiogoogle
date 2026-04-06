@@ -1,0 +1,1 @@
+id, nombre, descripcion, nivel, categoria, tipo, profesor, profesor_id, dia_semana, hora_inicio, hora_fin, cupo_maximo, activo, created_at, updated_at

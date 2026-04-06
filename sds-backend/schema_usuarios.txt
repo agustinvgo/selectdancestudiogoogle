@@ -1,0 +1,1 @@
+id, email, password_hash, nombre, apellido, primer_login, rol, activo, created_at, updated_at, two_factor_secret, two_factor_enabled, two_factor_backup_codes, last_activity, foto_perfil, rol_display, orden

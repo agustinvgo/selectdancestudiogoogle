@@ -1,0 +1,10 @@
+id
+usuario_id
+fecha_nacimiento
+dni
+nombre_padre
+email_padre
+direccion
+monto_mensualidad
+created_at
+updated_at

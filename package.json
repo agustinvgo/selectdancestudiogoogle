@@ -1,0 +1,35 @@
+{
+  "name": "selectdancestudiogoogle",
+  "version": "1.0.0",
+  "description": "Sistema integral para la gestión de alumnos, cursos, asistencias y pagos para **Select Dance Studio**.",
+  "main": "index.js",
+  "scripts": {
+    "dev:backend": "npm run dev --prefix sds-backend",
+    "dev:frontend": "npm run dev --prefix sds-frontend",
+    "deploy": "node maintenance/deploy_docker.js",
+    "deploy:old": "node deploy_backup.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agustinvgo/selectdancestudiogoogle.git"
+  },
+  "keywords": [],
+  "author": "Agustin",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/agustinvgo/selectdancestudiogoogle/issues"
+  },
+  "homepage": "https://github.com/agustinvgo/selectdancestudiogoogle#readme",
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "dotenv": "^16.4.7",
+    "node-ssh": "^13.2.0"
+  },
+  "devDependencies": {
+    "archiver": "^7.0.1",
+    "dotenv": "^17.3.1",
+    "node-ssh": "^13.2.0"
+  }
+}

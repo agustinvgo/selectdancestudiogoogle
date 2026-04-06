@@ -1,0 +1,28 @@
+User-agent: *
+Allow: /
+Allow: /cursos
+Allow: /competition
+Allow: /nosotros
+Allow: /clase-de-prueba
+Allow: /faq
+Allow: /contacto
+
+Disallow: /admin
+Disallow: /alumno
+Disallow: /login
+Disallow: /reset-password
+Disallow: /forgot-password
+Disallow: /cambiar-password
+Disallow: /pago-exitoso
+Disallow: /pago-fallido
+Disallow: /pago-pendiente
+Disallow: /api/
+
+# Crawl delay for secondary crawlers
+User-agent: AhrefsBot
+Crawl-delay: 10
+
+User-agent: SemrushBot
+Crawl-delay: 10
+
+Sitemap: https://www.selectdancestudio.com/sitemap.xml

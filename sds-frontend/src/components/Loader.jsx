@@ -1,10 +1,10 @@
 const Loader = ({ fullScreen = true }) => {
     if (fullScreen) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-900">
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="text-center">
                     <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-sds-red"></div>
-                    <p className="mt-4 text-gray-400">Cargando...</p>
+                    <p className="mt-4 text-gray-500">Cargando...</p>
                 </div>
             </div>
         );
@@ -18,3 +18,4 @@ const Loader = ({ fullScreen = true }) => {
 };
 
 export default Loader;
+

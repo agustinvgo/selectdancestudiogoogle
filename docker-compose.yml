@@ -1,0 +1,155 @@
+version: '3.8'
+
+services:
+  # ============================================================
+  # 1. ENRUTAMIENTO Y SEGURIDAD (CANDADO SSL / HTTPS)
+  # ============================================================
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy:alpine
+    container_name: nginx-proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - ENABLE_IPV6=true
+    volumes:
+      - conf:/etc/nginx/conf.d
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - certs:/etc/nginx/certs:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    networks:
+      - sds-network
+
+  acme-companion:
+    image: nginxproxy/acme-companion
+    container_name: nginx-proxy-acme
+    restart: always
+    environment:
+      - DEFAULT_EMAIL=selectdancestudio.ar@gmail.com
+      - NGINX_PROXY_CONTAINER=nginx-proxy
+    volumes:
+      - conf:/etc/nginx/conf.d
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - certs:/etc/nginx/certs:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - acme:/etc/acme.sh
+    depends_on:
+      - nginx-proxy
+    networks:
+      - sds-network
+
+  # ============================================================
+  # 2. APLICACIONES Y BASE DE DATOS
+  # ============================================================
+  db:
+    image: mysql:8.0
+    container_name: sds-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpass}
+      MYSQL_DATABASE: ${DB_NAME:-select_dance_db}
+      MYSQL_USER: ${DB_USER:-sds_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-sds_pass}
+    volumes:
+      - sds_db_data:/var/lib/mysql
+      # Scripts SQL que se ejecutan automáticamente al crear la DB por primera vez
+      - ./database:/docker-entrypoint-initdb.d
+    networks:
+      - sds-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-rootpass}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  backend:
+    build:
+      context: ./sds-backend
+      dockerfile: Dockerfile
+    container_name: sds-backend
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=db
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - JWT_SECRET=${JWT_SECRET}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ADMIN_PHONE=${ADMIN_PHONE}
+      - MERCADOPAGO_ACCESS_TOKEN=${MERCADOPAGO_ACCESS_TOKEN:-}
+      - PORT=5000
+      - FRONTEND_URL=${VITE_URL_BASE}
+    expose:
+      - "5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      # Persistencia para la sesión de WhatsApp bot
+      - sds_wwebjs_auth:/app/.wwebjs_auth
+      - sds_wwebjs_cache:/app/.wwebjs_cache
+      # Persistencia para subidas de archivos (comprobantes, etc)
+      - ./sds-backend/uploads:/app/uploads
+      - ./sds-backend/logs:/app/logs
+    networks:
+      - sds-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  frontend:
+    build:
+      context: ./sds-frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL}
+        - VITE_URL_BASE=${VITE_URL_BASE}
+    container_name: sds-frontend
+    restart: always
+    expose:
+      - "80"
+    environment:
+      - VIRTUAL_HOST=selectdancestudio.com,www.selectdancestudio.com
+      - LETSENCRYPT_HOST=selectdancestudio.com,www.selectdancestudio.com
+      - LETSENCRYPT_EMAIL=selectdancestudio.ar@gmail.com
+    depends_on:
+      - backend
+      - nginx-proxy
+    networks:
+      - sds-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+
+networks:
+  sds-network:
+    driver: bridge
+
+volumes:
+  sds_db_data:
+  sds_wwebjs_auth:
+  sds_wwebjs_cache:
+  conf:
+  vhost:
+  html:
+  certs:
+  acme:

@@ -13,9 +13,13 @@ const PrivateRoute = ({ children, allowedRoles = [] }) => {
         return <Navigate to="/login" replace />;
     }
 
+    if (user.primer_login == 1) {
+        return <Navigate to="/cambiar-password" replace />;
+    }
+
     if (allowedRoles.length > 0 && !allowedRoles.includes(user.rol)) {
         // Usuario autenticado pero sin permisos para esta ruta
-        return <Navigate to={user.rol === 'admin' ? '/admin' : '/alumno'} replace />;
+        return <Navigate to={user.rol === 'admin' || user.rol === 'profesor' ? '/admin' : '/alumno'} replace />;
     }
 
     return children;

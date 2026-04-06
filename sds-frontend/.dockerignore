@@ -1,0 +1,13 @@
+node_modules/
+npm-debug.log*
+.env
+.env.*
+*.log
+dist/
+.vscode/
+.idea/
+coverage/
+case_checker.js
+case_errors.txt
+check_cases.cjs
+*.txt

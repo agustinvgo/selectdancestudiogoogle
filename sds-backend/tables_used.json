@@ -1,0 +1,78 @@
+{
+  "alumnos.model.js": [
+    "alumnos",
+    "usuarios",
+    "inscripciones_curso",
+    "cursos",
+    "asistencias",
+    "inscripciones_evento",
+    "pagos",
+    "eventos",
+    "uniformes"
+  ],
+  "asistencias.model.js": [
+    "asistencias",
+    "cursos",
+    "alumnos",
+    "usuarios",
+    "inscripciones_curso",
+    "es",
+    "presente"
+  ],
+  "bot.model.js": [
+    "bot_config",
+    "valor",
+    "bot_knowledge"
+  ],
+  "clase_prueba.model.js": [
+    "clases_prueba",
+    "clases_prueba_disponibles",
+    "cursos"
+  ],
+  "consultas.model.js": [
+    "consultas"
+  ],
+  "conversacion.model.js": [
+    "conversaciones"
+  ],
+  "cursos.model.js": [
+    "inscripciones_curso",
+    "cursos",
+    "usuarios",
+    "alumnos"
+  ],
+  "equipo.model.js": [
+    "usuarios"
+  ],
+  "espera.model.js": [
+    "clases_prueba_espera"
+  ],
+  "eventos.model.js": [
+    "inscripciones_evento",
+    "eventos",
+    "alumnos",
+    "usuarios"
+  ],
+  "gastos.model.js": [
+    "gastos",
+    "usuarios"
+  ],
+  "notificacion.model.js": [
+    "notificaciones"
+  ],
+  "pagos.model.js": [
+    "pagos",
+    "cursos",
+    "alumnos",
+    "usuarios"
+  ],
+  "password-reset.model.js": [
+    "password_resets"
+  ],
+  "productos.model.js": [
+    "productos"
+  ],
+  "usuarios.model.js": [
+    "usuarios"
+  ]
+}

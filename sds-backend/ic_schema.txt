@@ -1,0 +1,6 @@
+id
+alumno_id
+curso_id
+fecha_inscripcion
+activo
+created_at

@@ -1,0 +1,36 @@
+const { NodeSSH } = require('node-ssh');
+require('dotenv').config();
+
+const ssh = new NodeSSH();
+
+async function finalReset() {
+    try {
+        await ssh.connect({
+            host: process.env.SSH_HOST || '187.77.62.115',
+            username: process.env.SSH_USER || 'root',
+            password: process.env.SSH_PASSWORD || 'YERkw147?N@C)?(CeW1#'
+        });
+
+        const hash = '$2b$10$HEDqokVXbI8P7bEfH9hD5.22/uPWmu1mRhgANK1HZHMdRORviP6Ht6';
+        const email = 'agustin.v@selectdancestudio.com';
+        const dbUser = 'sdsuser';
+        const dbPass = 'SWplMggtREJwf@S43@';
+        const dbName = 'select_dance_db';
+
+        console.log(`--- Reseteando password para ${email} ---`);
+        const res = await ssh.execCommand(`mysql -u ${dbUser} -p'${dbPass}' ${dbName} -e "UPDATE usuarios SET password_hash = '${hash}', activo = 1 WHERE email = '${email}'"`);
+        
+        console.log('STDOUT:', res.stdout);
+        console.log('STDERR:', res.stderr);
+
+        console.log('--- Verificación Final ---');
+        const check = await ssh.execCommand(`mysql -u ${dbUser} -p'${dbPass}' ${dbName} -e "SELECT email, activo FROM usuarios WHERE email = '${email}'"`);
+        console.log(check.stdout);
+
+        ssh.dispose();
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+finalReset();
