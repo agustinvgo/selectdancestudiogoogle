@@ -11,23 +11,23 @@ import Sidebar from './components/Sidebar';
 import Loader from './components/Loader';
 
 // Pages
-import Login from './pages/Login';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import AdminDashboard from './pages/AdminDashboard';
-import GestionAlumnos from './pages/GestionAlumnos';
-import GestionCursos from './pages/GestionCursos';
-import GestionAsistencias from './pages/GestionAsistencias';
-import GestionPagos from './pages/GestionPagos';
-import GestionEventos from './pages/GestionEventos';
-import CalendarioGeneral from './pages/CalendarioGeneral';
-import AlumnoDashboard from './pages/AlumnoDashboard';
-import PerfilAlumno from './pages/PerfilAlumno';
-import MisClases from './pages/MisClases';
-import MisAsistencias from './pages/MisAsistencias';
-import MisPagos from './pages/MisPagos';
-import MisEventos from './pages/MisEventos';
-import Notificaciones from './pages/Notificaciones';
+import Login from './pages/auth/Login';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import GestionAlumnos from './pages/admin/GestionAlumnos';
+import GestionCursos from './pages/admin/GestionCursos';
+import GestionAsistencias from './pages/admin/GestionAsistencias';
+import GestionPagos from './pages/admin/GestionPagos';
+import GestionEventos from './pages/admin/GestionEventos';
+import CalendarioGeneral from './pages/common/CalendarioGeneral';
+import AlumnoDashboard from './pages/alumno/AlumnoDashboard';
+import PerfilAlumno from './pages/alumno/PerfilAlumno';
+import MisClases from './pages/alumno/MisClases';
+import MisAsistencias from './pages/alumno/MisAsistencias';
+import MisPagos from './pages/alumno/MisPagos';
+import MisEventos from './pages/alumno/MisEventos';
+import Notificaciones from './pages/common/Notificaciones';
 import WhatsAppBot from './pages/WhatsAppBot';
 
 // Layout para rutas protegidas

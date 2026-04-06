@@ -1,8 +1,14 @@
+/**
+ * @file api.js
+ * @description Módulo central para la interacción del Frontend con el Backend.
+ * Utiliza Axios para multiplexar peticiones e interceptar requests/responses.
+ * Maneja automáticamente la inyección de JWT y la desconexión por fin de sesión (401).
+ */
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// Instancia de Axios
+// Instancia de Axios configurada globalmente
 const api = axios.create({
     baseURL: API_URL,
     headers: {
@@ -127,6 +133,14 @@ export const estadisticasAPI = {
     getTasaRetencion: () => api.get('/estadisticas/tasa-retencion'),
     getNuevosAlumnosPorMes: () => api.get('/estadisticas/nuevos-alumnos'),
     getDistribucionPorCurso: () => api.get('/estadisticas/distribucion-cursos'),
+};
+// ===== WHATSAPP BOT =====
+export const whatsappAPI = {
+    getStatus: () => api.get('/whatsapp/status'),
+    getQR: () => api.get('/whatsapp/qr'),
+    initialize: () => api.post('/whatsapp/initialize'),
+    sendMessage: (phone, message) => api.post('/whatsapp/send', { phone, message }),
+    logout: () => api.post('/whatsapp/logout'),
 };
 
 

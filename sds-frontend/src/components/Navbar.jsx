@@ -1,3 +1,8 @@
+/**
+ * @file Navbar.jsx
+ * @description Componente de navegación superior compartido en todos los layouts privados.
+ * Muestra el logo, el nombre del usuario y provee el botón universal de Logout.
+ */
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';

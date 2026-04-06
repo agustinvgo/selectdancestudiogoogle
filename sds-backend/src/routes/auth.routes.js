@@ -1,3 +1,8 @@
+/**
+ * @file auth.routes.js
+ * @description Define todas las rutas relacionadas con la autenticación de usuarios.
+ * Intercepta peticiones HTTP y las despacha a los métodos del `auth.controller`.
+ */
 const express = require('express');
 const router = express.Router();
 const AuthController = require('../controllers/auth.controller');

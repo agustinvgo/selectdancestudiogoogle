@@ -1,3 +1,11 @@
+/**
+ * @file AlumnoDashboard.jsx
+ * @description Vista principal del Panel del Alumno.
+ * Carga y unifica diversas APIs (Cursos, Eventos, Asistencias y Pagos) 
+ * para presentarle al estudiante un resumen de su estado directamente 
+ * al iniciar sesión.
+ */
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { cursosAPI, eventosAPI, asistenciasAPI, pagosAPI } from '../services/api';
@@ -5,7 +13,10 @@ import { CalendarIcon, ClockIcon, CheckCircleIcon } from '@heroicons/react/24/ou
 import Loader from '../components/Loader';
 
 const AlumnoDashboard = () => {
+    // Contexto Global de Autenticación
     const { user } = useAuth();
+    
+    // Estados locales para almacenar la información de los servicios
     const [loading, setLoading] = useState(true);
     const [cursos, setCursos] = useState([]);
     const [eventos, setEventos] = useState([]);
@@ -14,18 +25,25 @@ const AlumnoDashboard = () => {
 
     const alumnoId = user?.alumno?.id;
 
+    // Disparador principal: al detectar el ID del alumno con la sesión iniciada
     useEffect(() => {
         if (alumnoId) {
             cargarDatos();
         }
     }, [alumnoId]);
 
+    /**
+     * @function cargarDatos
+     * @description Realiza peticiones asíncronas en paralelo usando Promise.all 
+     * para reducir el tiempo de carga del Dashboard.
+     */
     const cargarDatos = async () => {
         try {
             setLoading(true);
             const mes = new Date().getMonth() + 1;
             const anio = new Date().getFullYear();
 
+            // Peticiones agrupadas
             const [cursosRes, eventosRes, asistenciasRes, pagosRes] = await Promise.all([
                 cursosAPI.getByAlumno(alumnoId),
                 eventosAPI.getByAlumno(alumnoId),
@@ -33,6 +51,7 @@ const AlumnoDashboard = () => {
                 pagosAPI.getByAlumno(alumnoId)
             ]);
 
+            // Seteo de los distintos estados
             setCursos(cursosRes.data.data);
             setEventos(eventosRes.data.data.filter(e => new Date(e.fecha) >= new Date()));
             setAsistenciasMes(asistenciasRes.data.data.estadisticas);

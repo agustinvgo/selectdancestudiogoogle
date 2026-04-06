@@ -31,3 +31,9 @@ Thumbs.db
 *.log
 logs/
 npm-debug.log
+
+# WhatsApp Web JS & Puppeteer Cache
+.wwebjs_auth/
+.wwebjs_cache/
+.chrome/
+.puppeteer/

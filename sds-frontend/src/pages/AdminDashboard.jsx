@@ -1,3 +1,8 @@
+/**
+ * @file AdminDashboard.jsx
+ * @description Vista raíz del panel de administradores. 
+ * Funciona como HUB inicial para que el administrador acceda a la gestión general.
+ */
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/Loader';

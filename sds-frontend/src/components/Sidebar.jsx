@@ -10,6 +10,7 @@ import {
     AcademicCapIcon,
     ChartBarIcon,
     BellAlertIcon,
+    ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 
 const Sidebar = () => {
@@ -23,6 +24,7 @@ const Sidebar = () => {
         { to: '/admin/pagos', icon: CurrencyDollarIcon, label: 'Pagos' },
         { to: '/admin/eventos', icon: CalendarDaysIcon, label: 'Eventos' },
         { to: '/admin/notificaciones', icon: BellAlertIcon, label: 'Notificaciones' },
+        { to: '/admin/whatsapp', icon: ChatBubbleLeftRightIcon, label: 'WhatsApp Bot' },
     ];
 
     const alumnoLinks = [

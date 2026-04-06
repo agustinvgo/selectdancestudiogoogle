@@ -1,6 +1,13 @@
+/**
+ * @file index.js
+ * @description Punto de entrada principal para el servidor de Select Dance Studio.
+ * Este archivo inicializa la aplicación Express, configura los middlewares globales
+ * (CORS, body parser), enlaza todas las rutas de la API y arranca el servidor.
+ */
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const path = require('path');
 
 
 const app = express();
@@ -14,6 +21,13 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Servir imágenes/archivos subidos (ej: /uploads/perfiles/...)
+app.use('/uploads', express.static(path.join(__dirname, '../uploads'), {
+    maxAge: '7d',
+    etag: true,
+    lastModified: true
+}));
+
 // Importar rutas
 const authRoutes = require('./routes/auth.routes');
 const alumnosRoutes = require('./routes/alumnos.routes');
@@ -23,6 +37,7 @@ const eventosRoutes = require('./routes/eventos.routes');
 const cursosRoutes = require('./routes/cursos.routes');
 const emailRoutes = require('./routes/email.routes');
 const estadisticasRoutes = require('./routes/estadisticas.routes');
+const whatsappRoutes = require('./routes/whatsapp.routes');
 
 
 // Registrar rutas
@@ -34,6 +49,7 @@ app.use('/api/eventos', eventosRoutes);
 app.use('/api/cursos', cursosRoutes);
 app.use('/api/emails', emailRoutes);
 app.use('/api/estadisticas', estadisticasRoutes);
+app.use('/api/whatsapp', whatsappRoutes);
 
 
 // Ruta de bienvenida

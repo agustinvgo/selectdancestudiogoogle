@@ -1,3 +1,8 @@
+/**
+ * @file auth.controller.js
+ * @description Controlador dedicado a manejar la autenticación, generación de tokens JWT,
+ * y recuperación de constraseñas utilizando bcrypt y JWT.
+ */
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const UsuariosModel = require('../models/usuarios.model');
@@ -5,7 +10,11 @@ const AlumnosModel = require('../models/alumnos.model');
 const emailService = require('../services/email.service');
 
 const AuthController = {
-    // Login
+    /**
+     * @method login
+     * @description Valida credenciales, comprueba hashes de contraseña y retorna 
+     * un JWT válido junto a la información serializada del usuario logeado.
+     */
     async login(req, res) {
         try {
             const { email, password } = req.body;
@@ -81,7 +90,11 @@ const AuthController = {
         }
     },
 
-    // Registro (solo admin puede crear usuarios)
+    /**
+     * @method register
+     * @description Permite a un administrador registrar nuevos usuarios (generalmente alumnos),
+     * hashear sus contraseñas en la DB y disparar correos de bienvenida automáticos.
+     */
     async register(req, res) {
         try {
             const { email, password, rol, alumnoData } = req.body;
@@ -146,7 +159,11 @@ const AuthController = {
         }
     },
 
-    // Obtener datos del usuario autenticado
+    /**
+     * @method me
+     * @description Endpoint protegido que devulve la información del usuario en sesión 
+     * leyendo el token JWT de las cabeceras desde el middleware anterior.
+     */
     async me(req, res) {
         try {
             const usuario = await UsuariosModel.findById(req.user.id);
@@ -180,7 +197,11 @@ const AuthController = {
         }
     },
 
-    // Solicitar recuperación de contraseña
+    /**
+     * @method forgotPassword
+     * @description Inicia el flujo de recuperación de contraseña generando un token seguro de 
+     * un solo uso y enviándolo por e-mail al usuario mediante nodemailer.
+     */
     async forgotPassword(req, res) {
         try {
             const { email } = req.body;
@@ -233,7 +254,11 @@ const AuthController = {
         }
     },
 
-    // Restablecer contraseña con token
+    /**
+     * @method resetPassword
+     * @description Valida el token de un solo uso recibido por email y reemplaza
+     * la constraseña encriptada por una nueva.
+     */
     async resetPassword(req, res) {
         try {
             const { token, newPassword } = req.body;

@@ -1,6 +1,15 @@
+/**
+ * @file auth.middleware.js
+ * @description Middlewares encargados de la validación de tokens y 
+ * comprobación de roles para proteger rutas de la API.
+ */
 const jwt = require('jsonwebtoken');
 
-// Verificar token JWT
+/**
+ * @function verifyToken
+ * @description Valida la existencia y vigencia de un JWT pasado por Cabeceras (Bearer).
+ * Si es válido, inyecta el usuario decodificado en `req.user` para su uso en los controladores.
+ */
 const verifyToken = (req, res, next) => {
     try {
         const token = req.headers.authorization?.split(' ')[1]; // Bearer TOKEN
@@ -23,7 +32,11 @@ const verifyToken = (req, res, next) => {
     }
 };
 
-// Verificar que el usuario sea admin
+/**
+ * @function isAdmin
+ * @description Middleware para bloquear el acceso a cualquier usuario que no tenga
+ * el rol de 'admin'. Debe usarse inmediatamente después de `verifyToken`.
+ */
 const isAdmin = (req, res, next) => {
     if (req.user.rol !== 'admin') {
         return res.status(403).json({
@@ -34,7 +47,10 @@ const isAdmin = (req, res, next) => {
     next();
 };
 
-// Verificar que el usuario sea alumno
+/**
+ * @function isAlumno
+ * @description Middleware para bloquear el acceso a usuarios que no tengan rol 'alumno'.
+ */
 const isAlumno = (req, res, next) => {
     if (req.user.rol !== 'alumno') {
         return res.status(403).json({
@@ -45,7 +61,11 @@ const isAlumno = (req, res, next) => {
     next();
 };
 
-// Verificar que sea el dueño de los datos o admin
+/**
+ * @function isOwnerOrAdmin
+ * @description Asegura que el recurso solicitado pertenezca al usuario que hace 
+ * la petición, a menos que el solicitante sea un 'admin' (quien tiene acceso total).
+ */
 const isOwnerOrAdmin = (req, res, next) => {
     const userId = parseInt(req.params.id);
 

@@ -1,3 +1,9 @@
+/**
+ * @file AuthContext.jsx
+ * @description Proveedor de estado global para la Sesión del Usuario.
+ * Mantiene la persistencia en `localStorage`, realiza llamadas a la API de auth
+ * y provee funciones genéricas como login y logout a todo el árbol de React.
+ */
 import { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI } from '../services/api';
 
