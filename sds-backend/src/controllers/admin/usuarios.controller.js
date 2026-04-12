@@ -120,7 +120,7 @@ const UsuariosController = {
     async deleteProfesor(req, res) {
         try {
             const { id } = req.params;
-            await db.query('UPDATE usuarios SET activo = 0 WHERE id = ?', [id]);
+            await db.query('UPDATE usuarios SET activo = 0 WHERE id = ? AND rol != "admin"', [id]);
 
             res.json({
                 success: true,

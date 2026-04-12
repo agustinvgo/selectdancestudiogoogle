@@ -23,6 +23,10 @@ const GestionPagos = () => {
     const [filtroAnio, setFiltroAnio] = useState(0);
     const [filtroAlumno, setFiltroAlumno] = useState('');
 
+    // Bug #2 fix: helper que devuelve la fecha local en YYYY-MM-DD sin desfase UTC
+    // new Date().toISOString() en Argentina después de las 21h devuelve el día siguiente
+    const localToday = () => new Date().toLocaleDateString('en-CA'); // 'en-CA' => YYYY-MM-DD
+
     const [modalOpen, setModalOpen] = useState(false);
     const [modalMetodoPagoOpen, setModalMetodoPagoOpen] = useState(false);
     const [modalAjusteOpen, setModalAjusteOpen] = useState(false);
@@ -33,7 +37,7 @@ const GestionPagos = () => {
     const [pagoSeleccionado, setPagoSeleccionado] = useState(null);
     const [metodoPagoSeleccionado, setMetodoPagoSeleccionado] = useState('efectivo');
     const [metodoOtroTexto, setMetodoOtroTexto] = useState('');
-    const [fechaPago, setFechaPago] = useState(new Date().toISOString().split('T')[0]);
+    const [fechaPago, setFechaPago] = useState(localToday());
     const [ajusteData, setAjusteData] = useState({ pagoId: null, tipo: 'descuento', porcentaje: '', motivo: '' });
     const [exporting, setExporting] = useState(false);
     
@@ -68,7 +72,7 @@ const GestionPagos = () => {
     const abrirModalMetodoPago = (pagoId) => {
         setPagoSeleccionado(pagoId);
         setMetodoPagoSeleccionado('efectivo');
-        setFechaPago(new Date().toISOString().split('T')[0]);
+        setFechaPago(localToday()); // Bug #2 fix: usar fecha local
         setModalMetodoPagoOpen(true);
     };
 
@@ -88,7 +92,8 @@ const GestionPagos = () => {
 
     const aplicarAjusteManual = async () => {
         if (!ajusteData.pagoId || !ajusteData.porcentaje) return toast.warning('Debes seleccionar un pago y especificar un porcentaje');
-        const pago = pagos.find(p => p.id === ajusteData.pagoId);
+        // Bug #6 fix: guard contra pagos undefined si la query aún está cargando
+        const pago = (pagos || []).find(p => p.id === ajusteData.pagoId);
         if (!pago) return;
 
         const montoBase = pago.monto_original || pago.monto;

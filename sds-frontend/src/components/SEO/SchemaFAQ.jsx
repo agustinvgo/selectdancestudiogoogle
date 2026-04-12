@@ -64,6 +64,22 @@ const SchemaFAQ = () => {
                     text: 'Las cuotas varían según el nivel y la cantidad de clases semanales. Contactanos por WhatsApp o completá el formulario para recibir la información de aranceles actualizada.',
                 },
             },
+            {
+                '@type': 'Question',
+                name: '¿Se puede alquilar una sala en Select Dance Studio para clases o ensayos?',
+                acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Sí. Contamos con salas profesionales disponibles para alquiler por horas, ideales para clases privadas, ensayos, workshops, sesiones de fotos, videoclips y castings. Las salas incluyen piso de madera flotante, espejos, barras de ballet y sistema de sonido. Para consultar disponibilidad y precios, contactanos por WhatsApp o email.',
+                },
+            },
+            {
+                '@type': 'Question',
+                name: '¿Cómo reservo una sala en Select Dance Studio Palermo?',
+                acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Para reservar una sala escribinos por WhatsApp o al correo selectdancestudio.ar@gmail.com. Te confirmamos la disponibilidad horaria y coordinamos los detalles de forma personalizada.',
+                },
+            },
         ],
     };
 

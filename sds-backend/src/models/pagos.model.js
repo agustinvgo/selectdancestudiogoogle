@@ -404,15 +404,16 @@ const PagosModel = {
     },
 
     // Verificar si ya existe pago de mensualidad para un mes/año específico
+    // Bug #3 fix: usar LOWER() y LIKE para no depender del case exacto de 'Mensualidad'
     async existsForMonth(alumnoId, mes, anio) {
         try {
-            // Buscamos pagos que venzan en ese mes/año
             const [rows] = await db.query(`
                 SELECT id FROM pagos 
                 WHERE alumno_id = ? 
-                AND concepto = 'Mensualidad'
+                AND (LOWER(concepto) LIKE '%mensualidad%' OR es_mensual = 1)
                 AND MONTH(fecha_vencimiento) = ?
                 AND YEAR(fecha_vencimiento) = ?
+                AND estado != 'pagado'
             `, [alumnoId, mes, anio]);
             return rows.length > 0;
         } catch (error) {

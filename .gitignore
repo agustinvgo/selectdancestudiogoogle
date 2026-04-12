@@ -32,7 +32,10 @@ Thumbs.db
 logs/
 npm-debug.log
 
-# WhatsApp Web JS & Puppeteer Cache
+# WhatsApp Baileys session (credenciales de sesión — no commitear)
+baileys_auth/
+
+# Legacy (whatsapp-web.js + Puppeteer) — ya no se usan
 .wwebjs_auth/
 .wwebjs_cache/
 .chrome/

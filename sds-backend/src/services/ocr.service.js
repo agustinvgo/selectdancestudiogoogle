@@ -93,7 +93,11 @@ async function processImageWithVision(filePath) {
         // Leer imagen y convertir a Base64
         const imageBuffer = fs.readFileSync(filePath);
         const base64Image = imageBuffer.toString('base64');
-        const dataUrl = `data:image/jpeg;base64,${base64Image}`; // Asumimos jpeg por simplicidad, API lo maneja bien
+        // Bug #4 fix: detectar MIME type real en vez de hardcodear jpeg para todos los archivos
+        const ext = path.extname(filePath).toLowerCase();
+        const extToMime = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.gif': 'image/gif' };
+        const mimeType = extToMime[ext] || 'image/jpeg';
+        const dataUrl = `data:${mimeType};base64,${base64Image}`;
 
         const response = await openai.chat.completions.create({
             model: "gpt-4o-mini",

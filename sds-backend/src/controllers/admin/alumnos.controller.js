@@ -17,9 +17,10 @@ const AlumnosController = {
                 alumnos = await AlumnosModel.findByProfesorId(req.user.id);
             } else {
                 // Admin ve todos (paginado)
+                // Bug #1 fix: pasar un único objeto params compatible con la firma corregida
                 const params = {
                     page: parseInt(req.query.page) || 1,
-                    limit: parseInt(req.query.limit) || 1000, // Default high for now if no limit
+                    limit: parseInt(req.query.limit) || 1000,
                     search: req.query.search || '',
                     activo: req.query.activo
                 };
@@ -204,11 +205,13 @@ const AlumnosController = {
             const updateUsuario = {};
             let isUserUpdate = false;
 
-            if (updateData.nombre) { updateUsuario.nombre = updateData.nombre; isUserUpdate = true; }
-            if (updateData.apellido) { updateUsuario.apellido = updateData.apellido; isUserUpdate = true; }
-            if (updateData.telefono) { updateUsuario.telefono = updateData.telefono; isUserUpdate = true; }
+            // Error #5 fix: usar !== undefined en vez de truthy check
+            // para permitir borrar campos enviando string vacío ("")
+            if (updateData.nombre !== undefined) { updateUsuario.nombre = updateData.nombre; isUserUpdate = true; }
+            if (updateData.apellido !== undefined) { updateUsuario.apellido = updateData.apellido; isUserUpdate = true; }
+            if (updateData.telefono !== undefined) { updateUsuario.telefono = updateData.telefono || null; isUserUpdate = true; }
             if (req.file) { updateUsuario.foto_perfil = `/uploads/perfiles/${req.file.filename}`; isUserUpdate = true; }
-            if (updateData.email) { updateUsuario.email = updateData.email; isUserUpdate = true; }
+            if (updateData.email !== undefined) { updateUsuario.email = updateData.email; isUserUpdate = true; }
 
             let updatedUsuario = false;
             if (isUserUpdate) {

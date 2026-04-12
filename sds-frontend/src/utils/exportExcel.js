@@ -1,11 +1,12 @@
-import * as XLSX from 'xlsx';
-
 /**
- * Utilidad para exportar datos a Excel
+ * Utilidad asíncrona para exportar datos a Excel mediante carga perezosa de xlsx
  */
 
 // Exportar array de objetos a Excel
-export const exportToExcel = (data, filename = 'export') => {
+export const exportToExcel = async (data, filename = 'export') => {
+    // Dynamic import to split chunk
+    const XLSX = await import('xlsx');
+
     // Crear un nuevo workbook
     const wb = XLSX.utils.book_new();
 
@@ -20,7 +21,7 @@ export const exportToExcel = (data, filename = 'export') => {
 };
 
 // Exportar lista de alumnos
-export const exportAlumnos = (alumnos) => {
+export const exportAlumnos = async (alumnos) => {
     const data = alumnos.map(alumno => ({
         'ID': alumno.id,
         'Nombre': alumno.nombre,
@@ -35,11 +36,11 @@ export const exportAlumnos = (alumnos) => {
         'Fecha Registro': new Date(alumno.fecha_registro).toLocaleDateString('es-AR')
     }));
 
-    exportToExcel(data, 'alumnos');
+    await exportToExcel(data, 'alumnos');
 };
 
 // Exportar asistencias
-export const exportAsistencias = (asistencias, titulo = 'asistencias') => {
+export const exportAsistencias = async (asistencias, titulo = 'asistencias') => {
     const data = asistencias.map(asist => ({
         'Fecha': new Date(asist.fecha).toLocaleDateString('es-AR'),
         'Alumno': `${asist.nombre || ''} ${asist.apellido || ''}`,
@@ -48,11 +49,13 @@ export const exportAsistencias = (asistencias, titulo = 'asistencias') => {
         'Observaciones': asist.observaciones || '-'
     }));
 
-    exportToExcel(data, titulo);
+    await exportToExcel(data, titulo);
 };
 
 // Exportar pagos enriquecidos
-export const exportPagos = (pagos, alumnos = []) => {
+export const exportPagos = async (pagos, alumnos = []) => {
+    const XLSX = await import('xlsx');
+
     // Mapa de alumnos para búsqueda rápida por ID
     const alumnosMap = alumnos.reduce((map, alumno) => {
         map[alumno.id] = alumno;
@@ -120,7 +123,7 @@ export const exportPagos = (pagos, alumnos = []) => {
 };
 
 // Exportar cursos
-export const exportCursos = (cursos) => {
+export const exportCursos = async (cursos) => {
     const data = cursos.map(curso => ({
         'ID': curso.id,
         'Nombre': curso.nombre,
@@ -135,11 +138,11 @@ export const exportCursos = (cursos) => {
         'Activo': curso.activo ? 'Sí' : 'No'
     }));
 
-    exportToExcel(data, 'cursos');
+    await exportToExcel(data, 'cursos');
 };
 
 // Exportar eventos
-export const exportEventos = (eventos) => {
+export const exportEventos = async (eventos) => {
     const data = eventos.map(evento => ({
         'ID': evento.id,
         'Nombre': evento.nombre,
@@ -153,11 +156,13 @@ export const exportEventos = (eventos) => {
         'Inscritos': evento.inscritos_count || evento.participantes?.length || 0
     }));
 
-    exportToExcel(data, 'eventos');
+    await exportToExcel(data, 'eventos');
 };
 
 // Exportar con múltiples hojas
-export const exportMultiSheet = (sheets, filename = 'reporte') => {
+export const exportMultiSheet = async (sheets, filename = 'reporte') => {
+    const XLSX = await import('xlsx');
+    
     const wb = XLSX.utils.book_new();
 
     sheets.forEach(sheet => {

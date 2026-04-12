@@ -63,8 +63,13 @@ const QuienesSomos = lazy(() => import('./pages/public/QuienesSomos.jsx'));
 
 // Layout para rutas protegidas
 const ProtectedLayout = ({ children }) => {
-    // Inicializar basado en el ancho de pantalla (abierto en desktop, cerrado en mobile)
-    const [sidebarOpen, setSidebarOpen] = React.useState(window.innerWidth >= 1024);
+    // Inicializar en false siempre: evita layout thrashing de window.innerWidth en SSR/hydration
+    const [sidebarOpen, setSidebarOpen] = React.useState(false);
+
+    React.useEffect(() => {
+        // Abrir sidebar en desktop tras el primer paint
+        if (window.innerWidth >= 1024) setSidebarOpen(true);
+    }, []);
 
     return (
         <div className="h-screen overflow-hidden bg-gray-50 flex flex-col">

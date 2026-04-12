@@ -79,7 +79,7 @@ def create_tarball():
             if item.name.endswith(".log"):
                 continue
 
-            tar.add(item, arcname=rel_str)
+            tar.add(item, arcname=rel_str, recursive=False)
             file_count += 1
 
     size_mb = tar_path.stat().st_size / 1024 / 1024

@@ -514,7 +514,7 @@ const WhatsAppController = {
     },
 
     /**
-     * Enviar resumen diario de clases - uno por profesor
+     * Enviar resumen diario de clases - uno por profesor (cron job)
      * GET /api/whatsapp/send-summary
      */
     async enviarResumenClases(req, res) {
@@ -524,6 +524,28 @@ const WhatsAppController = {
         } catch (error) {
             console.error('Error en enviarResumenClases:', error);
             res.status(500).json({ success: false, error: error.message });
+        }
+    },
+
+    /**
+     * Disparar manualmente el resumen diario de cursos del día (desde la UI admin)
+     * POST /api/whatsapp/send-summary
+     */
+    async enviarResumenManual(req, res) {
+        try {
+            console.log('📅 [MANUAL] Admin disparando resumen de cursos del día...');
+            const resultado = await cronService.enviarResumenProfesor();
+            res.json({
+                success: true,
+                message: 'Resumen de cursos del día enviado correctamente por WhatsApp.',
+                data: resultado
+            });
+        } catch (error) {
+            console.error('Error en enviarResumenManual:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error al enviar resumen de cursos: ' + error.message
+            });
         }
     }
 };

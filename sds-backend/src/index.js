@@ -64,6 +64,11 @@ app.use(helmet({
     noSniff: true
 }));
 
+// Trust proxy ANTES del rate limiter (Bug #4 fix):
+// Sin esto, req.ip es siempre la IP del contenedor Nginx y el rate limiter
+// trata a todos los usuarios como la misma IP — un solo usuario puede bloquear a todos.
+app.set('trust proxy', 1);
+
 // Seguridad: Rate Limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
@@ -74,8 +79,6 @@ const limiter = rateLimit({
         success: false,
         message: 'Demasiadas solicitudes desde esta IP, por favor intente nuevamente en 15 minutos.'
     },
-    // Trust proxy si estamos detrás de Nginx/Apache/Cloudflare
-    // trustProxy: true 
 });
 app.use('/api/', limiter);
 
@@ -127,9 +130,6 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 }));
-
-// Trust proxy (required when behind Nginx/Apache/Cloudflare for correct IP in rate limiting)
-app.set('trust proxy', 1);
 
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));

@@ -12,10 +12,13 @@ class ComprobantesService {
         const comprobanteUrl = `/uploads/comprobantes/${file.filename}`;
         
         // 1. Snapshot Inmediato
+        // Error #3 fix: usar fecha local en vez de toISOString() que en UTC puede dar el día siguiente
+        const hoy = new Date();
+        const fechaLocal = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
         await PagosModel.update(pagoId, {
             comprobante_url: comprobanteUrl,
             estado: 'revision',
-            fecha_pago: new Date().toISOString().split('T')[0]
+            fecha_pago: fechaLocal
         });
 
         // 2. Proceso Lento (Background)
@@ -57,12 +60,18 @@ class ComprobantesService {
 
         // 3. Email Administrativo asíncrono
         PagosModel.findById(pagoId).then(async (p) => {
+            if (!p) return;
             const alumno = await AlumnosModel.findById(p.alumno_id);
+            // Bug #2 fix: guard contra alumno null para evitar crash silencioso
+            if (!alumno) {
+                console.warn(`[Comprobantes] No se encontró el alumno ${p.alumno_id} para notificar al admin (pago ${pagoId})`);
+                return;
+            }
             emailService.notificarAdminNuevoComprobante(
                 { concepto: p.concepto, monto: p.monto },
                 { nombre: alumno.nombre, apellido: alumno.apellido }
             );
-        });
+        }).catch(e => console.error('[Comprobantes] Error enviando notificación admin:', e));
 
         return comprobanteUrl;
     }

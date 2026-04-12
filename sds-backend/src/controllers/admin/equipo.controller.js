@@ -87,6 +87,12 @@ const EquipoController = {
             });
         } catch (error) {
             console.error('Error en delete:', error);
+            if (error.message === 'PROTECTED_ADMIN') {
+                return res.status(403).json({
+                    success: false,
+                    message: 'No puedes ocultar o eliminar al administrador principal del equipo.'
+                });
+            }
             res.status(500).json({
                 success: false,
                 message: 'Error al eliminar miembro',

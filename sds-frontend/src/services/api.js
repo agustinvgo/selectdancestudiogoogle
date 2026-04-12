@@ -44,7 +44,8 @@ export const authAPI = {
 
 // ===== ALUMNOS =====
 export const alumnosAPI = {
-    getAll: () => api.get('/alumnos'),
+    // Bug #6 fix: getAll ahora acepta params para filtro y búsqueda (search, activo, page, limit)
+    getAll: (params = {}) => api.get('/alumnos', { params }),
     getById: (id) => api.get(`/alumnos/${id}`),
     getFichaCompleta: (id) => api.get(`/alumnos/${id}/ficha-completa`),
     create: (alumnoData) => api.post('/alumnos', alumnoData, {
@@ -198,6 +199,7 @@ export const whatsappAPI = {
     obtenerTemplates: () => api.get('/whatsapp/templates'),
     obtenerVariables: () => api.get('/whatsapp/variables'),
     testCron: () => api.post('/whatsapp/test-cron'),
+    enviarResumenCursos: () => api.post('/whatsapp/send-summary'),  // resumen de cursos del día
     getStatus: () => api.get('/whatsapp/status'),
 };
 

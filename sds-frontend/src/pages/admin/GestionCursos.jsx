@@ -47,11 +47,15 @@ const GestionCursos = () => {
     });
 
     const { data: alumnosData } = useQuery({
-        queryKey: ['alumnos'],
+        queryKey: ['alumnos_dropdown'],
         queryFn: async () => {
-            const res = await alumnosAPI.getAll();
-            return res.data.data || [];
-        }
+            // Bug #1 fix: pasar limit alto para el dropdown. El backend sin paginación devuelve
+            // un array directo (no {data, total}), por lo que leemos res.data directamente.
+            const res = await alumnosAPI.getAll({ limit: 1000, page: 1 });
+            // Soportar ambas formas de respuesta: paginada ({data}) y plana (array)
+            return res.data?.data ?? res.data ?? [];
+        },
+        staleTime: 5 * 60 * 1000
     });
 
     const { data: profesoresData } = useQuery({

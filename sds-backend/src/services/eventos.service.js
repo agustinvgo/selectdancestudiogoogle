@@ -15,10 +15,22 @@ class EventosService {
         const pagosCreados = [];
 
         // Generar Facturación Automática
-        const fechaVencimiento = evento.fecha || new Date().toISOString().split('T')[0];
-        const fechaObj = evento.fecha ? new Date(evento.fecha) : new Date();
-        const mesEvento = fechaObj.getMonth() + 1;
-        const anioEvento = fechaObj.getFullYear();
+        const fechaVencimiento = evento.fecha
+            ? (typeof evento.fecha === 'string' ? evento.fecha.split('T')[0] : new Date(evento.fecha).toISOString().split('T')[0])
+            : new Date().toISOString().split('T')[0];
+
+        // Bug #2 fix: parsear fecha local para evitar desfase UTC al extraer mes/año
+        let mesEvento, anioEvento;
+        if (evento.fecha) {
+            const fechaStr = typeof evento.fecha === 'string' ? evento.fecha.split('T')[0] : new Date(evento.fecha).toISOString().split('T')[0];
+            const [y, m] = fechaStr.split('-').map(Number);
+            mesEvento = m;
+            anioEvento = y;
+        } else {
+            const hoy = new Date();
+            mesEvento = hoy.getMonth() + 1;
+            anioEvento = hoy.getFullYear();
+        }
 
         const costos = [
             { tipo: 'Inscripción', monto: evento.costo_inscripcion },
@@ -36,7 +48,7 @@ class EventosService {
                         tipo: costo.concepto_tipo || 'Evento',
                         monto: costo.monto,
                         fecha_vencimiento: fechaVencimiento,
-                        estado: 'Pendiente',
+                        estado: 'pendiente', // Bug #5 fix: minúscula para coincidir con el resto del sistema
                         mes: mesEvento,
                         anio: anioEvento
                     });

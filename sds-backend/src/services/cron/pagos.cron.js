@@ -48,7 +48,16 @@ const PagosCron = {
             for (const pago of pagos) {
                 const emailDestino = pago.email || pago.email_alumno || pago.email_padre;
                 if (emailDestino) {
-                    const dias = Math.floor((new Date() - new Date(pago.fecha_vencimiento)) / 86400000);
+                    // Bug #3 fix: calcular días de mora con fechas locales para evitar desfase UTC
+                    const hoy = new Date();
+                    const [y, m, d] = pago.fecha_vencimiento instanceof Date
+                        ? [pago.fecha_vencimiento.getFullYear(), pago.fecha_vencimiento.getMonth(), pago.fecha_vencimiento.getDate()]
+                        : String(pago.fecha_vencimiento).split('T')[0].split('-').map(Number);
+                    const fechaVenc = pago.fecha_vencimiento instanceof Date
+                        ? new Date(pago.fecha_vencimiento.getFullYear(), pago.fecha_vencimiento.getMonth(), pago.fecha_vencimiento.getDate())
+                        : new Date(y, m - 1, d);
+                    const hoyLocal = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+                    const dias = Math.floor((hoyLocal - fechaVenc) / 86400000);
                     await emailService.enviarNotificacionVencido(emailDestino, pago.nombre, pago.concepto, pago.monto, pago.fecha_vencimiento, dias);
                 }
                 if (pago.telefono) await whatsappService.enviarNotificacionVencido({ nombre: pago.nombre, telefono: pago.telefono, apellido: '' }, pago);

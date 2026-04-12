@@ -17,9 +17,12 @@ function getOpenAI() {
 class BotAIHandler {
     
     // Transcripción de Audios a Texto (Whisper)
+    // media.data puede ser un string base64 (Baileys) o un Buffer
     static async transcribirAudio(media) {
         try {
-            const buffer = Buffer.from(media.data, 'base64');
+            const buffer = Buffer.isBuffer(media.data)
+                ? media.data
+                : Buffer.from(media.data, 'base64');
             const tempFilePath = path.join(os.tmpdir(), `whatsapp_audio_${Date.now()}.ogg`);
             fs.writeFileSync(tempFilePath, buffer);
 

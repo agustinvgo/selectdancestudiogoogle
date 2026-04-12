@@ -33,24 +33,16 @@ const AuthController = {
             }
 
             // Buscar usuario
-            console.log(`[AuthDebug] DB_NAME: ${process.env.DB_NAME}, DB_HOST: ${process.env.DB_HOST}, DB_USER: ${process.env.DB_USER}`);
-            console.log(`[AuthDebug] Intentando login para: |${email}|`);
-            const allUsers = await db.query('SELECT email FROM usuarios');
-            console.log(`[AuthDebug] Usuarios disponibles en DB: ${JSON.stringify(allUsers[0])}`);
-            
             const usuario = await UsuariosModel.findByEmail(email);
             if (!usuario) {
-                console.log(`[AuthDebug] Usuario no encontrado: ${email}`);
                 return res.status(401).json({
                     success: false,
                     message: 'Credenciales inválidas'
                 });
             }
-            console.log(`[AuthDebug] Usuario encontrado: ${usuario.email}, Activo: ${usuario.activo}, Hash: ${usuario.password_hash.substring(0, 10)}...`);
 
             // Verify password - always use bcrypt
             let passwordMatch = false;
-            console.log(`[AuthDebug] Comparando password de longitud: ${password.length}`);
             if (usuario.password_hash.startsWith('$2b$') || usuario.password_hash.startsWith('$2a$') || usuario.password_hash.startsWith('$2y$')) {
                 // Standard bcrypt comparison
                 passwordMatch = await bcrypt.compare(password, usuario.password_hash);
@@ -60,10 +52,9 @@ const AuthController = {
                     passwordMatch = true;
                     const newHash = await bcrypt.hash(password, 12);
                     await UsuariosModel.updatePassword(usuario.id, newHash);
-                    console.log(`[Auth] Auto-upgraded plaintext password to bcrypt`);
+                    console.log(`[Auth] Auto-upgraded plaintext password to bcrypt for user ${usuario.id}`);
                 }
             }
-            console.log(`[AuthDebug] Resultado match: ${passwordMatch}`);
 
             if (!passwordMatch) {
                 return res.status(401).json({

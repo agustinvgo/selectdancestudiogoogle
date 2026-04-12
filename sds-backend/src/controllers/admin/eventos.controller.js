@@ -5,7 +5,7 @@ const EventosController = {
     // Lecturas 1 a 1 de Base de Datos
     async getAll(req, res) {
         try { res.json({ success: true, data: await EventosModel.findAll() }); }
-        catch (error) { res.status(500).json({ success: false, message: 'Error Server' }); }
+        catch (error) { console.error('[Eventos] getAll:', error); res.status(500).json({ success: false, message: 'Error Server' }); }
     },
 
     async getById(req, res) {
@@ -13,17 +13,17 @@ const EventosController = {
             const evento = await EventosModel.findById(req.params.id);
             if (!evento) return res.status(404).json({ success: false, message: 'No encontrado' });
             res.json({ success: true, data: evento });
-        } catch (error) { res.status(500).json({ success: false, message: 'Error Server' }); }
+        } catch (error) { console.error('[Eventos] getById:', error); res.status(500).json({ success: false, message: 'Error Server' }); }
     },
 
     async getByAlumno(req, res) {
         try { res.json({ success: true, data: await EventosModel.findByAlumno(req.params.id) }); }
-        catch (error) { res.status(500).json({ success: false, message: 'Error Server' }); }
+        catch (error) { console.error('[Eventos] getByAlumno:', error); res.status(500).json({ success: false, message: 'Error Server' }); }
     },
 
     async getProximos(req, res) {
         try { res.json({ success: true, data: await EventosModel.getProximosEventos() }); }
-        catch (error) { res.status(500).json({ success: false, message: 'Error Server' }); }
+        catch (error) { console.error('[Eventos] getProximos:', error); res.status(500).json({ success: false, message: 'Error Server' }); }
     },
 
     async getPublicCompetencias(req, res) {
@@ -33,7 +33,7 @@ const EventosController = {
                 .filter(e => e.tipo === 'Competencia')
                 .map(e => ({ id: e.id, nombre: e.nombre, fecha: e.fecha, lugar: e.lugar, hora: e.hora || '', descripcion: e.descripcion || '' }));
             res.json({ success: true, data: competencias });
-        } catch (error) { res.status(500).json({ success: false, message: 'Error Server' }); }
+        } catch (error) { console.error('[Eventos] getPublicCompetencias:', error); res.status(500).json({ success: false, message: 'Error Server' }); }
     },
 
     // ABM Base
@@ -70,7 +70,7 @@ const EventosController = {
             });
             if (!updated) return res.status(404).json({ success: false, message: 'No encontrado' });
             res.json({ success: true, message: 'Actualizado' });
-        } catch (error) { res.status(500).json({ success: false, message: 'Error Server' }); }
+        } catch (error) { console.error('[Eventos] update:', error); res.status(500).json({ success: false, message: 'Error Server' }); }
     },
 
     async delete(req, res) {
@@ -78,7 +78,7 @@ const EventosController = {
             const deleted = await EventosModel.delete(req.params.id);
             if (!deleted) return res.status(404).json({ success: false, message: 'No encontrado' });
             res.json({ success: true, message: 'Eliminado' });
-        } catch (error) { res.status(500).json({ success: false, message: 'Error Server' }); }
+        } catch (error) { console.error('[Eventos] delete:', error); res.status(500).json({ success: false, message: 'Error Server' }); }
     },
 
     async updateChecklist(req, res) {
@@ -86,7 +86,7 @@ const EventosController = {
             const updated = await EventosModel.updateChecklist(req.params.id, req.body);
             if (!updated) return res.status(404).json({ success: false, message: 'No encontrado' });
             res.json({ success: true, message: 'Checklist actualizado' });
-        } catch (error) { res.status(500).json({ success: false, message: 'Error Server' }); }
+        } catch (error) { console.error('[Eventos] updateChecklist:', error); res.status(500).json({ success: false, message: 'Error Server' }); }
     },
 
     // ----------------------------------------

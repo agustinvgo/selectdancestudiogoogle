@@ -155,7 +155,13 @@ const GestionAlumnos = () => {
                 password: '',
                 nombre: alumno.nombre || '',
                 apellido: alumno.apellido || '',
-                fecha_nacimiento: alumno.fecha_nacimiento ? new Date(alumno.fecha_nacimiento).toISOString().split('T')[0] : '',
+                fecha_nacimiento: alumno.fecha_nacimiento
+                    // Bug #6 fix: extraer la fecha local sin pasar por new Date() para evitar desfase UTC
+                    // new Date('2010-04-01') en UTC-3 da 2010-03-31 — leemos directamente del string
+                    ? (typeof alumno.fecha_nacimiento === 'string'
+                        ? alumno.fecha_nacimiento.split('T')[0]
+                        : new Date(alumno.fecha_nacimiento).toISOString().split('T')[0])
+                    : '',
                 dni: alumno.dni || '',
                 telefono: alumno.telefono || '',
                 email_padre: alumno.email_padre || '',

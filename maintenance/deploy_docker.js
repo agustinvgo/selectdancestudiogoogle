@@ -35,7 +35,12 @@ async function createPackage() {
         // Incluimos carpetas (archiver ignorará lo que esté en .dockerignore si lo configuramos, 
         // pero aquí lo haremos manual para mayor control)
         archive.directory('sds-backend/', 'sds-backend', (data) => {
-            if (data.name.includes('node_modules') || data.name.includes('.env') || data.name.includes('logs')) return false;
+            if (data.name.includes('node_modules') || 
+                data.name.includes('.env') || 
+                data.name.includes('logs') || 
+                data.name.includes('.wwebjs_auth') || 
+                data.name.includes('.wwebjs_cache') || 
+                data.name.includes('uploads')) return false;
             return data;
         });
         
@@ -76,8 +81,8 @@ async function deploy() {
             `rm /tmp/deploy.tar.gz`,
             `cd ${REMOTE_PATH}`,
             // El .env ya se subió por putFile, no hace falta touch
-            `docker-compose down --remove-orphans`,
-            `docker-compose up -d --build`,
+            `docker compose down --remove-orphans`,
+            `docker compose up -d --build`,
             `docker image prune -f` // Limpiar imágenes viejas para no llenar el disco
         ];
 

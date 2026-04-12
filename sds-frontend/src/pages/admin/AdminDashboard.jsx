@@ -42,11 +42,13 @@ const AdminDashboard = () => {
     });
 
     // --- ADMIN QUERIES ---
-    const { data: alumnosData, isLoading: loadingAlumnos } = useQuery({
-        queryKey: ['alumnos'],
+    // Bug #1 fix: usar page:1,limit:1 para recibir el bloque 'stats' del backend
+    // sin descargar todos los alumnos. Se lee res.data.stats en vez de filtrar el array.
+    const { data: alumnosStatsData, isLoading: loadingAlumnos } = useQuery({
+        queryKey: ['alumnos_kpi_stats'],
         queryFn: async () => {
-            const res = await alumnosAPI.getAll();
-            return res.data.data || [];
+            const res = await alumnosAPI.getAll({ page: 1, limit: 1 });
+            return res.data?.stats || { activos: 0, inactivos: 0, total: 0 };
         },
         enabled: !isProfesor
     });
@@ -146,15 +148,18 @@ const AdminDashboard = () => {
     // Proximos eventos logic
     const proximosEventos = useMemo(() => {
         const events = eventosData || [];
-        const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0); // Reset time to start of day to include events from today
+        // Bug #5 fix: comparar fechas locales para evitar que un evento del 1ro aparezca como el 31 del mes anterior
+        const hoyStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local
         return events
             .filter(e => {
-                const eventDate = new Date(e.fecha);
-                eventDate.setHours(0, 0, 0, 0);
-                return eventDate >= hoy;
+                const fechaStr = typeof e.fecha === 'string' ? e.fecha.split('T')[0] : new Date(e.fecha).toLocaleDateString('en-CA');
+                return fechaStr >= hoyStr;
             })
-            .sort((a, b) => new Date(a.fecha) - new Date(b.fecha))
+            .sort((a, b) => {
+                const fa = typeof a.fecha === 'string' ? a.fecha.split('T')[0] : a.fecha;
+                const fb = typeof b.fecha === 'string' ? b.fecha.split('T')[0] : b.fecha;
+                return fa < fb ? -1 : fa > fb ? 1 : 0;
+            })
             .slice(0, 4);
     }, [eventosData]);
 
@@ -171,18 +176,19 @@ const AdminDashboard = () => {
                 ]
             };
         } else {
-            const alumnos = alumnosData || [];
+            const alumnosStats = alumnosStatsData || {};
             const finance = financeData || {};
             const asistencia = attendanceAvgData || {};
 
             return {
-                total_alumnos: alumnos.filter(a => Number(a.usuario_activo) === 1).length,
+                // Bug #1 fix: usar stats.activos del backend en vez de filtrar array local
+                total_alumnos: parseInt(alumnosStats.activos || 0),
                 ingresos_mes: finance.total_cobrado || 0,
                 pagos_pendientes: finance.total_pendiente || 0,
                 asistencia_promedio: asistencia.porcentaje_asistencia || 0
             };
         }
-    }, [isProfesor, myCoursesData, alumnosData, financeData, attendanceAvgData]);
+    }, [isProfesor, myCoursesData, alumnosStatsData, financeData, attendanceAvgData]);
 
     const loading = isProfesor
         ? (loadingMyCourses || loadingEventos)

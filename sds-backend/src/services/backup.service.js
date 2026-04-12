@@ -45,11 +45,10 @@ class BackupService {
         const fileName = `${dbName}_backup_${date}.sql`;
         const filePath = path.join(this.backupDir, fileName);
 
-        // Use --password with env var; if empty, omit (no -p flag)
-        const passwordFlag = dbPassword ? `--password=${dbPassword}` : '--password=';
-        const cmd = `"${this.mysqldumpPath}" --user=${dbUser} ${passwordFlag} --host=${dbHost} --result-file="${filePath}" --databases ${dbName}`;
+        // Bug #5 fix: pasar contraseña como variable de entorno para que NO sea visible en 'ps aux'
+        const cmd = `"${this.mysqldumpPath}" --user=${dbUser} --host=${dbHost} --result-file="${filePath}" --databases ${dbName}`;
 
-        exec(cmd, (error, stdout, stderr) => {
+        exec(cmd, { env: { ...process.env, MYSQL_PWD: dbPassword } }, (error, stdout, stderr) => {
             if (error) {
                 console.error(`❌ Error en respaldo automático: ${error.message}`);
                 console.error(`   Stderr: ${stderr}`);

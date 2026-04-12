@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import useToast from '../../hooks/useToast';
 import Loader from '../../components/Loader';
+import { Link } from 'react-router-dom';
 import {
     CpuChipIcon,
     BookOpenIcon,
@@ -10,7 +11,7 @@ import {
     TrashIcon,
     PlusIcon,
     ArrowPathIcon,
-    QrCodeIcon
+    ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline';
 
 const EntrenamientoBot = () => {
@@ -29,40 +30,7 @@ const EntrenamientoBot = () => {
     const [savingTopic, setSavingTopic] = useState(false);
     const [showModal, setShowModal] = useState(false);
 
-    // Connection State
-    const [connectionStatus, setConnectionStatus] = useState('disconnected');
-    const [qrCode, setQrCode] = useState(null);
-
-    useEffect(() => {
-        if (activeTab === 'connection') {
-            const interval = setInterval(fetchStatus, 3000); // Poll every 3s
-            fetchStatus(); // Initial fetch
-            return () => clearInterval(interval);
-        }
-    }, [activeTab]);
-
-    const fetchStatus = async () => {
-        try {
-            const res = await api.get('/admin/bot/status');
-            setConnectionStatus(res.data.data.status);
-            setQrCode(res.data.data.qr);
-        } catch (error) {
-            console.error('Error fetching bot status:', error);
-        }
-    };
-
-    const handleLogout = async () => {
-        if (!window.confirm('¿Seguro que quieres desconectar el bot?')) return;
-        try {
-            await api.post('/admin/bot/logout');
-            toast.success('Desconectado. Generando nuevo QR...');
-            setConnectionStatus('disconnected');
-            setQrCode(null);
-        } catch (error) {
-            console.error('Error logging out:', error);
-            toast.error('Error al desconectar');
-        }
-    };
+    // El estado de conexión fue migrado a la página de mensajería
 
     useEffect(() => {
         fetchData();
@@ -148,13 +116,19 @@ const EntrenamientoBot = () => {
 
     return (
         <div className="space-y-6 animate-fade-in">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-6">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
                         <CpuChipIcon className="h-8 w-8 text-indigo-600" />
                         Entrenamiento IA
                     </h1>
                     <p className="text-gray-500 mt-1">Configura la personalidad y el conocimiento del asistente virtual.</p>
+                </div>
+                <div>
+                    <Link to="/admin/mensajeria" className="flex items-center gap-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-lg font-medium transition-colors border border-indigo-200">
+                        <ChatBubbleLeftRightIcon className="h-5 w-5" />
+                        Ir a Conexión y Mensajería
+                    </Link>
                 </div>
             </div>
 
@@ -181,16 +155,7 @@ const EntrenamientoBot = () => {
                         <BookOpenIcon className="h-5 w-5 mr-2" />
                         Base de Conocimiento
                     </button>
-                    <button
-                        onClick={() => setActiveTab('connection')}
-                        className={`${activeTab === 'connection'
-                            ? 'border-indigo-500 text-indigo-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
-                    >
-                        <QrCodeIcon className="h-5 w-5 mr-2" />
-                        Conexión WhatsApp
-                    </button>
+                    {/* Pestaña de Conexión de WhatsApp eliminada y centralizada en Mensajería */}
                 </nav>
             </div>
 
@@ -230,7 +195,7 @@ const EntrenamientoBot = () => {
                         </div>
                     </div>
                 </div>
-            ) : activeTab === 'knowledge' ? (
+            ) : (
                 <div className="card">
                     <div className="card-header flex justify-between items-center">
                         <h2 className="text-lg font-bold text-gray-900">Temas de Conocimiento</h2>
@@ -278,43 +243,6 @@ const EntrenamientoBot = () => {
                                 </div>
                             )}
                         </div>
-                    </div>
-                </div>
-            ) : (
-                <div className="card max-w-2xl mx-auto">
-                    <div className="card-header">
-                        <h2 className="text-lg font-bold text-gray-900">Estado de Conexión</h2>
-                    </div>
-                    <div className="card-body text-center py-8">
-                        {connectionStatus === 'connected' ? (
-                            <div className="space-y-4 animate-scale-in">
-                                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                                    <CpuChipIcon className="h-10 w-10 text-green-600" />
-                                </div>
-                                <h3 className="text-xl font-bold text-green-700">¡Bot Conectado!</h3>
-                                <p className="text-gray-600">El bot está activo y respondiendo mensajes.</p>
-                                <button onClick={handleLogout} className="btn btn-outline-danger mt-4">
-                                    Cerrar Sesión / Desconectar
-                                </button>
-                            </div>
-                        ) : connectionStatus === 'qr_ready' && qrCode ? (
-                            <div className="space-y-4 animate-scale-in">
-                                <p className="text-gray-600 mb-4">Escanea este código con tu WhatsApp (Dispositivos Vinculados) para conectar el bot.</p>
-                                <div className="bg-white p-4 inline-block rounded-lg shadow-lg border">
-                                    <img src={qrCode} alt="WhatsApp QR Code" className="w-64 h-64" />
-                                </div>
-                                <div className="flex justify-center mt-4">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                                </div>
-                                <p className="text-sm text-gray-400">Esperando escaneo...</p>
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-                                <p className="text-gray-600">Iniciando cliente de WhatsApp...</p>
-                                <p className="text-xs text-gray-400">Esto puede tardar unos segundos.</p>
-                            </div>
-                        )}
                     </div>
                 </div>
             )}

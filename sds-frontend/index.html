@@ -27,13 +27,17 @@
   <!-- Resource hints: mejorar LCP -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="dns-prefetch" href="https://selectdancestudio.com" />
 
-  <!-- Preload del hero image (LCP crítico) -->
-  <link rel="preload" as="image" href="/src/assets/hero_bg.jpg" fetchpriority="high" />
+  <!-- Preload del hero image (LCP crítico) — ruta pública, no src/ -->
+  <link rel="preload" as="image" href="/hero_bg.jpg" fetchpriority="high" type="image/jpeg" />
 
-  <!-- Google Fonts -->
+  <!-- Google Fonts: Inter con font-display swap para no bloquear render -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
-    rel="stylesheet" />
+    rel="stylesheet" media="print" onload="this.media='all'" />
+  <noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  </noscript>
 
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-2HLVNLJF9H"></script>

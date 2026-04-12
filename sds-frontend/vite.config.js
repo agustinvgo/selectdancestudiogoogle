@@ -24,10 +24,9 @@ export default defineConfig({
                 manualChunks: {
                     vendor: ['react', 'react-dom'],
                     router: ['react-router-dom'],
-                    ui: ['react-hot-toast', '@headlessui/react', '@heroicons/react', 'lucide-react'],
-                    charts: ['recharts'],
+                    query:  ['@tanstack/react-query'],
+                    ui:     ['react-hot-toast', '@headlessui/react', '@heroicons/react', 'lucide-react'],
                     motion: ['framer-motion'],
-                    utils: ['xlsx', 'date-fns', 'moment'],
                 },
                 // Hash en nombres para cache-busting automático
                 chunkFileNames: 'assets/[name]-[hash].js',

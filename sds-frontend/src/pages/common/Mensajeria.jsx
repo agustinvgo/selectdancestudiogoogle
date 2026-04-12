@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { whatsappAPI, alumnosAPI, cursosAPI } from '../../services/api';
+import api, { whatsappAPI, alumnosAPI, cursosAPI } from '../../services/api';
 import { PaperAirplaneIcon, UserGroupIcon, ChatBubbleLeftRightIcon, ClockIcon } from '@heroicons/react/24/outline';
 import useToast from '../../hooks/useToast';
 import Loader from '../../components/Loader';
@@ -249,6 +249,17 @@ const Mensajeria = () => {
         }
     };
 
+    const handleEnviarResumenCursos = async () => {
+        if (!window.confirm('¿Enviar ahora el resumen de cursos de hoy a los profesores por WhatsApp?')) return;
+        try {
+            const response = await whatsappAPI.enviarResumenCursos();
+            toast.success(response.data.message || '✅ Agenda del día enviada por WhatsApp');
+        } catch (error) {
+            console.error('Error enviando resumen de cursos:', error);
+            toast.error(error.response?.data?.message || 'Error al enviar agenda del día');
+        }
+    };
+
     if (loading) return <Loader />;
 
     return (
@@ -259,14 +270,24 @@ const Mensajeria = () => {
                     <h1 className="text-3xl font-bold text-gray-900">Mensajería WhatsApp</h1>
                     <p className="text-gray-500 mt-1">Envía mensajes automáticos a tus alumnos</p>
                 </div>
-                <button
-                    onClick={handleTestCron}
-                    className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-600 text-gray-900 rounded-lg transition-colors border border-gray-300 text-sm"
-                    title="Ejecutar manualmente los recordatorios programados (útil para pruebas)"
-                >
-                    <ClockIcon className="h-4 w-4 text-yellow-400" />
-                    <span>Simular Recordatorios</span>
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={handleEnviarResumenCursos}
+                        className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors border border-green-500 text-sm font-medium"
+                        title="Enviar ahora la agenda de cursos del día a los profesores por WhatsApp"
+                    >
+                        <span>📅</span>
+                        <span>Enviar Agenda Hoy</span>
+                    </button>
+                    <button
+                        onClick={handleTestCron}
+                        className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-600 text-gray-900 rounded-lg transition-colors border border-gray-300 text-sm"
+                        title="Ejecutar manualmente los recordatorios programados (útil para pruebas)"
+                    >
+                        <ClockIcon className="h-4 w-4 text-yellow-400" />
+                        <span>Simular Recordatorios</span>
+                    </button>
+                </div>
             </div>
 
             {/* Tabs */}
@@ -641,6 +662,33 @@ const Mensajeria = () => {
 const StatusView = () => {
     const [statusData, setStatusData] = useState({ status: 'loading', qr: null });
     const [loading, setLoading] = useState(true);
+    const toast = useToast();
+
+    const handleLogout = async () => {
+        if (!window.confirm('¿Seguro que quieres cerrar la sesión de WhatsApp del servidor?')) return;
+        try {
+            await api.post('/admin/bot/logout');
+            toast.success('Desconectado. Generando nuevo QR...');
+            setStatusData({ status: 'disconnected', qr: null });
+            fetchStatus();
+        } catch (error) {
+            console.error('Error logging out:', error);
+            toast.error('Error al desconectar');
+        }
+    };
+
+    const handleHardReset = async () => {
+        if (!window.confirm('ATENCIÓN: Esto forzará la eliminación de la sesión en el servidor y destrabará el bot si se bloqueó. ¿Continuar?')) return;
+        try {
+            await api.post('/admin/bot/reset');
+            toast.success('Memoria borrada. Reiniciando...');
+            setStatusData({ status: 'loading', qr: null });
+            fetchStatus();
+        } catch (error) {
+            console.error('Error hard resetting:', error);
+            toast.error('Error al reiniciar el sistema');
+        }
+    };
 
     const fetchStatus = async () => {
         try {
@@ -702,6 +750,21 @@ const StatusView = () => {
                     <p className="text-sm">Esperando inicialización...</p>
                 </div>
             )}
+
+            <div className="flex flex-col space-y-2 mt-4 pt-4 border-t border-gray-100 w-full">
+                <button 
+                    onClick={handleLogout}
+                    className="text-sm text-gray-500 border border-gray-200 hover:bg-gray-50 rounded px-4 py-2 transition-colors"
+                >
+                    Cerrar Sesión (Generar nuevo QR)
+                </button>
+                <button 
+                    onClick={handleHardReset}
+                    className="text-sm text-red-500 border border-red-200 hover:bg-red-50 rounded px-4 py-2 transition-colors"
+                >
+                    Reiniciar Sistema Forzosamente
+                </button>
+            </div>
 
             <div className="text-xs text-gray-400 bg-gray-50 p-2 rounded w-full">
                 Estado interno: <span className="font-mono">{statusData.status}</span>

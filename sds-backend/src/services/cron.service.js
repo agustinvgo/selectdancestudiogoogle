@@ -14,7 +14,7 @@ const CronService = {
     },
 
     /**
-     * Método público para test manual
+     * Método público para test manual — recordatorios de pagos
      */
     async notificarRecordatoriosPago() {
         console.log('🧪 Iniciando test cron manual...');
@@ -22,6 +22,17 @@ const CronService = {
         await PagosCron.procesarVencidos();
         await AlumnosCron.procesarCumpleanos();
         console.log('✅ Test Cron manual finalizado exitosamente.');
+    },
+
+    /**
+     * Enviar resumen diario de cursos a profesores (test manual)
+     */
+    async enviarResumenProfesor() {
+        console.log('📅 [CRON-MANUAL] Disparando resumen diario de cursos...');
+        const whatsappService = require('./whatsapp.service');
+        const resultado = await whatsappService.enviarResumenDiarioProfesor();
+        console.log('✅ [CRON-MANUAL] Resumen diario enviado.');
+        return resultado;
     }
 };
 

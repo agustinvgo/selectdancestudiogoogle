@@ -2,7 +2,6 @@ import { useState, useRef } from 'react';
 import useGastos from '../../hooks/useGastos';
 import { gastosAPI } from '../../services/api';
 import { PlusIcon, ArrowDownTrayIcon, FunnelIcon } from '@heroicons/react/24/outline';
-import * as XLSX from 'xlsx';
 
 import GastoFormModal from '../../components/admin/gastos/GastoFormModal';
 import PreviewModal from '../../components/admin/gastos/PreviewModal';
@@ -101,7 +100,8 @@ const GestionGastos = () => {
         }
     };
 
-    const handleExportExcel = () => {
+    const handleExportExcel = async () => {
+        const XLSX = await import('xlsx');
         const dataToExport = gastos.map(g => ({
             Fecha: new Date(g.fecha).toLocaleDateString(),
             Categoría: g.categoria,

@@ -2,20 +2,29 @@ const db = require('../config/db');
 
 const AlumnosModel = {
     // Listar todos los alumnos (con paginación y filtros opcionales)
-    async findAll(page = null, limit = null, filters = {}) {
+    // Bug #1 fix: acepta un único objeto params en vez de (page, limit, filters) separados
+    async findAll(params = {}) {
         try {
-            let query = `
-        SELECT a.*, u.email, u.activo as usuario_activo,
-               u.nombre, u.apellido, u.telefono, u.foto_perfil
-        FROM alumnos a
-        INNER JOIN usuarios u ON a.usuario_id = u.id
-      `;
+            // Soporte para llamadas sin argumentos (cron, etc.) — devuelve todos
+            const page    = params.page    || null;
+            const limit   = params.limit   || null;
+            const filters = {
+                activo: params.activo,
+                search: params.search || ''
+            };
 
-            const params = [];
+            let query = `
+                SELECT a.*, u.email, u.activo as usuario_activo,
+                       u.nombre, u.apellido, u.telefono, u.foto_perfil
+                FROM alumnos a
+                INNER JOIN usuarios u ON a.usuario_id = u.id
+            `;
+
+            const queryParams = [];
             const whereClauses = [];
 
-            // Filtro por estado (activo/inactivo)
-            if (filters.activo !== undefined && filters.activo !== 'todos') {
+            // Filtro por estado activo/inactivo (basado en usuarios.activo)
+            if (filters.activo !== undefined && filters.activo !== 'todos' && filters.activo !== '') {
                 if (filters.activo === 'activos' || filters.activo === true || filters.activo === 'true') {
                     whereClauses.push('u.activo = 1');
                 } else if (filters.activo === 'inactivos' || filters.activo === false || filters.activo === 'false') {
@@ -27,7 +36,7 @@ const AlumnosModel = {
             if (filters.search) {
                 const term = `%${filters.search}%`;
                 whereClauses.push('(u.nombre LIKE ? OR u.apellido LIKE ? OR a.dni LIKE ? OR u.email LIKE ?)');
-                params.push(term, term, term, term);
+                queryParams.push(term, term, term, term);
             }
 
             if (whereClauses.length > 0) {
@@ -38,45 +47,30 @@ const AlumnosModel = {
 
             // Paginación
             if (page && limit) {
-                const offset = (page - 1) * limit;
+                const offset = (parseInt(page) - 1) * parseInt(limit);
                 query += ' LIMIT ? OFFSET ?';
-                params.push(parseInt(limit), parseInt(offset));
-            }
+                queryParams.push(parseInt(limit), parseInt(offset));
 
-            const [rows] = await db.query(query, params);
+                const [rows] = await db.query(query, queryParams);
 
-            // Si hay paginación, devolver también el total (con filtros aplicados)
-            if (page && limit) {
-                let countQuery = `
-                    SELECT COUNT(*) as total 
-                    FROM alumnos a 
-                    INNER JOIN usuarios u ON a.usuario_id = u.id
-                 `;
+                // Count query con los mismos filtros (sin LIMIT/OFFSET)
+                let countQuery = `SELECT COUNT(*) as total FROM alumnos a INNER JOIN usuarios u ON a.usuario_id = u.id`;
                 const countParams = [];
-
-                if (whereClauses.length > 0) {
-                    // Reconstruir params para count (solo los de filtros, no limit/offset)
-                    // Nota: El array 'params' tiene filtros + limit + offset. 
-                    // Necesitamos solo los filtros.
-                    // Estrategia: Duplicar lógica de params o slice. 
-                    // Slice es arriesgado si cambiamos orden. Mejor reconstruir.
-
-                    // Filtros count
-                    const countWhereParams = [];
-                    if (filters.search) {
-                        const term = `%${filters.search}%`;
-                        countWhereParams.push(term, term, term, term);
-                    }
-
-                    countQuery += ' WHERE ' + whereClauses.join(' AND ');
-                    const [countResult] = await db.query(countQuery, countWhereParams);
-                    return { data: rows, total: countResult[0].total };
-                } else {
-                    const [countResult] = await db.query(countQuery);
-                    return { data: rows, total: countResult[0].total };
+                // Reconstruir params de filtros para el count
+                if (filters.activo !== undefined && filters.activo !== 'todos' && filters.activo !== '') {
+                    // ya incluido en whereClauses, sin params adicionales
                 }
+                if (filters.search) {
+                    const term = `%${filters.search}%`;
+                    countParams.push(term, term, term, term);
+                }
+                if (whereClauses.length > 0) countQuery += ' WHERE ' + whereClauses.join(' AND ');
+                const [countResult] = await db.query(countQuery, countParams);
+
+                return { data: rows, total: countResult[0].total };
             }
 
+            const [rows] = await db.query(query, queryParams);
             return rows;
         } catch (error) {
             throw error;
@@ -149,14 +143,14 @@ const AlumnosModel = {
         }
     },
 
-    // Crear nuevo alumno
+    // Bug #4 fix: getStats ahora cuenta usuarios.activo (acceso real) en vez de alumnos.activo
     async getStats() {
         try {
             const [rows] = await db.query(`
                 SELECT 
                     COUNT(*) as total,
-                    SUM(CASE WHEN activo = 1 THEN 1 ELSE 0 END) as activos,
-                    SUM(CASE WHEN activo = 0 THEN 1 ELSE 0 END) as inactivos
+                    SUM(CASE WHEN u.activo = 1 THEN 1 ELSE 0 END) as activos,
+                    SUM(CASE WHEN u.activo = 0 THEN 1 ELSE 0 END) as inactivos
                 FROM alumnos
                 INNER JOIN usuarios u ON alumnos.usuario_id = u.id
             `);
@@ -221,36 +215,33 @@ const AlumnosModel = {
         }
     },
 
-    // Eliminar alumno (hard delete - eliminación permanente)
+    // Bug #2 fix: Eliminar alumno dentro de una transacción para evitar datos huérfanos
     async delete(id) {
+        let connection;
         try {
-            // Obtener alumno y su usuario_id
             const alumno = await this.findById(id);
             if (!alumno) return false;
 
-            // Eliminar registros relacionados primero (para evitar foreign key constraints)
+            connection = await db.getConnection();
+            await connection.beginTransaction();
 
-            // 1. Eliminar asistencias
-            await db.query('DELETE FROM asistencias WHERE alumno_id = ?', [id]);
+            // Eliminar registros relacionados primero (foreign key order)
+            await connection.query('DELETE FROM asistencias WHERE alumno_id = ?', [id]);
+            await connection.query('DELETE FROM inscripciones_curso WHERE alumno_id = ?', [id]);
+            await connection.query('DELETE FROM inscripciones_evento WHERE alumno_id = ?', [id]);
+            await connection.query('DELETE FROM pagos WHERE alumno_id = ?', [id]);
 
-            // 2. Eliminar inscripciones a cursos (tabla: inscripciones_curso)
-            await db.query('DELETE FROM inscripciones_curso WHERE alumno_id = ?', [id]);
+            const [resultAlumno] = await connection.query('DELETE FROM alumnos WHERE id = ?', [id]);
+            await connection.query('DELETE FROM usuarios WHERE id = ?', [alumno.usuario_id]);
 
-            // 3. Eliminar inscripciones a eventos (tabla: inscripciones_evento)
-            await db.query('DELETE FROM inscripciones_evento WHERE alumno_id = ?', [id]);
-
-            // 4. Eliminar pagos
-            await db.query('DELETE FROM pagos WHERE alumno_id = ?', [id]);
-
-            // 5. Eliminar el alumno
-            const [resultAlumno] = await db.query('DELETE FROM alumnos WHERE id = ?', [id]);
-
-            // 6. Eliminar el usuario asociado
-            await db.query('DELETE FROM usuarios WHERE id = ?', [alumno.usuario_id]);
-
+            await connection.commit();
             return resultAlumno.affectedRows > 0;
         } catch (error) {
+            if (connection) await connection.rollback();
+            console.error('[AlumnosModel.delete] Error — rollback ejecutado:', error);
             throw error;
+        } finally {
+            if (connection) connection.release();
         }
     },
 
@@ -261,7 +252,7 @@ const AlumnosModel = {
             if (!alumno) return false;
 
             const [result] = await db.query(
-                'UPDATE usuarios SET activo = ? WHERE id = ?',
+                'UPDATE usuarios SET activo = ? WHERE id = ? AND rol != "admin"',
                 [activo ? 1 : 0, alumno.usuario_id]
             );
             return result.affectedRows > 0;

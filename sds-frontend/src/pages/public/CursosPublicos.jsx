@@ -5,6 +5,7 @@ import WeeklyPlanner from '../../components/WeeklyPlanner.jsx';
 import { Toaster } from 'react-hot-toast';
 import PageSEO from '../../components/SEO/PageSEO.jsx';
 import SchemaBreadcrumb from '../../components/SEO/SchemaBreadcrumb.jsx';
+import { motion } from 'framer-motion';
 
 // Modular Components
 import CoursesHero from '../../components/public/CoursesHero.jsx';
@@ -145,18 +146,37 @@ const CursosPublicos = () => {
 
 
 
+    // Skeleton completo — evita pantalla en blanco en el primer render
     if (loading) return (
-        <div className="min-h-screen pt-20 px-6">
+        <div className="min-h-screen pt-20 pb-40 px-6 animate-pulse">
             <div className="max-w-7xl mx-auto">
-                <div className="h-[400px] mb-12 bg-gray-100 dark:bg-white/5 rounded-3xl animate-pulse"></div> {/* Hero Skeleton */}
-                <div className="h-20 mb-12 bg-gray-100 dark:bg-white/5 rounded-xl animate-pulse"></div> {/* Filters Skeleton */}
+                {/* Hero skeleton */}
+                <div className="mb-24 flex flex-col md:flex-row justify-between items-end border-b border-white/5 pb-12">
+                    <div>
+                        <div className="h-3 w-16 bg-white/10 rounded mb-4"></div>
+                        <div className="h-16 w-64 bg-white/10 rounded-lg"></div>
+                    </div>
+                    <div className="flex flex-col items-end gap-4 mt-6 md:mt-0">
+                        <div className="h-4 w-72 bg-white/10 rounded"></div>
+                        <div className="h-4 w-56 bg-white/10 rounded"></div>
+                        <div className="h-12 w-52 bg-white/10 rounded-full"></div>
+                    </div>
+                </div>
+                {/* Filters skeleton */}
+                <div className="h-14 w-full bg-white/5 rounded-xl mb-12"></div>
+                {/* Grid skeleton */}
                 <CourseGridSkeleton />
             </div>
         </div>
     );
 
     return (
-        <div className="min-h-screen pt-20 pb-40 px-6">
+        <motion.div
+            className="min-h-screen pt-20 pb-40 px-6"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+        >
             <PageSEO
                 title="Cursos de Danza en Palermo — Horarios y Niveles"
                 description="Descubrí todos nuestros cursos de ballet, jazz y danza contemporánea en Palermo, Buenos Aires. Niveles Baby, Mini, Junior, Teen, Senior y Recreativo. Solicitá tu clase de prueba."
@@ -223,7 +243,7 @@ const CursosPublicos = () => {
                 selectedCourse={selectedCourseName}
                 courses={cursos}
             />
-        </div>
+        </motion.div>
     );
 };
 

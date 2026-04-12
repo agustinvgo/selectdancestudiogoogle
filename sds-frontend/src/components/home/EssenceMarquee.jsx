@@ -15,14 +15,11 @@ const EssenceMarquee = () => {
             </style>
             <div className="animate-marquee-force flex">
                 <div className="flex shrink-0 items-center justify-around">
-                    <span className="text-4xl md:text-6xl font-black text-black/20 uppercase tracking-tighter mx-4">PASIÓN • TÉCNICA • COMUNIDAD • ARTE • DISCIPLINA • EXPRESIÓN •  COMPETENCIA •</span>
-                    <span className="text-4xl md:text-6xl font-black text-black/20 uppercase tracking-tighter mx-4">PASIÓN • TÉCNICA • COMUNIDAD • ARTE • DISCIPLINA • EXPRESIÓN •  COMPETENCIA •</span>
+                    <span className="text-4xl md:text-6xl font-black text-black uppercase tracking-tighter mx-4">PASIÓN • TÉCNICA • COMUNIDAD • ARTE • DISCIPLINA • EXPRESIÓN •  COMPETENCIA •</span>
                 </div>
                 <div className="flex shrink-0 items-center justify-around">
-                    <span className="text-4xl md:text-6xl font-black text-black/20 uppercase tracking-tighter mx-4">PASIÓN • TÉCNICA • COMUNIDAD • ARTE • DISCIPLINA • EXPRESIÓN •  COMPETENCIA •</span>
-                    <span className="text-4xl md:text-6xl font-black text-black/20 uppercase tracking-tighter mx-4">PASIÓN • TÉCNICA • COMUNIDAD • ARTE • DISCIPLINA • EXPRESIÓN •  COMPETENCIA •</span>
+                    <span className="text-4xl md:text-6xl font-black text-black uppercase tracking-tighter mx-4">PASIÓN • TÉCNICA • COMUNIDAD • ARTE • DISCIPLINA • EXPRESIÓN •  COMPETENCIA •</span>
                 </div>
-                
             </div>
         </section>
     );

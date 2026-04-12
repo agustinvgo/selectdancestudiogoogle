@@ -24,9 +24,12 @@ const verifyToken = (req, res, next) => {
 };
 
 // Verificar que el usuario sea admin
+// Bug #7 fix: guard contra req.user undefined si se usa isAdmin sin verifyToken antes
 const isAdmin = (req, res, next) => {
-    if (req.user.rol !== 'admin') {
-        console.log(`[Auth] Access denied to isAdmin route. User: ${req.user.id}, Role: ${req.user.rol}`);
+    if (!req.user || req.user.rol !== 'admin') {
+        const userId = req.user ? req.user.id : 'unknown';
+        const userRol = req.user ? req.user.rol : 'none';
+        console.log(`[Auth] Access denied to isAdmin route. User: ${userId}, Role: ${userRol}`);
         return res.status(403).json({
             success: false,
             message: 'Acceso denegado. Se requiere rol de administrador'
@@ -36,8 +39,9 @@ const isAdmin = (req, res, next) => {
 };
 
 // Verificar que el usuario sea alumno
+// Bug #7 fix: guard contra req.user undefined
 const isAlumno = (req, res, next) => {
-    if (req.user.rol !== 'alumno') {
+    if (!req.user || req.user.rol !== 'alumno') {
         return res.status(403).json({
             success: false,
             message: 'Acceso denegado. Se requiere rol de alumno'
@@ -48,6 +52,9 @@ const isAlumno = (req, res, next) => {
 
 // Verificar que sea el dueño de los datos o admin
 const isOwnerOrAdmin = (req, res, next) => {
+    if (!req.user) {
+        return res.status(403).json({ success: false, message: 'Acceso denegado' });
+    }
     const userId = parseInt(req.params.id);
 
     if (req.user.rol === 'admin' || req.user.id === userId) {
@@ -61,8 +68,9 @@ const isOwnerOrAdmin = (req, res, next) => {
 };
 
 // Verificar que el usuario sea profesor o admin
+// Bug #7 fix: guard contra req.user undefined
 const isProfesor = (req, res, next) => {
-    if (req.user.rol !== 'profesor' && req.user.rol !== 'admin') {
+    if (!req.user || (req.user.rol !== 'profesor' && req.user.rol !== 'admin')) {
         return res.status(403).json({
             success: false,
             message: 'Acceso denegado. Se requiere rol de profesor'
@@ -71,10 +79,24 @@ const isProfesor = (req, res, next) => {
     next();
 };
 
+// Bug #8: Rate limiter estricto para el endpoint de login (anti brute-force)
+const rateLimit = require('express-rate-limit');
+const loginRateLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutos
+    max: 10, // máximo 10 intentos por IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+        success: false,
+        message: 'Demasiados intentos de inicio de sesión. Intenta nuevamente en 15 minutos.'
+    }
+});
+
 module.exports = {
     verifyToken,
     isAdmin,
     isAlumno,
     isProfesor,
-    isOwnerOrAdmin
+    isOwnerOrAdmin,
+    loginRateLimiter
 };

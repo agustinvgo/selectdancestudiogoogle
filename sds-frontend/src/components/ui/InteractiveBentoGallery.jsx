@@ -260,7 +260,6 @@ const GalleryModal = ({ selectedItem, isOpen, onClose, setSelectedItem, mediaIte
 const InteractiveBentoGallery = ({ mediaItems, title, description }) => {
     const [selectedItem, setSelectedItem] = useState(null);
     const [items, setItems] = useState(mediaItems);
-    const [isDragging, setIsDragging] = useState(false);
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -309,9 +308,8 @@ const InteractiveBentoGallery = ({ mediaItems, title, description }) => {
                         {items.map((item, index) => (
                             <motion.div
                                 key={item.id}
-                                layoutId={`media-${item.id}`}
                                 className={`relative overflow-hidden rounded-2xl cursor-pointer ${item.span || 'col-span-1 row-span-1'} group`}
-                                onClick={() => !isDragging && setSelectedItem(item)}
+                                onClick={() => setSelectedItem(item)}
                                 variants={{
                                     hidden: { y: 20, scale: 0.9, opacity: 0 },
                                     visible: {
@@ -327,19 +325,11 @@ const InteractiveBentoGallery = ({ mediaItems, title, description }) => {
                                     }
                                 }}
                                 whileHover={{ scale: 1.02, zIndex: 10 }}
-                                drag
-                                dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-                                dragElastic={0.1}
-                                onDragStart={() => setIsDragging(true)}
-                                onDragEnd={(e, info) => {
-                                    setIsDragging(false);
-                                    // Simple logic to detect drag vs click
-                                }}
                             >
                                 <MediaItem
                                     item={item}
                                     className="absolute inset-0 w-full h-full transition-transform duration-500 group-hover:scale-110"
-                                    onClick={() => !isDragging && setSelectedItem(item)}
+                                    onClick={() => setSelectedItem(item)}
                                 />
                                 <div className="absolute inset-0 bg-white/0 group-hover:bg-white/20 transition-colors duration-300" />
 

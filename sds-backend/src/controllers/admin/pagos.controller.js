@@ -10,7 +10,10 @@ const PagosController = {
         try {
             const pagos = await PagosModel.findByAlumno(req.params.id);
             res.json({ success: true, data: pagos });
-        } catch (error) { res.status(500).json({ success: false, message: 'Error Server' }); }
+        } catch (error) {
+            console.error('[PagosController.getByAlumno] Error:', error);
+            res.status(500).json({ success: false, message: 'Error Server' });
+        }
     },
 
     async getMisPagos(req, res) {
@@ -19,7 +22,10 @@ const PagosController = {
             if (!alumno) return res.status(404).json({ success: false, message: 'Alumno no encontrado' });
             const pagos = await PagosModel.findByAlumno(alumno.id);
             res.json({ success: true, data: pagos });
-        } catch (error) { res.status(500).json({ success: false, message: 'Error Server' }); }
+        } catch (error) {
+            console.error('[PagosController.getMisPagos] Error:', error);
+            res.status(500).json({ success: false, message: 'Error Server' });
+        }
     },
 
     async getAll(req, res) {
@@ -40,13 +46,19 @@ const PagosController = {
             };
 
             res.json({ success: true, data: result.data || result, total: result.total, stats, page: params.page, limit: params.limit });
-        } catch (error) { res.status(500).json({ success: false, message: 'Error Server' }); }
+        } catch (error) {
+            console.error('[PagosController.getAll] Error:', error);
+            res.status(500).json({ success: false, message: 'Error Server' });
+        }
     },
 
     async getPendientes(req, res) {
         try {
             res.json({ success: true, data: await PagosModel.findPendientes() });
-        } catch (error) { res.status(500).json({ success: false, message: 'Error Server' }); }
+        } catch (error) {
+            console.error('[PagosController.getPendientes] Error:', error);
+            res.status(500).json({ success: false, message: 'Error Server' });
+        }
     },
 
     // ----------------------------------------

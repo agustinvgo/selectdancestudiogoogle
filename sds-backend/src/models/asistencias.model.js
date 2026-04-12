@@ -79,10 +79,15 @@ const AsistenciasModel = {
     },
 
     // Marcar asistencias masivas
+    // Bug #3 fix: envuelto en transacción para garantizar atomicidad (rollback si falla a mitad)
     async marcarAsistenciasMasivas(asistencias) {
         if (!asistencias || asistencias.length === 0) return true;
 
+        let connection;
         try {
+            connection = await db.getConnection();
+            await connection.beginTransaction();
+
             // Preparar valores para Bulk Insert
             const values = asistencias.map(a => [
                 a.alumno_id,
@@ -101,10 +106,15 @@ const AsistenciasModel = {
                 observaciones = VALUES(observaciones)
             `;
 
-            await db.query(query, [values]);
+            await connection.query(query, [values]);
+            await connection.commit();
             return true;
         } catch (error) {
+            if (connection) await connection.rollback();
+            console.error('[AsistenciasModel.marcarAsistenciasMasivas] Error — rollback ejecutado:', error);
             throw error;
+        } finally {
+            if (connection) connection.release();
         }
     },
 

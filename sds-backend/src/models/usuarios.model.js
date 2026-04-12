@@ -101,8 +101,9 @@ const UsuariosModel = {
             if (fields.length === 0) return false;
 
             values.push(id);
+            const isDeactivating = (userData.activo === 0 || userData.activo === false || userData.activo === '0' || userData.activo === 'false');
             const [result] = await db.query(
-                `UPDATE usuarios SET ${fields.join(', ')} WHERE id = ?`,
+                `UPDATE usuarios SET ${fields.join(', ')} WHERE id = ? ${isDeactivating ? "AND rol != 'admin'" : ""}`,
                 values
             );
             return result.affectedRows > 0;

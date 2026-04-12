@@ -6,12 +6,23 @@ const db = require('../config/db');
 
 class PagosService {
     
+    // Helper: convierte 'YYYY-MM-DD' a Date local sin desfase UTC (Bug #3 fix)
+    static _parseDateLocal(dateStr) {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        return new Date(year, month - 1, day); // fecha local, no UTC
+    }
+
+    static _dateToStr(d) {
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
     // Crear Pago Individual
     static async createPago(pagoData) {
         if (!pagoData.fecha_limite_sin_recargo && pagoData.fecha_vencimiento) {
-            const vencimiento = new Date(pagoData.fecha_vencimiento);
+            // Bug #3 fix: usar fecha local para evitar desfase UTC en zonas UTC-X
+            const vencimiento = PagosService._parseDateLocal(pagoData.fecha_vencimiento);
             vencimiento.setDate(vencimiento.getDate() - 2);
-            pagoData.fecha_limite_sin_recargo = vencimiento.toISOString().split('T')[0];
+            pagoData.fecha_limite_sin_recargo = PagosService._dateToStr(vencimiento);
         }
 
         if (pagoData.curso_id === '') pagoData.curso_id = null;
@@ -55,7 +66,8 @@ class PagosService {
 
             const estaCambiandoAPagado = pagoAnterior.estado !== 'pagado' && pagoData.estado === 'pagado';
 
-            if (pagoData.estado === 'pagado' && !pagoData.fecha_pago) pagoData.fecha_pago = new Date().toISOString().split('T')[0];
+            // Error #3 fix: usar helper local en vez de toISOString() que en UTC puede dar el día siguiente
+            if (pagoData.estado === 'pagado' && !pagoData.fecha_pago) pagoData.fecha_pago = PagosService._dateToStr(new Date());
             if (pagoData.estado === 'pagado' && !pagoData.metodo_pago_realizado) pagoData.metodo_pago_realizado = pagoData.metodo_pago || 'Efectivo';
 
             const fields = [];
@@ -173,7 +185,10 @@ class PagosService {
             const pagosCreados = [];
 
             for (let i = 1; i <= cuotas; i++) {
-                const fechaVenc = new Date(fecha_primera_cuota || Date.now());
+                // Bug #3 fix: parseo local para evitar desfase UTC
+                const fechaVenc = fecha_primera_cuota
+                    ? PagosService._parseDateLocal(fecha_primera_cuota)
+                    : new Date();
                 fechaVenc.setMonth(fechaVenc.getMonth() + (i - 1));
 
                 const fechaLimite = new Date(fechaVenc);
@@ -181,7 +196,8 @@ class PagosService {
 
                 const pagoId = await PagosModel.create({
                     alumno_id, concepto: `${concepto} (Cuota ${i}/${cuotas})`, monto: montoPorCuota, monto_original: montoPorCuota,
-                    fecha_vencimiento: fechaVenc.toISOString().split('T')[0], fecha_limite_sin_recargo: fechaLimite.toISOString().split('T')[0],
+                    fecha_vencimiento: PagosService._dateToStr(fechaVenc),
+                    fecha_limite_sin_recargo: PagosService._dateToStr(fechaLimite),
                     estado: 'pendiente', plan_cuotas: cuotas, cuota_numero: i, plan_pago_id: planId
                 }, connection);
                 pagosCreados.push(pagoId);

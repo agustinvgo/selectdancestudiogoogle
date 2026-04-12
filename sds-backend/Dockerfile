@@ -3,6 +3,7 @@ FROM node:20-slim
 
 # Instalar dependencias necesarias para Puppeteer y Chrome en Linux
 RUN apt-get update && apt-get install -y \
+    default-mysql-client \
     ca-certificates \
     fonts-liberation \
     libasound2 \

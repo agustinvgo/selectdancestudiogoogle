@@ -24,13 +24,19 @@ const EventosModel = {
 
             const evento = rows[0];
 
-            // Formatear fecha a YYYY-MM-DD
+            // Formatear fecha a YYYY-MM-DD (sin desfase UTC)
             if (evento.fecha) {
-                const fecha = new Date(evento.fecha);
-                const year = fecha.getFullYear();
-                const month = String(fecha.getMonth() + 1).padStart(2, '0');
-                const day = String(fecha.getDate()).padStart(2, '0');
-                evento.fecha = `${year}-${month}-${day}`;
+                // Si es string con 'T', extraer la parte de fecha directamente
+                if (typeof evento.fecha === 'string') {
+                    evento.fecha = evento.fecha.split('T')[0];
+                } else {
+                    // Si es objeto Date de MySQL, extraer componentes locales
+                    const fecha = evento.fecha;
+                    const year = fecha.getFullYear();
+                    const month = String(fecha.getMonth() + 1).padStart(2, '0');
+                    const day = String(fecha.getDate()).padStart(2, '0');
+                    evento.fecha = `${year}-${month}-${day}`;
+                }
             }
 
             // Obtener alumnos inscritos

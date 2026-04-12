@@ -169,10 +169,15 @@ const CursosController = {
             if (!horario_hora) {
                 return res.status(400).json({ success: false, message: 'El horario de inicio es requerido' });
             }
+            // Bug #1 fix: validar duracion_minutos para evitar guardar 'NaN:NaN' en la DB
+            const duracionNum = parseInt(duracion_minutos);
+            if (!duracion_minutos || isNaN(duracionNum) || duracionNum <= 0) {
+                return res.status(400).json({ success: false, message: 'La duración en minutos es requerida y debe ser un número positivo' });
+            }
             const [hours, minutes] = horario_hora.split(':');
             const startTime = new Date();
             startTime.setHours(parseInt(hours), parseInt(minutes), 0);
-            const endTime = new Date(startTime.getTime() + duracion_minutos * 60000);
+            const endTime = new Date(startTime.getTime() + duracionNum * 60000);
             const hora_fin = `${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}`;
 
             const cursoData = {

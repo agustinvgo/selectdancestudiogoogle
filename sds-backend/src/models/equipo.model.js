@@ -80,10 +80,17 @@ const EquipoModel = {
         }
     },
 
-    // Eliminar miembro (soft delete)
+    // Eliminar miembro (soft delete) - Protege administradores
     async delete(id) {
         try {
-            const [result] = await db.query("UPDATE usuarios SET activo = 0 WHERE id = ?", [id]);
+            const [result] = await db.query("UPDATE usuarios SET activo = 0 WHERE id = ? AND rol != 'admin'", [id]);
+            if (result.affectedRows === 0) {
+                // Verificamos si realmente no existe o si es administrador
+                const [check] = await db.query("SELECT rol FROM usuarios WHERE id = ?", [id]);
+                if (check.length > 0 && check[0].rol === 'admin') {
+                    throw new Error('PROTECTED_ADMIN');
+                }
+            }
             return result.affectedRows > 0;
         } catch (error) {
             throw error;
