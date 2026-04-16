@@ -265,3 +265,14 @@ const gracefulShutdown = (signal) => {
 
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// 🔄 Soporte para Nodemon (evita `Too many connections` y `EADDRINUSE` al guardar archivos frecuentemente)
+process.once('SIGUSR2', () => {
+    console.log('\n⚠️ Señal SIGUSR2 (Nodemon restart) recibida. Reiniciando...');
+    server.close(() => {
+        db.end(() => {
+            console.log('✅ Recursos liberados para el reinicio de Nodemon.');
+            process.kill(process.pid, 'SIGUSR2');
+        });
+    });
+});

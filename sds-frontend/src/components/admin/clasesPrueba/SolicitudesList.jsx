@@ -48,7 +48,7 @@ const SolicitudesList = ({
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <select
-                                                value={solicitud.estado}
+                                                value={(solicitud.estado?.toLowerCase() === 'cancelada') ? 'cancelado' : (solicitud.estado?.toLowerCase() || 'pendiente')}
                                                 onChange={(e) => handleStatusChange(solicitud.id, e.target.value)}
                                                 className="text-xs rounded-full px-2 py-1 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 bg-gray-100 text-gray-900 shadow-sm outline-none"
                                                 disabled={updateStatusPending}
@@ -93,7 +93,7 @@ const SolicitudesList = ({
                                     <p className="text-xs text-gray-500">{new Date(solicitud.created_at).toLocaleDateString()}</p>
                                 </div>
                                 <select
-                                    value={solicitud.estado}
+                                    value={(solicitud.estado?.toLowerCase() === 'cancelada') ? 'cancelado' : (solicitud.estado?.toLowerCase() || 'pendiente')}
                                     onChange={(e) => handleStatusChange(solicitud.id, e.target.value)}
                                     className="text-xs rounded-lg px-2 py-1 border border-gray-300 bg-gray-100 text-gray-900 outline-none"
                                     disabled={updateStatusPending}

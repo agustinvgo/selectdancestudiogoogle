@@ -130,7 +130,8 @@ const CursosController = {
                 hora_inicio: horario_hora,
                 hora_fin,
                 cupo_maximo: cupo_maximo || 15,
-                url_clase_vivo: url_clase_vivo || null
+                url_clase_vivo: url_clase_vivo || null,
+                es_publico: req.body.es_publico !== undefined ? (req.body.es_publico ? 1 : 0) : 1
             };
 
             const cursoId = await CursosModel.create(cursoData);
@@ -192,7 +193,8 @@ const CursosController = {
                 hora_inicio: horario_hora,
                 hora_fin,
                 cupo_maximo: cupo_maximo || 15,
-                activo: activo ? 1 : 0
+                activo: activo ? 1 : 0,
+                es_publico: req.body.es_publico !== undefined ? (req.body.es_publico ? 1 : 0) : 1
             };
 
             const updated = await CursosModel.update(id, cursoData);

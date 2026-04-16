@@ -396,6 +396,24 @@ const enviarReciboPago = async (email, nombre, concepto, monto, fechaPago, pdfBu
     });
 };
 
+const enviarAgradecimientoAsistencia = async (email, nombre) => {
+    const content = `
+        <h1>¡Gracias por asistir a Select Dance Studio! 🌟</h1>
+        <p>Hola <strong>${nombre}</strong>,<br>Esperamos que hayas disfrutado muchísimo de tu clase de prueba.</p>
+        <p>Nos encantaría contar contigo como parte permanente de nuestro equipo.</p>
+        <div class="button-container">
+            <a href="${process.env.FRONTEND_URL || '#'}" class="button">Inscribirme ahora</a>
+        </div>
+        <p>Cualquier consulta no dudes en escribirnos.</p>
+    `;
+    return sendEmail({
+        from: `"Select Dance Studio" <${process.env.SMTP_USER}>`,
+        to: email,
+        subject: '¡Gracias por tu visita! 💃',
+        html: emailTemplate('Clase Completada', content)
+    });
+};
+
 const notificarAdminNuevoComprobante = async (pagoInfo, alumnoInfo) => {
     const content = `
         <h1>Nuevo Comprobante Recibido 📄</h1>
@@ -447,6 +465,7 @@ module.exports = {
     enviarReciboPago,
     notificarAdminNuevoComprobante,
     notificarAdminNuevaConsulta,
+    enviarAgradecimientoAsistencia,
 
     // Métodos alias para compatibilidad
     enviarEmailPersonalizado: async (email, nombre, asunto, mensaje) => {

@@ -1,13 +1,13 @@
 const db = require('../config/db');
 
 const EquipoModel = {
-    // Listar todos los miembros activos
+    // Listar todos los miembros activos que deben mostrarse en la web
     async findAll() {
         try {
             const [rows] = await db.query(`
                 SELECT id, nombre, rol_display as cargo, descripcion, foto_perfil as foto_url, orden, activo, created_at, updated_at 
                 FROM usuarios 
-                WHERE rol IN ('profesor', 'admin') AND activo = 1 
+                WHERE rol = 'profesor' AND activo = 1 AND mostrar_en_web = 1
                 ORDER BY orden ASC, created_at DESC
             `);
             return rows;
@@ -22,7 +22,7 @@ const EquipoModel = {
             const [rows] = await db.query(`
                 SELECT id, nombre, rol_display as cargo, descripcion, foto_perfil as foto_url, orden, activo, created_at, updated_at 
                 FROM usuarios 
-                WHERE id = ? AND rol IN ('profesor', 'admin')
+                WHERE id = ? AND rol = 'profesor' AND mostrar_en_web = 1
             `, [id]);
             return rows[0];
         } catch (error) {
@@ -30,13 +30,13 @@ const EquipoModel = {
         }
     },
 
-    // Crear miembro
+    // Crear miembro (específicamente destinado a mostrarse en la web)
     async create(data) {
         try {
             const { nombre, cargo, descripcion, foto_url } = data;
             const [result] = await db.query(
-                `INSERT INTO usuarios (nombre, rol_display, descripcion, foto_perfil, email, password_hash, rol, activo) 
-                 VALUES (?, ?, ?, ?, CONCAT('staff_', UUID(), '@selectdance.com'), 'dummy_hash', 'profesor', 1)`,
+                `INSERT INTO usuarios (nombre, rol_display, descripcion, foto_perfil, email, password_hash, rol, activo, mostrar_en_web) 
+                 VALUES (?, ?, ?, ?, CONCAT('staff_', UUID(), '@selectdance.com'), 'dummy_hash', 'profesor', 1, 1)`,
                 [nombre, cargo || null, descripcion || null, foto_url || null]
             );
             return result.insertId;

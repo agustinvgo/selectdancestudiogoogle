@@ -109,7 +109,7 @@ const CourseDetailsModal = ({ isOpen, onClose, course, onRequestTrial }) => {
                         <div>
                             <span className="block text-[10px] font-bold uppercase tracking-wider text-gray-500">Instructor</span>
                             <span className="font-semibold text-gray-900">
-                                {course.nombre_profesor ? `${course.nombre_profesor} ${course.apellido_profesor}` : (course.profesor || 'STAFF')}
+                                {course.nombre_profesor ? `${course.nombre_profesor} ${course.apellido_profesor || ''}`.trim() : (course.profesor || 'STAFF')}
                             </span>
                         </div>
                     </div>

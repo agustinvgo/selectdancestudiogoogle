@@ -144,15 +144,27 @@ const CourseModal = ({
                     </div>
                 </div>
 
-                <div className="flex items-center pt-2">
-                    <input
-                        type="checkbox"
-                        id="activo"
-                        checked={formData.activo}
-                        onChange={(e) => setFormData({ ...formData, activo: e.target.checked })}
-                        className="w-4 h-4 text-black border-gray-300 rounded focus:ring-black focus:ring-2"
-                    />
-                    <label htmlFor="activo" className="ml-2 text-sm text-gray-700">Curso activo</label>
+                <div className="flex flex-col gap-2 pt-2">
+                    <div className="flex items-center">
+                        <input
+                            type="checkbox"
+                            id="activo"
+                            checked={formData.activo}
+                            onChange={(e) => setFormData({ ...formData, activo: e.target.checked })}
+                            className="w-4 h-4 text-black border-gray-300 rounded focus:ring-black focus:ring-2"
+                        />
+                        <label htmlFor="activo" className="ml-2 text-sm text-gray-700">Curso activo (visible en sistema)</label>
+                    </div>
+                    <div className="flex items-center">
+                        <input
+                            type="checkbox"
+                            id="es_publico"
+                            checked={formData.es_publico}
+                            onChange={(e) => setFormData({ ...formData, es_publico: e.target.checked })}
+                            className="w-4 h-4 text-black border-gray-300 rounded focus:ring-black focus:ring-2"
+                        />
+                        <label htmlFor="es_publico" className="ml-2 text-sm text-gray-700">Público (mostrar en página web)</label>
+                    </div>
                 </div>
 
                 <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 mt-4">

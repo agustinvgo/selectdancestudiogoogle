@@ -207,7 +207,7 @@ const CourseGrid = ({ cursos, onSelectCourse }) => {
                                     }`}>
                                     <UserIcon className={`w-4 h-4 mr-2 ${isCompetitive ? 'text-red-500' : isPreCompetitive ? 'text-purple-500' : isRecreative ? 'text-cyan-500' : 'text-red-500'}`} />
                                     <span className="truncate">
-                                        {curso.nombre_profesor ? `${curso.nombre_profesor} ${curso.apellido_profesor}` : (curso.profesor || 'STAFF')}
+                                        {curso.nombre_profesor ? `${curso.nombre_profesor} ${curso.apellido_profesor || ''}`.trim() : (curso.profesor || 'STAFF')}
                                     </span>
                                 </div>
                             </div>

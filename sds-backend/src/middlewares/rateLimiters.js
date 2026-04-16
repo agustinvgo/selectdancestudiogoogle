@@ -12,7 +12,7 @@ const publicFormLimiter = rateLimit({
 // Limiter para acciones de autenticación (Login, Register, Password Reset)
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 5,
+    max: 20, // Aumentado para evitar bloqueos por IP compartida en el estudio
     skipSuccessfulRequests: true,
     standardHeaders: true,
     legacyHeaders: false,

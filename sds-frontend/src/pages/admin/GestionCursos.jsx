@@ -34,7 +34,8 @@ const GestionCursos = () => {
         duracion_minutos: 60,
         cupo_maximo: 15,
         profesor_id: '',
-        activo: true
+        activo: true,
+        es_publico: true
     });
 
     // --- Queries ---
@@ -166,7 +167,8 @@ const GestionCursos = () => {
                 duracion_minutos: curso.duracion_minutos || 60,
                 cupo_maximo: curso.cupo_maximo || 15,
                 profesor_id: curso.profesor_id || '',
-                activo: curso.activo !== 0
+                activo: curso.activo !== 0,
+                es_publico: curso.es_publico !== undefined ? curso.es_publico !== 0 : true
             });
         } else {
             setEditando(null);
@@ -181,7 +183,8 @@ const GestionCursos = () => {
                 duracion_minutos: 60,
                 cupo_maximo: 15,
                 profesor_id: '',
-                activo: true
+                activo: true,
+                es_publico: true
             });
         }
         setModalOpen(true);

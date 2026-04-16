@@ -68,7 +68,8 @@ const GestionEquipo = () => {
         },
         onError: (error) => {
             console.error(error);
-            toast.error('Error al eliminar');
+            const msg = error.response?.data?.message || 'Error al eliminar';
+            toast.error(msg);
         }
     });
 

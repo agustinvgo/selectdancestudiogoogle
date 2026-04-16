@@ -143,9 +143,9 @@ const CourseCard = ({
                     </div>
                     <div className="flex items-center justify-between py-1 border-b border-gray-50">
                         <span className="text-gray-500">Profesor</span>
-                        <span className="font-medium text-gray-900 truncate max-w-[120px] text-right" title={curso.nombre_profesor ? `${curso.nombre_profesor} ${curso.apellido_profesor}` : ''}>
+                        <span className="font-medium text-gray-900 truncate max-w-[120px] text-right" title={curso.nombre_profesor ? `${curso.nombre_profesor} ${curso.apellido_profesor || ''}`.trim() : ''}>
                             {curso.nombre_profesor
-                                ? `${curso.nombre_profesor} ${curso.apellido_profesor}`
+                                ? `${curso.nombre_profesor} ${curso.apellido_profesor || ''}`.trim()
                                 : (curso.profesor || <span className="text-gray-400 italic">No asignado</span>)}
                         </span>
                     </div>

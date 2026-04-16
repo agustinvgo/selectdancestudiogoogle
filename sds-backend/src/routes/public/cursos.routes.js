@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
             u.apellido as apellido_profesor
             FROM cursos c
             LEFT JOIN usuarios u ON c.profesor_id = u.id
-            WHERE c.activo = 1
+            WHERE c.activo = 1 AND c.es_publico = 1
             ORDER BY c.nombre
         `);
         res.json({ success: true, data: rows });

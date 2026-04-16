@@ -307,7 +307,7 @@ const CompetitionGallery = ({ onJoinClick }) => {
                                     onClick={onJoinClick}
                                     className="group flex items-center gap-3 bg-red-600 hover:bg-red-500 text-white font-bold text-sm uppercase tracking-widest px-8 py-3.5 rounded-full transition-colors duration-300 shadow-[0_0_24px_rgba(220,38,38,0.35)] hover:shadow-[0_0_40px_rgba(220,38,38,0.65)]"
                                 >
-                                    Prueba tu clase gratuita
+                                    Prueba tu clase
                                     <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                 </button>
                             </div>

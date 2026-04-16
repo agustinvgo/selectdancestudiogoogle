@@ -128,9 +128,16 @@ const TrialModal = ({ isOpen, onClose, selectedCourse, courses }) => {
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Solicitar Clase de Prueba">
             <form onSubmit={handleSubmit} className="space-y-5">
-                <p className="text-gray-600 text-sm mb-6 leading-relaxed">
+                <p className="text-gray-600 text-sm mb-4 leading-relaxed">
                     Completa tus datos y nos pondremos en contacto contigo para coordinar tu primera experiencia en Select Dance Studio.
                 </p>
+                
+                <div className="bg-red-50 border-l-4 border-red-600 p-4 mb-6 rounded-r-lg">
+                    <p className="text-red-800 text-sm">
+                        <span className="font-bold">Valor de la clase: $30.000</span>. Este monto será descontado del valor de la matrícula en caso de inscribirte formalmente.
+                    </p>
+                </div>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
                         <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-2">Nombre</label>

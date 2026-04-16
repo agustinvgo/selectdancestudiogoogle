@@ -48,19 +48,19 @@ const useClasesPrueba = () => {
     const updateStatusMutation = useMutation({
         mutationFn: ({ id, newStatus }) => clasePruebaAPI.updateStatus(id, newStatus),
         onSuccess: () => {
-            queryClient.invalidateQueries(['solicitudes_prueba']);
+            queryClient.invalidateQueries({ queryKey: ['solicitudes_prueba'] });
             toast.success('Estado actualizado');
         },
         onError: (error) => {
             console.error('Error updating status:', error);
-            toast.error('Error al actualizar estado');
+            toast.error(error.response?.data?.message || 'Error al actualizar estado');
         }
     });
 
     const deleteSolicitudMutation = useMutation({
         mutationFn: (id) => clasePruebaAPI.delete(id),
         onSuccess: () => {
-            queryClient.invalidateQueries(['solicitudes_prueba']);
+            queryClient.invalidateQueries({ queryKey: ['solicitudes_prueba'] });
             toast.success('Solicitud eliminada');
         },
         onError: (error) => {
@@ -94,7 +94,7 @@ const useClasesPrueba = () => {
     const addSlotMutation = useMutation({
         mutationFn: (data) => clasePruebaAPI.addDisponibilidad(data),
         onSuccess: () => {
-            queryClient.invalidateQueries(['clases_prueba_disponibles']);
+            queryClient.invalidateQueries({ queryKey: ['clases_prueba_disponibles'] });
             toast.success('Horario agregado');
         },
         onError: (error) => {
@@ -106,7 +106,7 @@ const useClasesPrueba = () => {
     const deleteSlotMutation = useMutation({
         mutationFn: (id) => clasePruebaAPI.deleteDisponibilidad(id),
         onSuccess: () => {
-            queryClient.invalidateQueries(['clases_prueba_disponibles']);
+            queryClient.invalidateQueries({ queryKey: ['clases_prueba_disponibles'] });
             toast.success('Horario eliminado');
         },
         onError: (error) => {

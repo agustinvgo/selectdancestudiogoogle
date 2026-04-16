@@ -63,7 +63,7 @@ const UsuariosController = {
 
             // Insertar usuario
             const [result] = await db.query(
-                'INSERT INTO usuarios (email, password_hash, nombre, apellido, rol, activo) VALUES (?, ?, ?, ?, ?, 1)',
+                'INSERT INTO usuarios (email, password_hash, nombre, apellido, rol, activo, primer_login) VALUES (?, ?, ?, ?, ?, 1, 1)',
                 [email, password_hash, nombre, apellido, 'profesor']
             );
 

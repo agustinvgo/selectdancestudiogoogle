@@ -88,11 +88,12 @@ const ClasePruebaController = {
             // Enviar emails automáticos según el nuevo estado
             if (solicitud) {
                 const EmailService = require('../../services/email.service');
+                const estadoLower = estado ? estado.toLowerCase() : '';
 
-                if (estado === 'agendado') {
+                if (estadoLower === 'agendado') {
                     EmailService.enviarConfirmacionAgendamiento(solicitud.email, solicitud.nombre, solicitud.interes, formatSchedule(solicitud.horario))
                         .catch(err => console.error('Error email agendado:', err));
-                } else if (estado === 'completado') {
+                } else if (estadoLower === 'completado') {
                     EmailService.enviarAgradecimientoAsistencia(solicitud.email, solicitud.nombre)
                         .catch(err => console.error('Error email agradecimiento:', err));
                 }
@@ -101,7 +102,7 @@ const ClasePruebaController = {
             res.json({ success: true, message: 'Estado actualizado correctamente' });
         } catch (error) {
             console.error('Error updateStatus:', error);
-            res.status(500).json({ success: false, message: 'Error al actualizar estado' });
+            res.status(500).json({ success: false, message: 'Error interno: ' + error.message });
         }
     },
 

@@ -13,6 +13,7 @@ const dbInit = {
             await this.repairPagos();
             await this.ensureTableDisponibles();
             await this.ensureTableEsperas();
+            await this.ensureTablePasswordResets();
 
             console.log('--- ✅ Base de Datos Sincronizada y Lista ---');
         } catch (error) {
@@ -55,6 +56,7 @@ const dbInit = {
             { name: 'rol_display', type: 'VARCHAR(100) AFTER foto_perfil' },
             { name: 'descripcion', type: 'TEXT AFTER rol_display' },
             { name: 'orden', type: 'INT DEFAULT 0 AFTER descripcion' },
+            { name: 'mostrar_en_web', type: 'TINYINT(1) DEFAULT 0 AFTER orden' },
             { name: 'foto_perfil', type: 'VARCHAR(255) AFTER telefono' },
             { name: 'primer_login', type: 'TINYINT(1) DEFAULT 1 AFTER activo' },
             { name: 'nombre', type: 'VARCHAR(100) AFTER primer_login' },
@@ -83,7 +85,8 @@ const dbInit = {
             { name: 'tipo', type: 'JSON AFTER categoria' },
             { name: 'hora_inicio', type: 'TIME AFTER tipo' },
             { name: 'hora_fin', type: 'TIME AFTER hora_inicio' },
-            { name: 'url_clase_vivo', type: 'VARCHAR(255) AFTER cupo_maximo' }
+            { name: 'url_clase_vivo', type: 'VARCHAR(255) AFTER cupo_maximo' },
+            { name: 'es_publico', type: 'TINYINT(1) DEFAULT 1 AFTER activo' }
         ];
 
         for (const col of required) {
@@ -160,6 +163,28 @@ const dbInit = {
             `);
         } catch (error) {
             console.error('Error asegurando tabla esperas:', error);
+        }
+    },
+
+    /**
+     * Asegura la existencia de la tabla para recuperacion de contraseña
+     */
+    async ensureTablePasswordResets() {
+        try {
+            await db.query(`
+                CREATE TABLE IF NOT EXISTS password_resets (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    email VARCHAR(255) NOT NULL,
+                    token VARCHAR(64) NOT NULL,
+                    used BOOLEAN DEFAULT FALSE,
+                    expires_at DATETIME NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    INDEX(email),
+                    INDEX(token)
+                ) ENGINE=InnoDB;
+            `);
+        } catch (error) {
+            console.error('Error asegurando tabla password_resets:', error);
         }
     },
 

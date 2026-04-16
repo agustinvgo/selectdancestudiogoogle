@@ -90,7 +90,8 @@ const CursosModel = {
                 dia_semana,
                 hora_inicio,
                 hora_fin,
-                cupo_maximo
+                cupo_maximo,
+                es_publico = 1
             } = cursoData;
 
             // Ensure arrays are stringified for JSON columns
@@ -101,9 +102,9 @@ const CursosModel = {
             const [result] = await db.query(`
         INSERT INTO cursos (
           nombre, descripcion, profesor_id, nivel, categoria, tipo, dia_semana,
-          hora_inicio, hora_fin, cupo_maximo, activo
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
-      `, [nombre, descripcion, profesor_id, nivelJSON, categoriaJSON, tipoJSON, dia_semana, hora_inicio, hora_fin, cupo_maximo]);
+          hora_inicio, hora_fin, cupo_maximo, activo, es_publico
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
+      `, [nombre, descripcion, profesor_id, nivelJSON, categoriaJSON, tipoJSON, dia_semana, hora_inicio, hora_fin, cupo_maximo, es_publico]);
 
             return result.insertId;
         } catch (error) {
@@ -127,7 +128,8 @@ const CursosModel = {
                 hora_fin,
                 cupo_maximo,
                 url_clase_vivo,
-                activo
+                activo,
+                es_publico = 1
             } = cursoData;
 
             const nivelJSON = JSON.stringify(Array.isArray(nivel) ? nivel : [nivel]);
@@ -137,9 +139,9 @@ const CursosModel = {
             const [result] = await db.query(`
                 UPDATE cursos 
                 SET nombre = ?, descripcion = ?, profesor_id = ?, nivel = ?, categoria = ?, tipo = ?, dia_semana = ?,
-                    hora_inicio = ?, hora_fin = ?, cupo_maximo = ?, url_clase_vivo = ?, activo = ?
+                    hora_inicio = ?, hora_fin = ?, cupo_maximo = ?, url_clase_vivo = ?, activo = ?, es_publico = ?
                 WHERE id = ?
-            `, [nombre, descripcion, profesor_id, nivelJSON, categoriaJSON, tipoJSON, dia_semana, hora_inicio, hora_fin, cupo_maximo, url_clase_vivo, activo, id]);
+            `, [nombre, descripcion, profesor_id, nivelJSON, categoriaJSON, tipoJSON, dia_semana, hora_inicio, hora_fin, cupo_maximo, url_clase_vivo, activo, es_publico, id]);
 
             return result.affectedRows > 0;
         } catch (error) {
