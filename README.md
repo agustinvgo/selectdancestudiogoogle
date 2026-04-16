@@ -55,11 +55,15 @@ La web estará disponible en `http://localhost:5173`.
 
 ---
 Desarrollado para Select Dance Studio.
+https://selectdancestudio.com/
+
+https://github.com/user-attachments/assets/a87d15f2-5948-4a74-995f-0e336f9d51b0
+
 
 <img width="1889" height="910" alt="Captura de pantalla 2026-04-16 173045" src="https://github.com/user-attachments/assets/41233660-83d2-4dcc-a499-733f79f7a6f4" />
 
 
-https://github.com/user-attachments/assets/d45bc660-8a46-41e5-ad67-979889c6fd00
+
 
 
 
