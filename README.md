@@ -55,3 +55,22 @@ La web estará disponible en `http://localhost:5173`.
 
 ---
 Desarrollado para Select Dance Studio.
+https://selectdancestudio.com/
+
+https://github.com/user-attachments/assets/a87d15f2-5948-4a74-995f-0e336f9d51b0
+
+
+<img width="1889" height="910" alt="Captura de pantalla 2026-04-16 173045" src="https://github.com/user-attachments/assets/41233660-83d2-4dcc-a499-733f79f7a6f4" />
+
+
+
+
+
+
+
+
+<img width="761" height="909" alt="Captura de pantalla 2026-04-16 173130" src="https://github.com/user-attachments/assets/a4a3789c-7de4-4ce1-b696-19881ed05d7c" />
+<img width="1896" height="912" alt="Captura de pantalla 2026-04-16 174015" src="https://github.com/user-attachments/assets/f6acda36-3bcc-47f6-9071-dd408cc94ca8" />
+
+https://www.linkedin.com/in/agustin-vega-godoy-24179a390/
+https://selectdancestudio.com/
