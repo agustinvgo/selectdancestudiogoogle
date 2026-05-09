@@ -12,7 +12,7 @@ const PerfilAlumno = () => {
         queryKey: ['alumno', alumnoId],
         queryFn: async () => {
             const response = await alumnosAPI.getById(alumnoId);
-            return response.data; // Assuming getById returns the student object directly or in data.data
+            return response.data.data; // The API returns { success, data: alumno }
         },
         enabled: !!alumnoId,
         retry: 1

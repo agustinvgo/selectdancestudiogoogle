@@ -98,7 +98,7 @@ const AlumnosModel = {
     async findById(id) {
         try {
             const [rows] = await db.query(`
-        SELECT a.*, u.email, u.rol, u.nombre, u.apellido, u.telefono, u.foto_perfil
+        SELECT a.*, u.email, u.rol, u.activo as usuario_activo, u.nombre, u.apellido, u.telefono, u.foto_perfil
         FROM alumnos a
         LEFT JOIN usuarios u ON a.usuario_id = u.id
         WHERE a.id = ?
@@ -320,20 +320,12 @@ const AlumnosModel = {
         ORDER BY e.fecha DESC
       `, [id]);
 
-            // Uniformes
-            const [uniformes] = await db.query(`
-        SELECT * FROM uniformes
-        WHERE alumno_id = ?
-        ORDER BY created_at DESC
-      `, [id]);
-
             return {
                 alumno,
                 cursos,
                 asistencias,
                 pagos,
-                eventos,
-                uniformes
+                eventos
             };
         } catch (error) {
             throw error;
