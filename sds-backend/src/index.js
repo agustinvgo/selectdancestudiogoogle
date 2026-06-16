@@ -69,18 +69,38 @@ app.use(helmet({
 // trata a todos los usuarios como la misma IP — un solo usuario puede bloquear a todos.
 app.set('trust proxy', 1);
 
-// Seguridad: Rate Limiting
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutos
-    max: process.env.NODE_ENV === 'production' ? 100 : 1000, // Estricto en prod, laxo en dev
+// =============================================================
+// Rate Limiting por niveles
+// =============================================================
+
+// Nivel 1 — Público general (anti-scraping, anti-spam)
+// Aplica a rutas públicas (cursos, eventos, chatbot público)
+const publicLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,  // 15 minutos
+    max: process.env.NODE_ENV === 'production' ? 120 : 2000,
     standardHeaders: true,
     legacyHeaders: false,
     message: {
         success: false,
-        message: 'Demasiadas solicitudes desde esta IP, por favor intente nuevamente en 15 minutos.'
+        message: 'Demasiadas solicitudes. Intenta en unos minutos.'
     },
 });
-app.use('/api/', limiter);
+
+// Nivel 2 — Admin autenticado (operaciones normales del panel)
+// Muy permisivo: el admin necesita hacer muchas operaciones seguidas
+const adminLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,  // 15 minutos
+    max: process.env.NODE_ENV === 'production' ? 800 : 5000,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+        success: false,
+        message: 'Límite de solicitudes alcanzado. Esperá un momento.'
+    },
+});
+
+// Nivel 3 — Auth (login, reset password)
+// Ya definido en rateLimiters.js — se aplica en auth.routes.js
 
 // Seguridad: Geo-Blocking (Solo AR/CL) - Aplicar antes de las rutas
 const geoFilter = require('./middlewares/geoFilter.middleware');
@@ -159,28 +179,36 @@ app.use('/assets/public', express.static(path.join(__dirname, 'assets'), {
 }));
 
 
-// Registrar rutas
+// =============================================================
+// Registrar rutas con limiters apropiados
+// =============================================================
+
+// 🔒 Auth — usa su propio authLimiter definido en auth.routes.js
 app.use('/api/auth', authRoutes);
-app.use('/api/alumnos', alumnosRoutes);
-app.use('/api/asistencias', asistenciasRoutes);
-app.use('/api/pagos', pagosRoutes);
-app.use('/api/eventos', eventosRoutes);
-app.use('/api/cursos', cursosRoutes);
-app.use('/api/emails', emailRoutes);
-app.use('/api/estadisticas', estadisticasRoutes);
-app.use('/api/whatsapp', whatsappRoutes);
-app.use('/api/usuarios', require('./routes/admin/usuarios.routes'));
-app.use('/api/equipo', require('./routes/admin/equipo.routes'));
-app.use('/api/prueba', require('./routes/admin/clase_prueba.routes'));
-app.use('/api/consultas', require('./routes/admin/consultas.routes'));
-app.use('/api/notificaciones', require('./routes/common/notificaciones.routes'));
-app.use('/api/gastos', require('./routes/admin/gastos.routes'));
-app.use('/api/store', require('./routes/public/store.routes'));
-app.use('/api/public/eventos', require('./routes/public/eventos.routes'));
-app.use('/api/public/cursos', require('./routes/public/cursos.routes'));
-app.use('/api/espera', require('./routes/admin/espera.routes'));
-app.use('/api/admin/bot', require('./routes/admin/bot.routes'));
-app.use('/api/chatbot', require('./routes/chatbot.routes'));
+
+// 🛡️ Admin — panel interno, mucho espacio para trabajar rápido
+app.use('/api/alumnos',      adminLimiter, alumnosRoutes);
+app.use('/api/asistencias',  adminLimiter, asistenciasRoutes);
+app.use('/api/pagos',        adminLimiter, pagosRoutes);
+app.use('/api/eventos',      adminLimiter, eventosRoutes);
+app.use('/api/cursos',       adminLimiter, cursosRoutes);
+app.use('/api/estadisticas', adminLimiter, estadisticasRoutes);
+app.use('/api/usuarios',     adminLimiter, require('./routes/admin/usuarios.routes'));
+app.use('/api/equipo',       adminLimiter, require('./routes/admin/equipo.routes'));
+app.use('/api/prueba',       adminLimiter, require('./routes/admin/clase_prueba.routes'));
+app.use('/api/consultas',    adminLimiter, require('./routes/admin/consultas.routes'));
+app.use('/api/notificaciones', adminLimiter, require('./routes/common/notificaciones.routes'));
+app.use('/api/gastos',       adminLimiter, require('./routes/admin/gastos.routes'));
+app.use('/api/espera',       adminLimiter, require('./routes/admin/espera.routes'));
+app.use('/api/admin/bot',    adminLimiter, require('./routes/admin/bot.routes'));
+app.use('/api/emails',       adminLimiter, emailRoutes);
+
+// 🌐 Público — más restrictivo para evitar bots/spam
+app.use('/api/store',          publicLimiter, require('./routes/public/store.routes'));
+app.use('/api/public/eventos', publicLimiter, require('./routes/public/eventos.routes'));
+app.use('/api/public/cursos',  publicLimiter, require('./routes/public/cursos.routes'));
+app.use('/api/chatbot',        publicLimiter, require('./routes/chatbot.routes'));
+app.use('/api/whatsapp',       publicLimiter, whatsappRoutes);
 
 
 

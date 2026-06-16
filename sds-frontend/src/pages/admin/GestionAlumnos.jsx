@@ -6,6 +6,7 @@ import Loader from '../../components/Loader';
 import useToast from '../../hooks/useToast';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import useConfirm from '../../hooks/useConfirm';
+import useRequestQueue from '../../hooks/useRequestQueue';
 import Pagination from '../../components/common/Pagination';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -58,6 +59,7 @@ const GestionAlumnos = () => {
     const toast = useToast();
     const { isOpen, confirmConfig, confirm, closeConfirm } = useConfirm();
     const queryClient = useQueryClient();
+    const { enqueue } = useRequestQueue();
 
     // --- Helpers ---
     const isActivo = (val) => {
@@ -231,7 +233,8 @@ const GestionAlumnos = () => {
 
             if (editando) {
                 // Actualizar
-                await updateAlumnoMutation.mutateAsync({ id: editando.id, data });
+                // Encolar para no saturar el backend con multiples guardados simultaneos
+                await enqueue(() => updateAlumnoMutation.mutateAsync({ id: editando.id, data }));
 
                 // Procesar cursos (Logic kept as manual calls for simplicity or could be separate mutations)
                 // For a full refactor, these should be their own mutations or part of the update service
@@ -283,7 +286,7 @@ const GestionAlumnos = () => {
 
                 data.set('password', tempPassword);
 
-                const response = await createAlumnoMutation.mutateAsync(data);
+                const response = await enqueue(() => createAlumnoMutation.mutateAsync(data));
                 const nuevoAlumnoId = response.data.data.id;
 
                 if (formData.cursoIds && formData.cursoIds.length > 0) {

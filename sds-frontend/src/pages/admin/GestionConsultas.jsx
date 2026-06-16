@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { consultasAPI } from '../../services/api';
 import { toast } from 'react-hot-toast';
+import useConfirm from '../../hooks/useConfirm';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import {
     EnvelopeIcon,
     TrashIcon,
@@ -13,7 +15,8 @@ const GestionConsultas = () => {
     const [consultas, setConsultas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [filterEstado, setFilterEstado] = useState('todos'); // todos, pendiente, leido
+    const [filterEstado, setFilterEstado] = useState('todos');
+    const { isOpen, confirmConfig, confirm, closeConfirm } = useConfirm();
 
     useEffect(() => {
         fetchConsultas();
@@ -34,11 +37,18 @@ const GestionConsultas = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('¿Estás seguro de eliminar esta consulta?')) return;
+        const confirmed = await confirm({
+            title: 'Eliminar consulta',
+            message: '¿Estás seguro de eliminar esta consulta? Esta acción no se puede deshacer.',
+            confirmText: 'Sí, eliminar',
+            cancelText: 'Cancelar',
+            type: 'danger'
+        });
+        if (!confirmed) return;
         try {
             await consultasAPI.delete(id);
             toast.success('Consulta eliminada');
-            fetchConsultas(); // Recargar
+            fetchConsultas();
         } catch (error) {
             toast.error('Error al eliminar');
         }
@@ -167,6 +177,11 @@ const GestionConsultas = () => {
                 </div>
             )}
         </div>
+        <ConfirmDialog
+            isOpen={isOpen}
+            config={confirmConfig}
+            onClose={closeConfirm}
+        />
     );
 };
 

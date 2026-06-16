@@ -12,12 +12,14 @@ import Loader from '../../components/Loader';
 import useToast from '../../hooks/useToast';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import useConfirm from '../../hooks/useConfirm';
+import useRequestQueue from '../../hooks/useRequestQueue';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const GestionProfesores = () => {
     const queryClient = useQueryClient();
     const toast = useToast();
     const { isOpen, confirmConfig, confirm, closeConfirm } = useConfirm();
+    const { enqueue } = useRequestQueue();
 
     // --- State (UI only) ---
     const [searchTerm, setSearchTerm] = useState('');
@@ -109,14 +111,16 @@ const GestionProfesores = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (editando) {
-            updateProfesorMutation.mutate({ id: editando.id, data: formData });
+            // Encolar para no saturar el backend
+            enqueue(() => updateProfesorMutation.mutateAsync({ id: editando.id, data: formData }));
         } else {
             if (!formData.password) {
                 toast.error('La contraseña es requerida para nuevos profesores');
                 return;
             }
-            createProfesorMutation.mutate(formData);
+            enqueue(() => createProfesorMutation.mutateAsync(formData));
         }
+        setModalOpen(false);
     };
 
     const eliminarProfesor = (id) => {

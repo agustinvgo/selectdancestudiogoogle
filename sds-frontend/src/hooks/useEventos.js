@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { eventosAPI, alumnosAPI } from '../services/api';
 import useToast from './useToast';
+import useRequestQueue from './useRequestQueue';
 
 const useEventos = ({ expandedEventoId, eventoSeleccionado, modalDetalleOpen }) => {
     const queryClient = useQueryClient();
     const toast = useToast();
+    const { enqueue } = useRequestQueue();
 
     // 1. Queries
     const { data: eventosData, isLoading: isLoadingEventos } = useQuery({
@@ -36,7 +38,7 @@ const useEventos = ({ expandedEventoId, eventoSeleccionado, modalDetalleOpen }) 
 
     // 2. Mutations
     const createMutation = useMutation({
-        mutationFn: (data) => eventosAPI.create(data),
+        mutationFn: (data) => enqueue(() => eventosAPI.create(data)),
         onSuccess: () => {
             queryClient.invalidateQueries(['eventos']);
             toast.success('Evento creado exitosamente');
@@ -48,7 +50,7 @@ const useEventos = ({ expandedEventoId, eventoSeleccionado, modalDetalleOpen }) 
     });
 
     const updateMutation = useMutation({
-        mutationFn: ({ id, data }) => eventosAPI.update(id, data),
+        mutationFn: ({ id, data }) => enqueue(() => eventosAPI.update(id, data)),
         onSuccess: () => {
             queryClient.invalidateQueries(['eventos']);
             toast.success('Evento actualizado exitosamente');

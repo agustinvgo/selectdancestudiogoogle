@@ -6,6 +6,7 @@ import Loader from '../../components/Loader';
 import useToast from '../../hooks/useToast';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import useConfirm from '../../hooks/useConfirm';
+import useRequestQueue from '../../hooks/useRequestQueue';
 import { exportCursos } from '../../utils/exportExcel';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -19,6 +20,7 @@ const GestionCursos = () => {
     const queryClient = useQueryClient();
     const toast = useToast();
     const { isOpen, confirmConfig, confirm, closeConfirm } = useConfirm();
+    const { enqueue, pendingCount } = useRequestQueue();
 
     // --- State (UI only) ---
     const [searchTerm, setSearchTerm] = useState('');
@@ -192,10 +194,21 @@ const GestionCursos = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        // Encolar la request para que no se ejecuten multiples al mismo tiempo
+        // Si el admin guarda varios cursos rapido, van de a uno con 150ms de pausa
         if (editando) {
-            updateCursoMutation.mutate({ id: editando.id, data: formData });
+            const id = editando.id;
+            const data = { ...formData };
+            setModalOpen(false);
+            await enqueue(() => cursosAPI.update(id, data));
+            queryClient.invalidateQueries(['cursos']);
+            toast.success(`Curso "${data.nombre}" actualizado exitosamente`);
         } else {
-            createCursoMutation.mutate(formData);
+            const data = { ...formData };
+            setModalOpen(false);
+            await enqueue(() => cursosAPI.create(data));
+            queryClient.invalidateQueries(['cursos']);
+            toast.success(`Curso "${data.nombre}" creado exitosamente`);
         }
     };
 
@@ -304,7 +317,7 @@ const GestionCursos = () => {
                 setFormData={setFormData}
                 handleSubmit={handleSubmit}
                 profesores={profesores}
-                saving={createCursoMutation.isPending || updateCursoMutation.isPending}
+                saving={createCursoMutation.isPending || updateCursoMutation.isPending || pendingCount > 0}
             />
 
             <ConfirmDialog

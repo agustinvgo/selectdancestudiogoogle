@@ -1,11 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { storeAPI } from '../services/api';
 import useToast from './useToast';
+import useRequestQueue from './useRequestQueue';
 import Swal from 'sweetalert2';
 
 const useInventario = () => {
     const queryClient = useQueryClient();
     const toast = useToast();
+    const { enqueue } = useRequestQueue();
 
     // 1. Fetch Productos
     const { data: productosData, isLoading } = useQuery({
@@ -18,7 +20,7 @@ const useInventario = () => {
 
     // 2. Mutations
     const createMutation = useMutation({
-        mutationFn: (data) => storeAPI.createProducto(data),
+        mutationFn: (data) => enqueue(() => storeAPI.createProducto(data)),
         onSuccess: () => {
             queryClient.invalidateQueries(['productos']);
         },
@@ -29,7 +31,7 @@ const useInventario = () => {
     });
 
     const updateMutation = useMutation({
-        mutationFn: ({ id, data }) => storeAPI.updateProducto(id, data),
+        mutationFn: ({ id, data }) => enqueue(() => storeAPI.updateProducto(id, data)),
         onSuccess: () => {
             queryClient.invalidateQueries(['productos']);
         },

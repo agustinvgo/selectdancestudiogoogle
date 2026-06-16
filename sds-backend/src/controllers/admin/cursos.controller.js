@@ -2,6 +2,7 @@ const CursosModel = require('../../models/cursos.model');
 const AlumnosModel = require('../../models/alumnos.model');
 const emailService = require('../../services/email.service');
 const { formatSchedule } = require('../../utils/formatters');
+const logger = require('../../config/logger');
 
 const CursosController = {
     // Obtener todos los cursos
@@ -14,7 +15,7 @@ const CursosController = {
                 message: 'Cursos obtenidos correctamente'
             });
         } catch (error) {
-            console.error('Error en getAll:', error);
+            logger.error('[CursosController]', { fn: 'getAll', error: error.message });
             res.status(500).json({
                 success: false,
                 message: 'Error al obtener cursos',
@@ -42,7 +43,7 @@ const CursosController = {
                 message: 'Curso obtenido correctamente'
             });
         } catch (error) {
-            console.error('Error en getById:', error);
+            logger.error('[CursosController]', { fn: 'getById', error: error.message });
             res.status(500).json({
                 success: false,
                 message: 'Error al obtener curso',
@@ -63,7 +64,7 @@ const CursosController = {
                 message: 'Cursos del alumno obtenidos correctamente'
             });
         } catch (error) {
-            console.error('Error en getByAlumno:', error);
+            logger.error('[CursosController]', { fn: 'getByAlumno', error: error.message });
             res.status(500).json({
                 success: false,
                 message: 'Error al obtener cursos del alumno',
@@ -77,10 +78,10 @@ const CursosController = {
         try {
             // Asumimos que el ID del usuario está en req.user.id (del token)
             const profesorId = req.user.id;
-            console.log(`[getMyCourses] Buscando cursos para profesor ID: ${profesorId}`);
+            logger.debug(`[getMyCourses] Buscando cursos para profesor ID: ${profesorId}`);
 
             const cursos = await CursosModel.findByProfesorId(profesorId);
-            console.log(`[getMyCourses] Cursos encontrados: ${cursos.length}`);
+            logger.debug(`[getMyCourses] Cursos encontrados: ${cursos.length}`);
 
             res.json({
                 success: true,
@@ -88,7 +89,7 @@ const CursosController = {
                 message: 'Mis cursos obtenidos correctamente'
             });
         } catch (error) {
-            console.error('Error en getMyCourses:', error);
+            logger.error('[CursosController]', { fn: 'getMyCourses', error: error.message });
             res.status(500).json({
                 success: false,
                 message: 'Error al obtener mis cursos',
@@ -142,7 +143,7 @@ const CursosController = {
                 message: 'Curso creado exitosamente'
             });
         } catch (error) {
-            console.error('Error en create:', error);
+            logger.error('[CursosController]', { fn: 'create', error: error.message });
             res.status(500).json({
                 success: false,
                 message: 'Error al crear curso',
@@ -212,7 +213,7 @@ const CursosController = {
                 message: 'Curso actualizado exitosamente'
             });
         } catch (error) {
-            console.error('Error en update:', error);
+            logger.error('[CursosController]', { fn: 'update', error: error.message });
             res.status(500).json({
                 success: false,
                 message: 'Error al actualizar curso',
@@ -240,7 +241,7 @@ const CursosController = {
                 message: 'Curso eliminado exitosamente'
             });
         } catch (error) {
-            console.error('Error en delete:', error);
+            logger.error('[CursosController]', { fn: 'delete', error: error.message });
             res.status(500).json({
                 success: false,
                 message: 'Error al eliminar curso',
@@ -261,7 +262,7 @@ const CursosController = {
                 message: 'Participantes obtenidos correctamente'
             });
         } catch (error) {
-            console.error('Error en getParticipantes:', error);
+            logger.error('[CursosController]', { fn: 'getParticipantes', error: error.message });
             res.status(500).json({
                 success: false,
                 message: 'Error al obtener participantes',
@@ -298,15 +299,15 @@ const CursosController = {
                     emailService.enviarConfirmacionInscripcion(emailDestino, alumno.nombre, curso.nombre, horario)
                         .then(result => {
                             if (result.success) {
-                                console.log(`✅ Email inscripción curso enviado a ${alumno.nombre}`);
+                                logger.info(`Email inscripción curso enviado a ${alumno.nombre}`);
                             } else {
-                                console.log(`⚠️ No se pudo enviar Email inscripción: ${result.error}`);
+                                logger.warn(`No se pudo enviar Email inscripción: ${result.error}`);
                             }
                         })
-                        .catch(err => console.error('Error enviando Email inscripción:', err));
+                        .catch(err => logger.error('Error enviando Email inscripción', { error: err.message }));
                 }
             } catch (emailError) {
-                console.error('Error preparando Email de inscripción:', emailError);
+                logger.error('Error preparando Email de inscripción', { error: emailError.message });
             }
 
             res.status(201).json({
@@ -315,7 +316,7 @@ const CursosController = {
                 message: 'Alumno inscrito exitosamente'
             });
         } catch (error) {
-            console.error('Error en inscribirAlumno:', error);
+            logger.error('[CursosController]', { fn: 'inscribirAlumno', error: error.message });
             res.status(400).json({
                 success: false,
                 message: error.message || 'Error al inscribir alumno',
@@ -355,13 +356,13 @@ const CursosController = {
                 if (alumno && emailDestino && curso) {
                     const emailResult = await emailService.enviarDesinscripcionCurso(emailDestino, alumno.nombre, curso.nombre);
                     if (emailResult.success) {
-                        console.log(`✅ Email desinscripción enviado a ${alumno.nombre}`);
+                        logger.info(`Email desinscripción enviado a ${alumno.nombre}`);
                     } else {
-                        console.log(`⚠️ Falló envío Email desinscripción: ${emailResult.error}`);
+                        logger.warn(`Falló envío Email desinscripción: ${emailResult.error}`);
                     }
                 }
             } catch (error) {
-                console.error('Error enviando Email desinscripción:', error);
+                logger.error('Error enviando Email desinscripción', { error: error.message });
             }
 
             res.json({
@@ -369,7 +370,7 @@ const CursosController = {
                 message: 'Alumno desinscrito exitosamente'
             });
         } catch (error) {
-            console.error('Error en desinscribirAlumno:', error);
+            logger.error('[CursosController]', { fn: 'desinscribirAlumno', error: error.message });
             res.status(500).json({
                 success: false,
                 message: 'Error al desinscribir alumno',

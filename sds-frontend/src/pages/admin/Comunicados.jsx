@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { notificacionesAPI, cursosAPI, alumnosAPI, usuariosAPI } from '../../services/api';
+import { notificacionesAPI, cursosAPI, alumnosAPI } from '../../services/api';
 import useToast from '../../hooks/useToast';
+import useConfirm from '../../hooks/useConfirm';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import {
     PaperAirplaneIcon,
     UserGroupIcon,
@@ -31,6 +33,7 @@ const Comunicados = () => {
     const [usuarios, setUsuarios] = useState([]); // Alumnos o Profesores según necesidad
 
     const toast = useToast();
+    const { isOpen, confirmConfig, confirm, closeConfirm } = useConfirm();
 
     // Tabs & Historial
     const [activeTab, setActiveTab] = useState('redactar'); // 'redactar' | 'historial'
@@ -58,9 +61,14 @@ const Comunicados = () => {
     };
 
     const handleDeleteBatch = async (batchId) => {
-        if (!window.confirm('¿Estás seguro de que deseas eliminar este comunicado para TODOS los destinatarios? Esta acción no se puede deshacer.')) {
-            return;
-        }
+        const confirmed = await confirm({
+            title: 'Eliminar comunicado',
+            message: '¿Estás seguro de que deseas eliminar este comunicado para TODOS los destinatarios? Esta acción no se puede deshacer.',
+            confirmText: 'Sí, eliminar',
+            cancelText: 'Cancelar',
+            type: 'danger'
+        });
+        if (!confirmed) return;
 
         try {
             await notificacionesAPI.deleteBatch(batchId);
@@ -491,6 +499,11 @@ const Comunicados = () => {
                 </div>
             )}
         </div>
+        <ConfirmDialog
+            isOpen={isOpen}
+            config={confirmConfig}
+            onClose={closeConfirm}
+        />
     );
 };
 

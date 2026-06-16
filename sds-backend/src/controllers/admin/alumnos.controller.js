@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const PagosModel = require('../../models/pagos.model');
 const emailService = require('../../services/email.service');
 const db = require('../../config/db');
+const logger = require('../../config/logger');
 
 const AlumnosController = {
     // Listar todos los alumnos (admin only)
@@ -44,7 +45,7 @@ const AlumnosController = {
                 limit: req.query.limit ? parseInt(req.query.limit) : undefined
             });
         } catch (error) {
-            console.error('Error obteniendo alumnos:', error);
+            logger.error('[AlumnosController.getAll]', { error: error.message });
             res.status(500).json({
                 success: false,
                 message: 'Error en el servidor',
@@ -71,7 +72,7 @@ const AlumnosController = {
                 data: alumno
             });
         } catch (error) {
-            console.error('Error obteniendo alumno:', error);
+            logger.error('[AlumnosController.getById]', { error: error.message });
             res.status(500).json({
                 success: false,
                 message: 'Error en el servidor',
@@ -91,10 +92,10 @@ const AlumnosController = {
 
             // Parsear campos si vienen como string (FormData)
             if (typeof pagosIniciales === 'string') {
-                try { pagosIniciales = JSON.parse(pagosIniciales); } catch (e) { console.error('Error parsing pagos', e); }
+                try { pagosIniciales = JSON.parse(pagosIniciales); } catch (e) { logger.warn('Error parsing pagosIniciales', { error: e.message }); }
             }
             if (typeof cursoIds === 'string') {
-                try { cursoIds = JSON.parse(cursoIds); } catch (e) { console.error('Error parsing cursos', e); }
+                try { cursoIds = JSON.parse(cursoIds); } catch (e) { logger.warn('Error parsing cursoIds', { error: e.message }); }
             }
 
             // Validaciones (Ideally handled by express-validator now)
@@ -154,12 +155,12 @@ const AlumnosController = {
                 emailService.enviarEmailBienvenida(email, nombre)
                     .then(result => {
                         if (result.success) {
-                            console.log(`✅ Email bienvenida enviado a ${nombre}`);
+                            logger.info(`Email bienvenida enviado a ${nombre}`);
                         } else {
-                            console.log(`⚠️ No se pudo enviar Email de bienvenida: ${result.error}`);
+                            logger.warn(`No se pudo enviar Email de bienvenida: ${result.error}`);
                         }
                     })
-                    .catch(err => console.error('Error enviando Email bienvenida:', err));
+                    .catch(err => logger.error('Error enviando Email bienvenida', { error: err.message }));
             }
 
             res.status(201).json({
@@ -169,7 +170,7 @@ const AlumnosController = {
             });
         } catch (error) {
             if (connection) await connection.rollback();
-            console.error('Error creando alumno:', error);
+            logger.error('[AlumnosController.create]', { error: error.message });
             res.status(500).json({
                 success: false,
                 message: 'Error en el servidor',
@@ -237,7 +238,7 @@ const AlumnosController = {
                 message: 'Alumno actualizado exitosamente'
             });
         } catch (error) {
-            console.error('Error actualizando alumno:', error);
+            logger.error('[AlumnosController.update]', { error: error.message });
             res.status(500).json({
                 success: false,
                 message: 'Error en el servidor',
@@ -265,7 +266,7 @@ const AlumnosController = {
                 message: 'Alumno eliminado exitosamente'
             });
         } catch (error) {
-            console.error('Error eliminando alumno:', error);
+            logger.error('[AlumnosController.delete]', { error: error.message });
             res.status(500).json({
                 success: false,
                 message: 'Error en el servidor',
@@ -292,7 +293,7 @@ const AlumnosController = {
                 data: ficha
             });
         } catch (error) {
-            console.error('Error obteniendo ficha completa:', error);
+            logger.error('[AlumnosController.getFichaCompleta]', { error: error.message });
             res.status(500).json({
                 success: false,
                 message: 'Error en el servidor',

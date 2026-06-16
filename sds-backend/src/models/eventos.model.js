@@ -295,17 +295,26 @@ const EventosModel = {
         }
     },
 
-    // Eliminar evento
+    // Eliminar evento (con transacción para evitar datos huérfanos)
     async delete(id) {
+        let connection;
         try {
-            // Primero eliminar inscripciones del evento
-            await db.query('DELETE FROM inscripciones_evento WHERE evento_id = ?', [id]);
+            connection = await db.getConnection();
+            await connection.beginTransaction();
+
+            // Eliminar inscripciones del evento primero
+            await connection.query('DELETE FROM inscripciones_evento WHERE evento_id = ?', [id]);
 
             // Luego eliminar el evento
-            const [result] = await db.query('DELETE FROM eventos WHERE id = ?', [id]);
+            const [result] = await connection.query('DELETE FROM eventos WHERE id = ?', [id]);
+
+            await connection.commit();
             return result.affectedRows > 0;
         } catch (error) {
+            if (connection) await connection.rollback();
             throw error;
+        } finally {
+            if (connection) connection.release();
         }
     }
 };

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import api, { whatsappAPI, alumnosAPI, cursosAPI } from '../../services/api';
 import { PaperAirplaneIcon, UserGroupIcon, ChatBubbleLeftRightIcon, ClockIcon } from '@heroicons/react/24/outline';
 import useToast from '../../hooks/useToast';
+import useConfirm from '../../hooks/useConfirm';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import Loader from '../../components/Loader';
 
 const Mensajeria = () => {
@@ -40,6 +42,7 @@ const Mensajeria = () => {
     const [loadingCurso, setLoadingCurso] = useState(false);
 
     const toast = useToast();
+    const { isOpen: isConfirmOpen, confirmConfig, confirm, closeConfirm } = useConfirm();
 
     useEffect(() => {
         cargarDatos();
@@ -236,9 +239,14 @@ const Mensajeria = () => {
     };
 
     const handleTestCron = async () => {
-        if (!window.confirm('¿Estás seguro de que deseas simular el envío de recordatorios? Esto buscará pagos que vencen en 3 días y enviará mensajes reales a los alumnos correspondientes.')) {
-            return;
-        }
+        const confirmed = await confirm({
+            title: 'Simular recordatorios',
+            message: '¿Estás seguro? Esto buscará pagos que vencen en 3 días y enviará mensajes reales a los alumnos correspondientes.',
+            confirmText: 'Sí, enviar',
+            cancelText: 'Cancelar',
+            type: 'warning'
+        });
+        if (!confirmed) return;
 
         try {
             const response = await whatsappAPI.testCron();
@@ -250,7 +258,14 @@ const Mensajeria = () => {
     };
 
     const handleEnviarResumenCursos = async () => {
-        if (!window.confirm('¿Enviar ahora el resumen de cursos de hoy a los profesores por WhatsApp?')) return;
+        const confirmed = await confirm({
+            title: 'Enviar agenda del día',
+            message: '¿Enviar ahora el resumen de cursos de hoy a los profesores por WhatsApp?',
+            confirmText: 'Sí, enviar',
+            cancelText: 'Cancelar',
+            type: 'warning'
+        });
+        if (!confirmed) return;
         try {
             const response = await whatsappAPI.enviarResumenCursos();
             toast.success(response.data.message || '✅ Agenda del día enviada por WhatsApp');
@@ -656,6 +671,11 @@ const Mensajeria = () => {
                 </div>
             </div>
         </div>
+        <ConfirmDialog
+            isOpen={isConfirmOpen}
+            config={confirmConfig}
+            onClose={closeConfirm}
+        />
     );
 };
 
@@ -663,9 +683,17 @@ const StatusView = () => {
     const [statusData, setStatusData] = useState({ status: 'loading', qr: null });
     const [loading, setLoading] = useState(true);
     const toast = useToast();
+    const { isOpen, confirmConfig, confirm, closeConfirm } = useConfirm();
 
     const handleLogout = async () => {
-        if (!window.confirm('¿Seguro que quieres cerrar la sesión de WhatsApp del servidor?')) return;
+        const confirmed = await confirm({
+            title: 'Cerrar sesión de WhatsApp',
+            message: '¿Seguro que quieres cerrar la sesión de WhatsApp del servidor? Se generará un nuevo QR.',
+            confirmText: 'Sí, cerrar sesión',
+            cancelText: 'Cancelar',
+            type: 'warning'
+        });
+        if (!confirmed) return;
         try {
             await api.post('/admin/bot/logout');
             toast.success('Desconectado. Generando nuevo QR...');
@@ -678,7 +706,14 @@ const StatusView = () => {
     };
 
     const handleHardReset = async () => {
-        if (!window.confirm('ATENCIÓN: Esto forzará la eliminación de la sesión en el servidor y destrabará el bot si se bloqueó. ¿Continuar?')) return;
+        const confirmed = await confirm({
+            title: '⚠️ Reiniciar sistema forzosamente',
+            message: 'ATENCIÓN: Esto forzará la eliminación de la sesión en el servidor y destrabará el bot si se bloqueó. El bot quedará offline hasta que escanees el QR nuevamente. ¿Continuar?',
+            confirmText: 'Sí, reiniciar',
+            cancelText: 'Cancelar',
+            type: 'danger'
+        });
+        if (!confirmed) return;
         try {
             await api.post('/admin/bot/reset');
             toast.success('Memoria borrada. Reiniciando...');
@@ -770,6 +805,11 @@ const StatusView = () => {
                 Estado interno: <span className="font-mono">{statusData.status}</span>
             </div>
         </div>
+        <ConfirmDialog
+            isOpen={isOpen}
+            config={confirmConfig}
+            onClose={closeConfirm}
+        />
     );
 };
 

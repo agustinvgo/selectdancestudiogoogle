@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { clasePruebaAPI, cursosAPI } from '../services/api';
 import useToast from './useToast';
+import useDebounce from './useDebounce';
 import Swal from 'sweetalert2';
 
 const useClasesPrueba = () => {
@@ -69,9 +70,13 @@ const useClasesPrueba = () => {
         }
     });
 
-    const handleStatusChange = (id, newStatus) => {
+    // Con debounce: espera 600ms antes de enviar al backend
+    // Evita multiples requests si el admin cambia el dropdown rapidamente
+    const _doUpdateStatus = useCallback((id, newStatus) => {
         updateStatusMutation.mutate({ id, newStatus });
-    };
+    }, [updateStatusMutation]);
+
+    const { debouncedFn: handleStatusChange } = useDebounce(_doUpdateStatus, 600);
 
     const handleDelete = async (id) => {
         const result = await Swal.fire({

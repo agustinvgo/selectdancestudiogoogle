@@ -1,11 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { gastosAPI } from '../services/api';
 import useToast from './useToast';
+import useRequestQueue from './useRequestQueue';
 import Swal from 'sweetalert2';
 
 const useGastos = ({ mes, anio, categoriaFiltro }) => {
     const queryClient = useQueryClient();
     const toast = useToast();
+    const { enqueue } = useRequestQueue();
 
     // 1. Fetch Gastos
     const { data: gastosData, isLoading } = useQuery({
@@ -18,7 +20,7 @@ const useGastos = ({ mes, anio, categoriaFiltro }) => {
 
     // 2. Mutations
     const createMutation = useMutation({
-        mutationFn: (data) => gastosAPI.create(data),
+        mutationFn: (data) => enqueue(() => gastosAPI.create(data)),
         onSuccess: () => {
             queryClient.invalidateQueries(['gastos']);
             toast.success('Gasto registrado correctamente');
@@ -30,7 +32,7 @@ const useGastos = ({ mes, anio, categoriaFiltro }) => {
     });
 
     const updateMutation = useMutation({
-        mutationFn: ({ id, data }) => gastosAPI.update(id, data),
+        mutationFn: ({ id, data }) => enqueue(() => gastosAPI.update(id, data)),
         onSuccess: () => {
             queryClient.invalidateQueries(['gastos']);
             toast.success('Gasto actualizado correctamente');

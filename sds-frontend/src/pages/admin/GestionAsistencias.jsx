@@ -5,11 +5,13 @@ import { CheckCircleIcon, XCircleIcon, CalendarIcon, ArrowDownTrayIcon } from '@
 import Loader from '../../components/Loader';
 import { exportAsistencias } from '../../utils/exportExcel';
 import useToast from '../../hooks/useToast';
+import useRequestQueue from '../../hooks/useRequestQueue';
 import Button from '../../components/Button';
 
 const GestionAsistencias = () => {
     const queryClient = useQueryClient();
     const toast = useToast();
+    const { enqueue } = useRequestQueue();
 
     // Estado local para filtros y edición
     const [cursoSeleccionado, setCursoSeleccionado] = useState('');
@@ -115,7 +117,8 @@ const GestionAsistencias = () => {
             presente: alumno.presente || false,
             observaciones: alumno.observaciones || null
         }));
-        guardarMutation.mutate(asistenciasPayload);
+        // Encolar para no saturar el backend
+        enqueue(() => guardarMutation.mutateAsync(asistenciasPayload));
     };
 
     const loading = loadingCursos || (loadingAsistencias && alumnos.length === 0);

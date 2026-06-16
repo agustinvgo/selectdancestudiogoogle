@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import useToast from '../../hooks/useToast';
+import useConfirm from '../../hooks/useConfirm';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import Loader from '../../components/Loader';
 import { Link } from 'react-router-dom';
 import {
@@ -18,6 +20,7 @@ const EntrenamientoBot = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('prompt'); // 'prompt' | 'knowledge' | 'connection'
     const toast = useToast();
+    const { isOpen, confirmConfig, confirm, closeConfirm } = useConfirm();
 
     // Prompt State
     const [systemPrompt, setSystemPrompt] = useState('');
@@ -101,7 +104,14 @@ const EntrenamientoBot = () => {
     };
 
     const handleDeleteTopic = async (id) => {
-        if (!window.confirm('¿Estás seguro de eliminar este tema?')) return;
+        const confirmed = await confirm({
+            title: 'Eliminar tema',
+            message: '¿Estás seguro de eliminar este tema de conocimiento? El bot ya no tendrá acceso a esta información.',
+            confirmText: 'Sí, eliminar',
+            cancelText: 'Cancelar',
+            type: 'danger'
+        });
+        if (!confirmed) return;
         try {
             await api.delete(`/admin/bot/knowledge/${id}`);
             toast.success('Tema eliminado');
@@ -300,6 +310,11 @@ const EntrenamientoBot = () => {
                 </div>
             )}
         </div>
+        <ConfirmDialog
+            isOpen={isOpen}
+            config={confirmConfig}
+            onClose={closeConfirm}
+        />
     );
 };
 
