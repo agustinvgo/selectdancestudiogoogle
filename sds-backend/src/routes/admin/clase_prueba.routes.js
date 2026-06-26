@@ -12,11 +12,12 @@ router.post('/cancel', publicFormLimiter, ClasePruebaController.cancelTrial);
 // Admin
 router.get('/', verifyToken, isAdmin, ClasePruebaController.getAll);
 router.put('/:id/estado', verifyToken, isAdmin, ClasePruebaController.updateStatus);
-router.delete('/:id', verifyToken, isAdmin, ClasePruebaController.delete);
 
-// Disponibilidad
+// Disponibilidad — debe ir ANTES de DELETE /:id para evitar que /disponibles/:id sea capturado por /:id
 router.get('/disponibles', ClasePruebaController.getDisponibles);
 router.post('/disponibles', verifyToken, isAdmin, ClasePruebaController.addDisponibilidad);
 router.delete('/disponibles/:id', verifyToken, isAdmin, ClasePruebaController.deleteDisponibilidad);
+
+router.delete('/:id', verifyToken, isAdmin, ClasePruebaController.delete);
 
 module.exports = router;

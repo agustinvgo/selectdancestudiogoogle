@@ -454,10 +454,122 @@ const notificarAdminNuevaConsulta = async (consultaInfo) => {
     });
 };
 
+const enviarNotificacionNuevoPago = async (email, nombre, concepto, monto, fechaVencimiento) => {
+    const content = `
+        <h1>Nuevo Pago Registrado 📋</h1>
+        <p>Hola <strong>${nombre}</strong>,<br>se ha generado un nuevo pago en tu cuenta.</p>
+        <div class="info-box">
+            <p><strong>Concepto:</strong> ${concepto}</p>
+            <p><strong>Monto:</strong> $${monto}</p>
+            <p><strong>Vencimiento:</strong> ${new Date(fechaVencimiento).toLocaleDateString('es-AR')}</p>
+        </div>
+        <p>Podés abonar desde tu panel o acercarte al estudio. ¡Gracias!</p>
+    `;
+    return sendEmail({
+        from: `"Select Dance Studio" <${process.env.SMTP_USER}>`,
+        to: email,
+        subject: `Nuevo Pago - ${concepto}`,
+        html: emailTemplate('Nuevo Pago', content)
+    });
+};
+
+const enviarNotificacionVencido = async (email, nombre, concepto, monto, fechaVencimiento, diasMora) => {
+    const content = `
+        <h1>Pago Vencido ⚠️</h1>
+        <p>Hola <strong>${nombre}</strong>,<br>tenés un pago vencido hace <strong>${diasMora} día${diasMora !== 1 ? 's' : ''}</strong>.</p>
+        <div class="info-box">
+            <p><strong>Concepto:</strong> ${concepto}</p>
+            <p><strong>Monto:</strong> $${monto}</p>
+            <p><strong>Venció el:</strong> ${new Date(fechaVencimiento).toLocaleDateString('es-AR')}</p>
+        </div>
+        <p>Por favor regularizá tu situación lo antes posible para evitar recargos adicionales.</p>
+    `;
+    return sendEmail({
+        from: `"Select Dance Studio" <${process.env.SMTP_USER}>`,
+        to: email,
+        subject: `Pago Vencido - ${concepto}`,
+        html: emailTemplate('Pago Vencido', content)
+    });
+};
+
+const enviarFelicitacionCumpleanos = async (email, nombre) => {
+    const content = `
+        <h1>¡Feliz Cumpleaños ${nombre}! 🎂🎉</h1>
+        <p>Todo el equipo de <strong>Select Dance Studio</strong> te desea un hermoso día lleno de alegría y baile.</p>
+        <p>¡Que este nuevo año de vida esté lleno de música y danza!</p>
+        <div class="button-container">
+            <a href="${process.env.FRONTEND_URL || '#'}" class="button">Ir a mi Panel</a>
+        </div>
+        <p>Con cariño, el equipo de SDS 💃</p>
+    `;
+    return sendEmail({
+        from: `"Select Dance Studio" <${process.env.SMTP_USER}>`,
+        to: email,
+        subject: `¡Feliz Cumpleaños ${nombre}! 🎂`,
+        html: emailTemplate('Feliz Cumpleaños', content)
+    });
+};
+
+const enviarConfirmacionInscripcionEvento = async (email, nombre, nombreEvento, fecha, lugar) => {
+    const content = `
+        <h1>¡Inscripción al Evento Confirmada! 🎭</h1>
+        <p>Hola <strong>${nombre}</strong>,<br>¡te has inscrito exitosamente al evento!</p>
+        <div class="info-box">
+            <h3>${nombreEvento}</h3>
+            <p><strong>Fecha:</strong> ${new Date(fecha).toLocaleDateString('es-AR')}</p>
+            <p><strong>Lugar:</strong> ${lugar || '-'}</p>
+        </div>
+        <p>¡Te esperamos en el estudio para preparar todo junto!</p>
+    `;
+    return sendEmail({
+        from: `"Select Dance Studio" <${process.env.SMTP_USER}>`,
+        to: email,
+        subject: `Inscripción Confirmada - ${nombreEvento}`,
+        html: emailTemplate('Inscripción al Evento', content)
+    });
+};
+
+const enviarDesinscripcionEvento = async (email, nombre, nombreEvento) => {
+    const content = `
+        <h1>Desinscripción Procesada 📋</h1>
+        <p>Hola <strong>${nombre}</strong>,<br>te confirmamos que has sido desinscrito/a del siguiente evento:</p>
+        <div class="info-box">
+            <h3>${nombreEvento}</h3>
+        </div>
+        <p>Si fue un error o querés reinscribirte, contactanos por WhatsApp o acercate al estudio.</p>
+    `;
+    return sendEmail({
+        from: `"Select Dance Studio" <${process.env.SMTP_USER}>`,
+        to: email,
+        subject: `Desinscripción - ${nombreEvento}`,
+        html: emailTemplate('Desinscripción de Evento', content)
+    });
+};
+
+const enviarDesinscripcionCurso = async (email, nombre, nombreCurso) => {
+    const content = `
+        <h1>Desinscripción Procesada 📋</h1>
+        <p>Hola <strong>${nombre}</strong>,<br>te confirmamos que has sido desinscrito/a del siguiente curso:</p>
+        <div class="info-box">
+            <h3>${nombreCurso}</h3>
+        </div>
+        <p>Si fue un error o querés reinscribirte, contactanos por WhatsApp o acercate al estudio.</p>
+    `;
+    return sendEmail({
+        from: `"Select Dance Studio" <${process.env.SMTP_USER}>`,
+        to: email,
+        subject: `Desinscripción - ${nombreCurso}`,
+        html: emailTemplate('Desinscripción de Curso', content)
+    });
+};
+
 module.exports = {
     enviarEmailBienvenida,
     enviarRecordatorioPago,
     enviarConfirmacionInscripcion,
+    enviarConfirmacionInscripcionEvento,
+    enviarDesinscripcionEvento,
+    enviarDesinscripcionCurso,
     probarConfiguracion,
     enviarResetPassword,
     enviarConfirmacionSolicitudPrueba,
@@ -466,6 +578,9 @@ module.exports = {
     notificarAdminNuevoComprobante,
     notificarAdminNuevaConsulta,
     enviarAgradecimientoAsistencia,
+    enviarNotificacionNuevoPago,
+    enviarNotificacionVencido,
+    enviarFelicitacionCumpleanos,
 
     // Métodos alias para compatibilidad
     enviarEmailPersonalizado: async (email, nombre, asunto, mensaje) => {

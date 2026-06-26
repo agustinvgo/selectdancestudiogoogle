@@ -62,7 +62,7 @@ class EventosService {
         // Enviar Correo Electrónico Sincrónico-Silencioso
         try {
             const alumno = await AlumnosModel.findById(alumno_id);
-            const emailDestino = alumno?.usuario_email || alumno?.email || alumno?.email_padre;
+            const emailDestino = alumno?.email || alumno?.email_padre;
             
             if (alumno && emailDestino) {
                 emailService.enviarConfirmacionInscripcionEvento(emailDestino, alumno.nombre, evento.nombre, evento.fecha, evento.lugar)

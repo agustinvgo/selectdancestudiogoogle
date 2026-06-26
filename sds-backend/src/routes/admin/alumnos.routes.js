@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const AlumnosController = require('../../controllers/admin/alumnos.controller');
-const { verifyToken, isAdmin, isOwnerOrAdmin, isProfesor } = require('../../middlewares/auth.middleware');
+const { verifyToken, isAdmin, isOwnerOrAdmin, isAlumnoOwnerOrAdmin, isProfesor } = require('../../middlewares/auth.middleware');
 const profileUpload = require('../../middlewares/profileUpload.middleware');
 const { compress: compressImage } = require('../../middlewares/profileUpload.middleware');
 
@@ -30,11 +30,11 @@ const validateAlumno = [
 // Crear alumno (solo admin) - Soporte para foto de perfil con compresión WebP
 router.post('/', isAdmin, profileUpload.single('foto_perfil'), compressImage, validateAlumno, AlumnosController.create);
 
-// Obtener ficha completa
-router.get('/:id/ficha-completa', AlumnosController.getFichaCompleta);
+// Obtener ficha completa (Fix #2: solo admin)
+router.get('/:id/ficha-completa', isAdmin, AlumnosController.getFichaCompleta);
 
-// Obtener alumno específico (admin o el mismo alumno)
-router.get('/:id', AlumnosController.getById);
+// Obtener alumno específico (admin o el mismo alumno — usa isAlumnoOwnerOrAdmin porque :id es alumnos.id)
+router.get('/:id', isAlumnoOwnerOrAdmin, AlumnosController.getById);
 
 // Actualizar alumno (solo admin) - Soporte para foto de perfil con compresión WebP
 router.put('/:id', isAdmin, profileUpload.single('foto_perfil'), compressImage, AlumnosController.update);

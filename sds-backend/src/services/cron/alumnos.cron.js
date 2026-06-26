@@ -19,8 +19,8 @@ const AlumnosCron = {
 
             console.log(`🎂 [CRON-ALUMNOS] Saludando a ${cumpleaneros.length} cumpleañeros...`);
             for (const alumno of cumpleaneros) {
-                const emailDestino = alumno.usuario_email || alumno.email || alumno.email_padre;
-                if (emailDestino) await emailService.enviarFelicitacionCumpleaños(emailDestino, alumno.nombre);
+                const emailDestino = alumno.email || alumno.email_padre;
+                if (emailDestino) await emailService.enviarFelicitacionCumpleanos(emailDestino, alumno.nombre);
                 if (alumno.telefono) await whatsappService.enviarFelicitacionCumpleaños(alumno);
                 await new Promise(r => setTimeout(r, 200));
             }

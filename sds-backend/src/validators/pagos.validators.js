@@ -4,12 +4,12 @@ const pagosValidators = {
     create: [
         body('alumno_id').isInt({ min: 1 }).withMessage('alumno_id debe ser un número entero positivo'),
         body('concepto').trim().notEmpty().isLength({ max: 200 }).withMessage('concepto es requerido (max 200 chars)'),
-        body('monto').isFloat({ min: 0 }).withMessage('monto debe ser un número positivo'),
+        body('monto').isFloat({ min: 0.01 }).withMessage('monto debe ser un número positivo mayor a cero'),
         body('estado').optional().trim().toLowerCase().isIn(['pendiente', 'pagado', 'parcial', 'revision', 'vencido', 'anulado']).withMessage('estado inválido'),
     ],
     update: [
         param('id').isInt({ min: 1 }).withMessage('ID de pago inválido'),
-        body('monto').optional().isFloat({ min: 0 }).withMessage('monto debe ser un número positivo'),
+        body('monto').optional().isFloat({ min: 0.01 }).withMessage('monto debe ser un número positivo mayor a cero'),
         body('estado').optional().trim().toLowerCase().isIn(['pendiente', 'pagado', 'parcial', 'revision', 'vencido', 'anulado']).withMessage('estado inválido'),
     ],
     masivos: [

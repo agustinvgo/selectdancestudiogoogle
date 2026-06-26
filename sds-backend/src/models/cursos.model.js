@@ -162,41 +162,45 @@ const CursosModel = {
         }
     },
 
-    // Inscribir alumno a curso
+    // Inscribir alumno a curso (con transacción para evitar race condition en cupos)
     async inscribirAlumno(alumnoId, cursoId) {
+        const conn = await db.getConnection();
         try {
-            // Verificar cupo
-            const curso = await this.findById(cursoId);
-            if (!curso) throw new Error('Curso no encontrado');
+            await conn.beginTransaction();
 
-            const [inscritos] = await db.query(
+            // Lock de la fila del curso para evitar doble-inscripción concurrente
+            const [cursoRows] = await conn.query(
+                'SELECT id, cupo_maximo FROM cursos WHERE id = ? FOR UPDATE',
+                [cursoId]
+            );
+            if (!cursoRows.length) throw new Error('Curso no encontrado');
+
+            const [inscritos] = await conn.query(
                 'SELECT COUNT(*) as total FROM inscripciones_curso WHERE curso_id = ? AND activo = 1',
                 [cursoId]
             );
-
-            if (inscritos[0].total >= curso.cupo_maximo) {
+            if (inscritos[0].total >= cursoRows[0].cupo_maximo) {
                 throw new Error('Cupo completo');
             }
 
-            // Verificar si ya está inscrito
-            const [existe] = await db.query(
+            const [existe] = await conn.query(
                 'SELECT id FROM inscripciones_curso WHERE alumno_id = ? AND curso_id = ? AND activo = 1',
                 [alumnoId, cursoId]
             );
+            if (existe.length > 0) throw new Error('El alumno ya está inscrito en este curso');
 
-            if (existe.length > 0) {
-                throw new Error('El alumno ya está inscrito en este curso');
-            }
-
-            // Inscribir
-            const [result] = await db.query(
+            const [result] = await conn.query(
                 'INSERT INTO inscripciones_curso (alumno_id, curso_id, fecha_inscripcion, activo) VALUES (?, ?, CURDATE(), 1)',
                 [alumnoId, cursoId]
             );
 
+            await conn.commit();
             return result.insertId;
         } catch (error) {
+            await conn.rollback();
             throw error;
+        } finally {
+            conn.release();
         }
     },
 

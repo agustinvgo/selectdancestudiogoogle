@@ -9,8 +9,8 @@ const upload = require('../../middlewares/notificationUpload.middleware');
 // Public (Authenticados)
 router.get('/counts', verifyToken, NotificacionesController.getPendingCounts);
 router.get('/', verifyToken, NotificacionesController.getMyNotifications);
-router.put('/:id/read', verifyToken, NotificacionesController.markAsRead);
 router.put('/read-all', verifyToken, NotificacionesController.markAllAsRead);
+router.put('/:id/read', verifyToken, NotificacionesController.markAsRead);
 router.delete('/:id', verifyToken, NotificacionesController.delete);
 
 // Admin Only

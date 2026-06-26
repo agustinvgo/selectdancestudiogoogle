@@ -88,8 +88,19 @@ const UsuariosController = {
             const { id } = req.params;
             const { nombre, apellido, email, password } = req.body;
 
+            // Fix #9: validar inputs antes de actualizar
+            if (!nombre || nombre.trim() === '') {
+                return res.status(400).json({ success: false, message: 'El nombre es requerido' });
+            }
+            if (!apellido || apellido.trim() === '') {
+                return res.status(400).json({ success: false, message: 'El apellido es requerido' });
+            }
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                return res.status(400).json({ success: false, message: 'Email inválido' });
+            }
+
             let query = 'UPDATE usuarios SET nombre = ?, apellido = ?, email = ?';
-            let params = [nombre, apellido, email];
+            let params = [nombre.trim(), apellido.trim(), email.trim()];
 
             if (password) {
                 const password_hash = await bcrypt.hash(password, 10);
@@ -100,7 +111,11 @@ const UsuariosController = {
             query += ' WHERE id = ? AND rol = "profesor"';
             params.push(id);
 
-            await db.query(query, params);
+            // Fix #4: verificar si se actualizó algo
+            const [result] = await db.query(query, params);
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ success: false, message: 'Profesor no encontrado' });
+            }
 
             res.json({
                 success: true,
@@ -120,7 +135,11 @@ const UsuariosController = {
     async deleteProfesor(req, res) {
         try {
             const { id } = req.params;
-            await db.query('UPDATE usuarios SET activo = 0 WHERE id = ? AND rol != "admin"', [id]);
+            const [result] = await db.query('UPDATE usuarios SET activo = 0 WHERE id = ? AND rol != "admin"', [id]);
+
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ success: false, message: 'Profesor no encontrado' });
+            }
 
             res.json({
                 success: true,

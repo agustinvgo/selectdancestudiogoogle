@@ -1,8 +1,12 @@
 const winston = require('winston');
 const path = require('path');
+const fs = require('fs');
 
 // Directorio de logs en la raíz del backend
 const logsDir = path.join(__dirname, '../../logs');
+if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir, { recursive: true });
+}
 
 // Formato personalizado para desarrollo (coloreado y legible)
 const devFormat = winston.format.combine(

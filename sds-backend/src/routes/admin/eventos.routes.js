@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { EventosController } = require('../../controllers/admin/eventos.controller');
-const { verifyToken, isAdmin, isOwnerOrAdmin } = require('../../middlewares/auth.middleware');
+const EventosController = require('../../controllers/admin/eventos.controller');
+const { verifyToken, isAdmin, isAlumnoOwnerOrAdmin } = require('../../middlewares/auth.middleware');
 const eventosValidators = require('../../validators/eventos.validators');
 const { handleValidationErrors } = require('../../middlewares/validate.middleware');
 
@@ -15,9 +15,9 @@ router.get('/', EventosController.getAll);
 // Obtener próximos eventos
 router.get('/proximos', EventosController.getProximos);
 
-// Obtener eventos de un alumno (admin o el propio alumno)
+// Obtener eventos de un alumno (admin o el propio alumno — :id es alumnos.id)
 // ⚠️ Debe ir ANTES de /:id para evitar que Express lo interprete como /:id con id='alumno'
-router.get('/alumno/:id', isOwnerOrAdmin, EventosController.getByAlumno);
+router.get('/alumno/:id', isAlumnoOwnerOrAdmin, EventosController.getByAlumno);
 
 // Actualizar checklist de inscripción — también antes de /:id para evitar conflictos
 router.put('/inscripcion/:id/checklist', isAdmin, EventosController.updateChecklist);

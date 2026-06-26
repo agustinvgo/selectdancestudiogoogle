@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const db = require('../config/db');
 
 const verifyToken = (req, res, next) => {
     try {
@@ -50,7 +51,7 @@ const isAlumno = (req, res, next) => {
     next();
 };
 
-// Verificar que sea el dueño de los datos o admin
+// Verificar que sea el dueño de los datos o admin (compara req.user.id con req.params.id directamente — solo válido cuando :id ES el usuario_id)
 const isOwnerOrAdmin = (req, res, next) => {
     if (!req.user) {
         return res.status(403).json({ success: false, message: 'Acceso denegado' });
@@ -67,6 +68,30 @@ const isOwnerOrAdmin = (req, res, next) => {
     }
 };
 
+// Verificar que sea el dueño del registro de alumno (req.params.id es alumnos.id) o admin.
+// Hace un lookup en DB para obtener el usuario_id del alumno y compararlo con el JWT.
+const isAlumnoOwnerOrAdmin = async (req, res, next) => {
+    if (!req.user) {
+        return res.status(403).json({ success: false, message: 'Acceso denegado' });
+    }
+    if (req.user.rol === 'admin') return next();
+
+    try {
+        const alumnoId = parseInt(req.params.id);
+        const [rows] = await db.query('SELECT usuario_id FROM alumnos WHERE id = ?', [alumnoId]);
+        if (!rows.length) {
+            return res.status(404).json({ success: false, message: 'Alumno no encontrado' });
+        }
+        if (rows[0].usuario_id !== req.user.id) {
+            return res.status(403).json({ success: false, message: 'Acceso denegado. No tienes permisos para acceder a estos datos' });
+        }
+        next();
+    } catch (err) {
+        console.error('[isAlumnoOwnerOrAdmin]', err);
+        return res.status(500).json({ success: false, message: 'Error al verificar permisos' });
+    }
+};
+
 // Verificar que el usuario sea profesor o admin
 // Bug #7 fix: guard contra req.user undefined
 const isProfesor = (req, res, next) => {
@@ -79,24 +104,11 @@ const isProfesor = (req, res, next) => {
     next();
 };
 
-// Bug #8: Rate limiter estricto para el endpoint de login (anti brute-force)
-const rateLimit = require('express-rate-limit');
-const loginRateLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 10, // máximo 10 intentos por IP
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: {
-        success: false,
-        message: 'Demasiados intentos de inicio de sesión. Intenta nuevamente en 15 minutos.'
-    }
-});
-
 module.exports = {
     verifyToken,
     isAdmin,
     isAlumno,
     isProfesor,
     isOwnerOrAdmin,
-    loginRateLimiter
+    isAlumnoOwnerOrAdmin
 };

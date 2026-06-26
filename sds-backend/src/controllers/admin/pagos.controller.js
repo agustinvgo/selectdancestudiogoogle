@@ -132,9 +132,21 @@ const PagosController = {
 
     async verComprobante(req, res) {
         try {
+            // Verificar que el pago pertenece al alumno del usuario logueado (si no es admin)
+            if (req.user.rol !== 'admin') {
+                const pago = await PagosModel.findById(req.params.id);
+                if (!pago) return res.status(404).json({ success: false, message: 'Pago no encontrado' });
+                const alumno = await AlumnosModel.findByUsuarioId(req.user.id);
+                if (!alumno || alumno.id !== pago.alumno_id) {
+                    return res.status(403).json({ success: false, message: 'Acceso denegado' });
+                }
+            }
             const absolutePath = await ComprobantesService.obtenerRutaLocalComprobante(req.params.id);
             res.sendFile(absolutePath);
-        } catch (error) { res.status(error.message.includes('encontrado') ? 404 : 500).json({ success: false, message: error.message }); }
+        } catch (error) {
+            const msg = error?.message || 'Error interno';
+            res.status(msg.includes('encontrado') ? 404 : 500).json({ success: false, message: msg });
+        }
     },
 
     async generarComprobante(req, res) {
@@ -145,9 +157,19 @@ const PagosController = {
                 WHERE p.id = ?`, [req.params.id]);
 
             if (!pagos || pagos.length === 0) return res.status(404).json({ success: false, message: 'Pago no encontrado' });
+
+            // Verificar que el pago pertenece al alumno del usuario logueado (si no es admin)
+            if (req.user.rol !== 'admin') {
+                const alumno = await AlumnosModel.findByUsuarioId(req.user.id);
+                if (!alumno || alumno.id !== pagos[0].alumno_id) {
+                    return res.status(403).json({ success: false, message: 'Acceso denegado' });
+                }
+            }
+
             if (pagos[0].estado !== 'pagado') return res.status(400).json({ success: false, message: 'Debe estar pagado' });
 
-            const doc = PDFService.generarComprobante(pagos[0], pagos[0]);
+            const alumnoParaPDF = { nombre: pagos[0].nombre, apellido: pagos[0].apellido, telefono: pagos[0].telefono, email: pagos[0].usuario_email };
+            const doc = PDFService.generarComprobante(pagos[0], alumnoParaPDF);
             res.setHeader('Content-Type', 'application/pdf');
             res.setHeader('Content-Disposition', `attachment; filename=comprobante_${String(req.params.id).padStart(8, '0')}.pdf`);
             doc.pipe(res); doc.end();

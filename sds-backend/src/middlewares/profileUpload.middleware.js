@@ -12,11 +12,13 @@ if (!fs.existsSync(uploadDir)) {
 // Usar memoria para procesar con Sharp antes de guardar
 const storage = multer.memoryStorage();
 
+const ALLOWED_PROFILE_MIMETYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+
 const fileFilter = (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
+    if (ALLOWED_PROFILE_MIMETYPES.has(file.mimetype)) {
         cb(null, true);
     } else {
-        cb(new Error('Solo se permiten archivos de imagen'), false);
+        cb(new Error('Solo se permiten imágenes JPG, PNG, WebP o GIF'), false);
     }
 };
 

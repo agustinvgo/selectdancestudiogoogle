@@ -102,6 +102,10 @@ const adminLimiter = rateLimit({
 // Nivel 3 — Auth (login, reset password)
 // Ya definido en rateLimiters.js — se aplica en auth.routes.js
 
+// Fix #8: Aplicar headers de seguridad adicionales (Permissions-Policy, X-Frame-Options, etc.)
+const { configureSecurityHeaders } = require('./middlewares/security.middleware');
+configureSecurityHeaders(app);
+
 // Seguridad: Geo-Blocking (Solo AR/CL) - Aplicar antes de las rutas
 const geoFilter = require('./middlewares/geoFilter.middleware');
 // Habilitar en producción o si ENABLE_GEO_BLOCK es true

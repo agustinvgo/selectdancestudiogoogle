@@ -170,7 +170,8 @@ const WhatsAppController = {
                 });
             }
 
-            const resultado = await whatsappService.enviarRecordatorioPago(pago, pago);
+            const alumnoParaWA = { nombre: pago.nombre, apellido: pago.apellido, email: pago.email, telefono: pago.telefono };
+            const resultado = await whatsappService.enviarRecordatorioPago(pago, alumnoParaWA);
 
             if (resultado.success) {
                 res.json({

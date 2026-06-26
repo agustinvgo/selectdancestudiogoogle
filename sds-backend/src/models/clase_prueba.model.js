@@ -98,7 +98,7 @@ const ClasePruebaModel = {
                 WHERE (c.nombre = ? OR cpd.titulo = ?) 
                 AND cpd.fecha = ? 
                 AND cpd.horario LIKE ?
-            `, [curso_nombre, curso_nombre, fecha, horario + '%']);
+            `, [curso_nombre, curso_nombre, fecha, horario.replace(/[%_\\]/g, '\\$&') + '%']);
             return rows[0];
         } catch (error) {
             throw error;

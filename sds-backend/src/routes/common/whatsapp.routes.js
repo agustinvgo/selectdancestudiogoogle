@@ -6,7 +6,7 @@ const { verifyToken, isAdmin } = require('../../middlewares/auth.middleware');
 // Rutas públicas (solo requieren autenticación básica, o test local)
 router.get('/templates', verifyToken, WhatsAppController.obtenerTemplates);
 router.get('/variables', verifyToken, WhatsAppController.obtenerVariables);
-router.get('/send-summary', WhatsAppController.enviarResumenClases);  // cron interno (sin auth)
+router.get('/send-summary', verifyToken, isAdmin, WhatsAppController.enviarResumenClases);  // cron interno — protegido con admin
 router.post('/send-summary', verifyToken, isAdmin, WhatsAppController.enviarResumenManual); // trigger manual (admin)
 
 // Todas las demás rutas requieren autenticación y permisos de admin

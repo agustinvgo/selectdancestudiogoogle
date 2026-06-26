@@ -32,7 +32,7 @@ class PagosService {
         // Enviar Email
         try {
             const alumno = await AlumnosModel.findById(pagoData.alumno_id);
-            const emailDestino = alumno?.usuario_email || alumno?.email || alumno?.email_padre;
+            const emailDestino = alumno?.email || alumno?.email_padre;
             if (alumno && emailDestino) {
                 emailService.enviarNotificacionNuevoPago(emailDestino, alumno.nombre, pagoData.concepto, pagoData.monto, pagoData.fecha_vencimiento)
                     .catch(err => console.error('Error enviando Email nuevo pago:', err));
@@ -90,9 +90,10 @@ class PagosService {
 
             await connection.commit();
 
-            // Enviar Recibo PDF
+            // Enviar Recibo PDF con datos actualizados (post-commit)
             if (estaCambiandoAPagado && pagoAnterior.alumno_id) {
-                PagosService.enviarReciboPorEmail(pagoAnterior, pagoData.monto || pagoAnterior.monto);
+                const pagoActualizado = { ...pagoAnterior, ...pagoData };
+                PagosService.enviarReciboPorEmail(pagoActualizado, pagoData.monto || pagoAnterior.monto);
             }
 
             return { success: true };

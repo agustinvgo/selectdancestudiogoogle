@@ -29,12 +29,19 @@ const storage = multer.diskStorage({
     }
 });
 
+// Fix #7: doble validación — extensión real + mimetype declarado
+const ALLOWED_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.pdf']);
+const ALLOWED_MIMETYPES = new Set(['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf']);
+
 const fileFilter = (req, file, cb) => {
-    // Aceptar imagenes y PDFs
-    if (file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf') {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const mimeOk = ALLOWED_MIMETYPES.has(file.mimetype);
+    const extOk = ALLOWED_EXTENSIONS.has(ext);
+
+    if (mimeOk && extOk) {
         cb(null, true);
     } else {
-        cb(new Error('Formato de archivo no soportado (Solo imágenes y PDF)'), false);
+        cb(new Error('Formato de archivo no soportado (Solo imágenes JPG/PNG/GIF/WebP y PDF)'), false);
     }
 };
 

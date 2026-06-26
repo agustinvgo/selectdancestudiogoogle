@@ -115,4 +115,4 @@ const EventosController = {
     }
 };
 
-module.exports = { EventosController };
+module.exports = EventosController;

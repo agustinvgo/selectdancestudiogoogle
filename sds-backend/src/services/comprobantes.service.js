@@ -37,8 +37,9 @@ class ComprobantesService {
                         const m = parseFloat(analisisIA.monto);
                         const e = parseFloat(pagoActual.monto);
                         if (Math.abs(m - e) <= (e * 0.01)) {
-                            nuevoEstado = 'pagado';
-                            nuevoTexto += `\n\n✅ [IA] AUTO-APROBADO: El monto coincide ($${m}) y el comprobante es válido.`;
+                            // Fix #3: no auto-aprobar como 'pagado'; dejar en 'revision_aprobada' para confirmación manual del admin
+                            nuevoEstado = 'revision_aprobada';
+                            nuevoTexto += `\n\n✅ [IA] MONTO COINCIDE ($${m}): Pendiente confirmación del administrador.`;
                             metodopago = analisisIA.metodo || 'Transferencia';
                         } else {
                             nuevoTexto += `\n\n⚠️ [IA] REVISIÓN REQUERIDA: El monto detectado ($${m}) difiere del esperado ($${e}).`;
@@ -46,14 +47,21 @@ class ComprobantesService {
                     }
 
                     const updateData = { notas_pago: `${notasExistentes}\n\n${nuevoTexto}` };
-                    if (nuevoEstado === 'pagado') {
-                        updateData.estado = 'pagado';
-                        updateData.fecha_pago = new Date().toISOString().split('T')[0];
+                    if (nuevoEstado === 'revision_aprobada') {
+                        updateData.estado = 'revision_aprobada';
                         if (metodopago) updateData.metodo_pago_realizado = metodopago;
                     }
 
                     await PagosModel.update(pagoId, updateData);
-                }).catch(e => console.error('[IA] OCR processing error:', e));
+                }).catch(async (e) => {
+                    // Fix #14: intentar revertir estado a 'revision' si el procesamiento OCR falla
+                    console.error('[IA] OCR processing error:', e);
+                    try {
+                        await PagosModel.update(pagoId, { estado: 'revision' });
+                    } catch (rollbackErr) {
+                        console.error('[IA] Error al revertir estado del pago tras fallo OCR:', rollbackErr);
+                    }
+                });
         } catch (e) {
             console.warn('[IA] OCR not init/failed.');
         }

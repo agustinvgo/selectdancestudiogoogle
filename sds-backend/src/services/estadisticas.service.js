@@ -15,9 +15,9 @@ class EstadisticasService {
 
         let totalIngresos = 0, totalGastos = 0, balanceNeto = 0;
         if (viewResult.length > 0) {
-            totalIngresos = parseFloat(viewResult[0].ingresos_pagos) + parseFloat(viewResult[0].ingresos_tienda);
-            totalGastos = parseFloat(viewResult[0].total_gastos);
-            balanceNeto = parseFloat(viewResult[0].balance_neto);
+            totalIngresos = (parseFloat(viewResult[0].ingresos_pagos) || 0) + (parseFloat(viewResult[0].ingresos_tienda) || 0);
+            totalGastos = parseFloat(viewResult[0].total_gastos) || 0;
+            balanceNeto = parseFloat(viewResult[0].balance_neto) || 0;
         }
 
         return { ingresos: totalIngresos, gastos: totalGastos, balance: balanceNeto, mes: currentMonth, anio: currentYear };

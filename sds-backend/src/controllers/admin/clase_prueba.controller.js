@@ -21,7 +21,7 @@ const ClasePruebaController = {
 
             // Validar cupos si es un horario gestionado
             let disponibilidadId = null;
-            if (horario.includes(' - ')) {
+            if (horario && horario.includes(' - ')) {
                 // Formato esperado: YYYY-MM-DD - HH:mm
                 const parts = horario.split(' - ');
                 if (parts.length >= 2) {

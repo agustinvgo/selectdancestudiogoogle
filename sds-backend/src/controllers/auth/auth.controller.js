@@ -22,7 +22,7 @@ const AuthController = {
     async login(req, res) {
         try {
             const email = req.body.email ? req.body.email.trim() : null;
-            const password = req.body.password ? req.body.password.trim() : null;
+            const password = req.body.password || null;
 
             // Validar datos
             if (!email || !password) {
@@ -82,14 +82,13 @@ const AuthController = {
                 httpOnly: true,          // No accesible desde JavaScript
                 secure: isProduction,    // Solo HTTPS en prod (HTTP ok en local)
                 sameSite: isProduction ? 'strict' : 'lax', // lax permite redirect en dev
-                maxAge: 24 * 60 * 60 * 1000  // 1 día en ms
+                maxAge: 7 * 24 * 60 * 60 * 1000  // 7 días — igual que el JWT_EXPIRES_IN
             });
 
             res.json({
                 success: true,
                 message: 'Login exitoso',
                 data: {
-                    token, // Mantenido por compatibilidad con clientes que usen header
                     user: {
                         id: usuario.id,
                         email: usuario.email,
@@ -141,10 +140,10 @@ const AuthController = {
                 });
             }
 
-            // Verificar que el email no exista
-            const existeUsuario = await UsuariosModel.findByEmail(email);
+            // Fix #11: verificar email contra activos E inactivos para evitar error 500 por constraint único
+            const existeUsuario = await UsuariosModel.findByEmailIncludeInactive(email);
             if (existeUsuario) {
-                return res.status(400).json({
+                return res.status(409).json({
                     success: false,
                     message: 'El email ya está registrado'
                 });
@@ -325,9 +324,6 @@ const AuthController = {
             }
 
             await UsuariosModel.updatePassword(usuario.id, password_hash);
-
-            // Marcar que ya no es primer login
-            await UsuariosModel.update(usuario.id, { primer_login: false });
 
             // Marcar token como usado
             await PasswordResetModel.markAsUsed(token);

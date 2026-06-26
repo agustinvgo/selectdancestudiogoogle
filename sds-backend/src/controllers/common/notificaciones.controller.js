@@ -17,7 +17,7 @@ const NotificacionesController = {
             if (req.user.rol === 'admin') {
                 consultasPendientes = await ConsultasModel.countPending();
                 const [pagosRows] = await db.query('SELECT COUNT(*) as count FROM pagos WHERE estado = "revision"');
-                pagosRevision = pagosRows[0].count;
+                pagosRevision = parseInt(pagosRows[0].count, 10) || 0;
             }
 
             // Contar notificaciones no leídas del usuario actual

@@ -42,7 +42,7 @@ async function analyzeReceipt(filePath) {
  */
 async function processPdfWithAI(filePath) {
     try {
-        const dataBuffer = fs.readFileSync(filePath);
+        const dataBuffer = await fs.promises.readFile(filePath);
         const data = await pdf(dataBuffer);
         const textContent = data.text.trim();
 
@@ -91,7 +91,7 @@ async function processPdfWithAI(filePath) {
 async function processImageWithVision(filePath) {
     try {
         // Leer imagen y convertir a Base64
-        const imageBuffer = fs.readFileSync(filePath);
+        const imageBuffer = await fs.promises.readFile(filePath);
         const base64Image = imageBuffer.toString('base64');
         // Bug #4 fix: detectar MIME type real en vez de hardcodear jpeg para todos los archivos
         const ext = path.extname(filePath).toLowerCase();

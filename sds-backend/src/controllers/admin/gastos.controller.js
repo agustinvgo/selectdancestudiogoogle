@@ -1,4 +1,6 @@
 const GastosModel = require('../../models/gastos.model');
+const path = require('path');
+const fs = require('fs');
 
 const GastosController = {
     // Obtener todos los gastos
@@ -115,6 +117,19 @@ const GastosController = {
     async delete(req, res) {
         try {
             const { id } = req.params;
+
+            // Fix #17: borrar archivo de disco antes de eliminar el registro
+            const gasto = await GastosModel.findById(id);
+            if (gasto && gasto.comprobante_url) {
+                const relativePath = gasto.comprobante_url.startsWith('/') ? gasto.comprobante_url.substring(1) : gasto.comprobante_url;
+                const absolutePath = path.join(__dirname, '../../../', relativePath);
+                fs.unlink(absolutePath, (err) => {
+                    if (err && err.code !== 'ENOENT') {
+                        console.warn(`[Gastos] No se pudo borrar archivo ${absolutePath}:`, err.message);
+                    }
+                });
+            }
+
             const deleted = await GastosModel.delete(id);
 
             if (!deleted) {
@@ -150,9 +165,6 @@ const GastosController = {
                     message: 'Comprobante no encontrado'
                 });
             }
-
-            const path = require('path');
-            const fs = require('fs');
 
             const relativePath = gasto.comprobante_url.startsWith('/') ? gasto.comprobante_url.substring(1) : gasto.comprobante_url;
             const absolutePath = path.join(__dirname, '../../../', relativePath);

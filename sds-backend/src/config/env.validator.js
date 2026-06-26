@@ -8,17 +8,21 @@ const REQUIRED_VARS = [
     { name: 'DB_HOST', description: 'Host de la base de datos MySQL' },
     { name: 'DB_USER', description: 'Usuario de la base de datos' },
     { name: 'DB_NAME', description: 'Nombre de la base de datos' },
+    { name: 'DB_PASSWORD', description: 'Contraseña de la base de datos', allowEmpty: true },
     { name: 'JWT_SECRET', description: 'Secreto para firmar tokens JWT' },
 ];
 
 const OPTIONAL_VARS = [
     { name: 'OPENAI_API_KEY', description: 'API Key de OpenAI (Bot de WhatsApp)' },
+    { name: 'SMTP_HOST', description: 'Host del servidor SMTP (ej: smtp.gmail.com)' },
+    { name: 'SMTP_PORT', description: 'Puerto del servidor SMTP (ej: 587)', default: '587' },
     { name: 'SMTP_USER', description: 'Email remitente para envío de correos' },
     { name: 'SMTP_PASS', description: 'Contraseña/App Password del email remitente' },
     { name: 'FRONTEND_URL', description: 'URL del frontend (CORS)', default: 'http://localhost:5173' },
     { name: 'NODE_ENV', description: 'Entorno de ejecución', default: 'development' },
     { name: 'PORT', description: 'Puerto del servidor', default: '5000' },
     { name: 'MERCADOPAGO_ACCESS_TOKEN', description: 'Token de Mercado Pago' },
+    { name: 'ADMIN_EMAIL', description: 'Email del administrador para recibir reportes y comprobantes' },
 ];
 
 function validateEnv() {
@@ -28,7 +32,9 @@ function validateEnv() {
 
     // Verificar obligatorias
     for (const v of REQUIRED_VARS) {
-        if (!process.env[v.name] || process.env[v.name].trim() === '') {
+        const value = process.env[v.name];
+        const absent = value === undefined || value === null || (!v.allowEmpty && value.trim() === '');
+        if (absent) {
             missing.push(`  ❌ ${v.name} — ${v.description}`);
         }
     }

@@ -194,7 +194,7 @@ const CursosController = {
                 hora_inicio: horario_hora,
                 hora_fin,
                 cupo_maximo: cupo_maximo || 15,
-                activo: activo ? 1 : 0,
+                activo: activo !== undefined ? (activo ? 1 : 0) : cursoExistente.activo,
                 es_publico: req.body.es_publico !== undefined ? (req.body.es_publico ? 1 : 0) : 1
             };
 
