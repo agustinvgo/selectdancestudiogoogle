@@ -125,6 +125,14 @@ const PagosController = {
     async subirComprobante(req, res) {
         try {
             if (!req.file) return res.status(400).json({ success: false, message: 'No hay archivo' });
+            if (req.user.rol !== 'admin') {
+                const pago = await PagosModel.findById(req.params.id);
+                if (!pago) return res.status(404).json({ success: false, message: 'Pago no encontrado' });
+                const alumno = await AlumnosModel.findByUsuarioId(req.user.id);
+                if (!alumno || alumno.id !== pago.alumno_id) {
+                    return res.status(403).json({ success: false, message: 'Acceso denegado' });
+                }
+            }
             const url = await ComprobantesService.subirComprobanteConAnalisis(req.params.id, req.file);
             res.json({ success: true, message: 'Comprobante subido (En Revisión).', data: { comprobante_url: url } });
         } catch (error) { res.status(500).json({ success: false, message: 'Error al subir comprobante' }); }
