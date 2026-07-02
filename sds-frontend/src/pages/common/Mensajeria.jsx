@@ -278,6 +278,7 @@ const Mensajeria = () => {
     if (loading) return <Loader />;
 
     return (
+        <>
         <div className="space-y-6">
             {/* Header */}
             <div className="flex justify-between items-end">
@@ -676,6 +677,7 @@ const Mensajeria = () => {
             config={confirmConfig}
             onClose={closeConfirm}
         />
+        </>
     );
 };
 
@@ -753,6 +755,7 @@ const StatusView = () => {
     if (loading) return <div className="text-gray-500">Cargando estado...</div>;
 
     return (
+        <>
         <div className="flex flex-col items-center text-center space-y-4 max-w-md mx-auto">
             {statusData.status === 'connected' || statusData.status === 'authenticated' ? (
                 <div className="bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg flex flex-col items-center">
@@ -810,6 +813,7 @@ const StatusView = () => {
             config={confirmConfig}
             onClose={closeConfirm}
         />
+        </>
     );
 };
 

@@ -125,6 +125,7 @@ const EntrenamientoBot = () => {
     if (loading) return <Loader />;
 
     return (
+        <>
         <div className="space-y-6 animate-fade-in">
             <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-6">
                 <div>
@@ -315,6 +316,7 @@ const EntrenamientoBot = () => {
             config={confirmConfig}
             onClose={closeConfirm}
         />
+        </>
     );
 };
 
