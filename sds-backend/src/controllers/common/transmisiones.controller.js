@@ -48,7 +48,6 @@ exports.enVivoAlumno = async (req, res) => {
             [req.user.id]
         );
 
-        let esperando = null;
         for (const c of cursos) {
             const st = await svc.estadoCurso(c);
             if (st.estado === 'en_vivo') {
@@ -59,13 +58,6 @@ exports.enVivoAlumno = async (req, res) => {
                     hlsUrl: st.hlsUrl,
                 });
             }
-            if (st.estado === 'esperando' && !esperando) {
-                esperando = { id: c.id, nombre: c.nombre };
-            }
-        }
-
-        if (esperando) {
-            return res.json({ success: true, estado: 'esperando', curso: esperando });
         }
         return res.json({ success: true, estado: 'offline' });
     } catch (error) {
