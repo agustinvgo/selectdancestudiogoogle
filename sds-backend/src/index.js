@@ -206,6 +206,7 @@ app.use('/api/gastos',       adminLimiter, require('./routes/admin/gastos.routes
 app.use('/api/espera',       adminLimiter, require('./routes/admin/espera.routes'));
 app.use('/api/admin/bot',    adminLimiter, require('./routes/admin/bot.routes'));
 app.use('/api/emails',       adminLimiter, emailRoutes);
+app.use('/api/transmisiones', adminLimiter, require('./routes/common/transmisiones.routes'));
 
 // 🌐 Público — más restrictivo para evitar bots/spam
 app.use('/api/store',          publicLimiter, require('./routes/public/store.routes'));

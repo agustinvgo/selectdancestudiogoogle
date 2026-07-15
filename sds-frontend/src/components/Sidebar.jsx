@@ -20,7 +20,8 @@ import {
     BanknotesIcon,
     ShoppingBagIcon,
     ChevronLeftIcon,
-    ChevronRightIcon
+    ChevronRightIcon,
+    VideoCameraIcon
 } from '@heroicons/react/24/outline';
 
 
@@ -60,6 +61,7 @@ const Sidebar = ({ isOpen, onClose, onToggle }) => {
             title: 'Académico',
             items: [
                 { to: '/admin/cursos', icon: AcademicCapIcon, label: 'Cursos' },
+                { to: '/admin/transmisiones', icon: VideoCameraIcon, label: 'Transmisiones' },
                 { to: '/admin/alumnos', icon: UserGroupIcon, label: 'Alumnos' },
                 { to: '/admin/profesores', icon: AcademicCapIcon, label: 'Profesores' },
                 { to: '/admin/asistencias', icon: ClipboardDocumentCheckIcon, label: 'Asistencias' },
@@ -97,6 +99,7 @@ const Sidebar = ({ isOpen, onClose, onToggle }) => {
         { to: '/alumno', icon: HomeIcon, label: 'Inicio' },
         { to: '/alumno/perfil', icon: UserCircleIcon, label: 'Mi Perfil' },
         { to: '/alumno/clases', icon: AcademicCapIcon, label: 'Mis Clases' },
+        { to: '/alumno/en-vivo', icon: VideoCameraIcon, label: 'En Vivo' },
         { to: '/alumno/asistencias', icon: ChartBarIcon, label: 'Asistencias' },
         { to: '/alumno/pagos', icon: CurrencyDollarIcon, label: 'Pagos' },
         { to: '/alumno/eventos', icon: CalendarDaysIcon, label: 'Eventos' },

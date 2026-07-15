@@ -84,6 +84,28 @@ services:
     networks:
       - sds-network
 
+  # ── Servidor de medios para transmisión en vivo ──────────────
+  mediamtx:
+    image: bluenviron/mediamtx:1.19.2
+    container_name: sds-mediamtx
+    restart: always
+    ports:
+      # Único puerto público: la cámara/celular PUBLICA acá con contraseña.
+      # HLS (8888) y API (9997) quedan internos (solo nginx y backend los alcanzan).
+      - "1935:1935"
+    environment:
+      # La contraseña real de la cámara viene del .env del VPS (no se commitea).
+      - MTX_AUTHINTERNALUSERS_0_PASS=${MEDIAMTX_PUBLISH_PASS}
+    volumes:
+      - ./mediamtx/mediamtx.yml:/mediamtx.yml:ro
+    networks:
+      - sds-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
   backend:
     build:
       context: ./sds-backend
@@ -106,6 +128,12 @@ services:
       - MERCADOPAGO_ACCESS_TOKEN=${MERCADOPAGO_ACCESS_TOKEN:-}
       - PORT=5000
       - FRONTEND_URL=${VITE_URL_BASE}
+      # Transmisión en vivo (MediaMTX en la red interna de Docker)
+      - MEDIAMTX_API_URL=http://mediamtx:9997
+      - MEDIAMTX_RTMP_BASE=${MEDIAMTX_RTMP_BASE}
+      - MEDIAMTX_STREAM_KEY=live/estudio
+      - MEDIAMTX_PUBLISH_USER=camara
+      - MEDIAMTX_PUBLISH_PASS=${MEDIAMTX_PUBLISH_PASS}
     expose:
       - "5000"
     depends_on:
@@ -144,6 +172,7 @@ services:
     depends_on:
       - backend
       - nginx-proxy
+      - mediamtx
     networks:
       - sds-network
     logging:

@@ -46,6 +46,8 @@ const MisClases = lazy(() => import('./pages/alumno/MisClases.jsx'));
 const MisAsistencias = lazy(() => import('./pages/alumno/MisAsistencias.jsx'));
 const MisPagos = lazy(() => import('./pages/alumno/MisPagos.jsx'));
 const MisEventos = lazy(() => import('./pages/alumno/MisEventos.jsx'));
+const EnVivo = lazy(() => import('./pages/alumno/EnVivo.jsx'));
+const Transmisiones = lazy(() => import('./pages/admin/Transmisiones.jsx'));
 
 // Callbacks
 const PagoExitoso = lazy(() => import('./pages/callbacks/PagoExitoso.jsx'));
@@ -165,6 +167,16 @@ const AppRoutes = () => {
                         <PrivateRoute allowedRoles={['admin', 'profesor']}>
                             <ProtectedLayout>
                                 <GestionCursos />
+                            </ProtectedLayout>
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/admin/transmisiones"
+                    element={
+                        <PrivateRoute allowedRoles={['admin']}>
+                            <ProtectedLayout>
+                                <Transmisiones />
                             </ProtectedLayout>
                         </PrivateRoute>
                     }
@@ -335,6 +347,16 @@ const AppRoutes = () => {
                         <PrivateRoute allowedRoles={['alumno']}>
                             <ProtectedLayout>
                                 <MisPagos />
+                            </ProtectedLayout>
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/alumno/en-vivo"
+                    element={
+                        <PrivateRoute allowedRoles={['alumno']}>
+                            <ProtectedLayout>
+                                <EnVivo />
                             </ProtectedLayout>
                         </PrivateRoute>
                     }

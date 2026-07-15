@@ -6,6 +6,15 @@ export default defineConfig({
     server: {
         host: '0.0.0.0',
         port: 5173,
+        proxy: {
+            // Transmisión en vivo: el video HLS se sirve por el mismo origen que el portal
+            // (evita CORS y cookies de terceros que bloquean navegadores como Edge).
+            // En producción, nginx hace este mismo proxy de /live -> MediaMTX.
+            '/live': {
+                target: 'http://192.168.100.21:8888',
+                changeOrigin: true,
+            },
+        },
     },
     build: {
         sourcemap: false,

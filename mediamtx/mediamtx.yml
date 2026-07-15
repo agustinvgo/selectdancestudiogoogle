@@ -1,0 +1,49 @@
+###############################################
+# MediaMTX — configuración de producción (VPS)
+# Transmisión en vivo de clases para Select Dance Studio.
+#
+# Seguridad:
+#  - Solo el puerto RTMP (1935) se expone a internet -> la cámara PUBLICA con contraseña.
+#  - HLS (8888) y API (9997) NO se exponen: solo los alcanzan nginx y el backend
+#    por la red interna de Docker. Por eso "any" puede leer/consultar sin riesgo público.
+###############################################
+
+logLevel: info
+
+# API de control (interna): el backend consulta si hay video en vivo.
+api: true
+apiAddress: 0.0.0.0:9997
+
+# RTMP: acá publica la cámara/celular (público, con contraseña).
+rtmp: true
+rtmpAddress: 0.0.0.0:1935
+
+# RTSP: por si más adelante se usa una cámara IP que saque RTSP.
+rtsp: true
+rtspAddress: 0.0.0.0:8554
+
+# HLS: lo que reproduce el portal (servido por nginx, mismo origen).
+hls: true
+hlsAddress: 0.0.0.0:8888
+hlsAllowOrigins: ["*"]
+hlsVariant: mpegts
+hlsAlwaysRemux: true
+hlsSegmentCount: 7
+hlsSegmentDuration: 1s
+
+# ── Autenticación ──────────────────────────────────────────
+# Usuario "camara": única forma de PUBLICAR. La contraseña real se inyecta desde
+# docker-compose con MTX_AUTHINTERNALUSERS_0_PASS (viene del .env del VPS, no se commitea).
+# Usuario "any": solo LEER y API — inofensivo porque esos puertos no son públicos.
+authInternalUsers:
+  - user: camara
+    pass: CHANGEME_via_env
+    permissions:
+      - action: publish
+  - user: any
+    permissions:
+      - action: read
+      - action: api
+
+paths:
+  all_others:

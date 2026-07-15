@@ -42,6 +42,14 @@ export const authAPI = {
     changePassword: (oldPassword, newPassword) => api.put('/auth/change-password', { oldPassword, newPassword }),
 };
 
+// ===== TRANSMISIONES EN VIVO =====
+export const transmisionesAPI = {
+    enVivo: () => api.get('/transmisiones/en-vivo'),        // alumno: clase en vivo de su hijo
+    listAdmin: () => api.get('/transmisiones'),             // admin: todos los cursos + estado
+    iniciar: (cursoId) => api.post(`/transmisiones/${cursoId}/iniciar`),
+    detener: (cursoId) => api.post(`/transmisiones/${cursoId}/detener`),
+};
+
 // ===== ALUMNOS =====
 export const alumnosAPI = {
     // Bug #6 fix: getAll ahora acepta params para filtro y búsqueda (search, activo, page, limit)
