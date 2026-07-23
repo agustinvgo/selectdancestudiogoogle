@@ -11,7 +11,7 @@ export default defineConfig({
             // (evita CORS y cookies de terceros que bloquean navegadores como Edge).
             // En producción, nginx hace este mismo proxy de /live -> MediaMTX.
             '/live': {
-                target: 'http://192.168.100.21:8888',
+                target: 'http://localhost:8888',
                 changeOrigin: true,
             },
         },
