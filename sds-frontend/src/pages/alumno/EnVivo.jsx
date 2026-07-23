@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Hls from 'hls.js';
 import { transmisionesAPI } from '../../services/api';
-import { VideoCameraIcon } from '@heroicons/react/24/outline';
+import { VideoCameraIcon, SignalIcon } from '@heroicons/react/24/outline';
 
 // Reproductor HLS reutilizable (usa hls.js; en Safari usa el player nativo)
 const HlsPlayer = ({ src }) => {
@@ -87,6 +87,16 @@ const EnVivo = () => {
                     </div>
                     <p className="text-xs text-gray-400">
                         Si el video se corta unos segundos, es normal: se está transmitiendo en tiempo real.
+                    </p>
+                </div>
+            )}
+
+            {estado === 'esperando' && (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-10 text-center">
+                    <SignalIcon className="h-12 w-12 mx-auto text-amber-500 mb-4 animate-pulse" />
+                    <h3 className="text-lg font-bold text-gray-900 mb-1">La transmisión está por comenzar</h3>
+                    <p className="text-gray-600 text-sm">
+                        {data.curso?.nombre} — esperando que la cámara se conecte…
                     </p>
                 </div>
             )}

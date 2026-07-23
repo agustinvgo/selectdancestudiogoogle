@@ -86,9 +86,13 @@ async function estadoCurso(curso) {
     const programada = manual || dentroDeHorario(curso);
     const video = programada ? await hayPublisher(key) : false;
 
-    // La cámara manda: hay transmisión SOLO si hay video de una clase en horario (o manual).
-    // Si nadie prende la cámara (ej: un día sin clase), queda 'offline' y no se muestra nada.
-    const estado = (programada && video) ? 'en_vivo' : 'offline';
+    // Reglas:
+    //  - Hay video (cámara prendida)  -> 'en_vivo'.
+    //  - El admin lo inició MANUAL     -> 'esperando' (feedback: espera la cámara).
+    //  - Solo por horario, sin cámara  -> 'offline' (día sin clase = no se muestra nada).
+    let estado = 'offline';
+    if (video) estado = 'en_vivo';
+    else if (manual) estado = 'esperando';
 
     return { estado, programada, video, manual, streamKey: key, hlsUrl: hlsUrl(key), playerUrl: playerUrl(key), rtmpUrl: rtmpUrl(key) };
 }
