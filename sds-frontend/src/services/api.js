@@ -248,6 +248,8 @@ export const notificacionesAPI = {
     }),
     getSentHistory: () => api.get('/notificaciones/sent-history'),
     deleteBatch: (batchId) => api.delete(`/notificaciones/batch/${batchId}`),
+    getPausa: () => api.get('/notificaciones/pausa'),
+    setPausa: (canal, pausado) => api.put('/notificaciones/pausa', { canal, pausado }),
 };
 
 // ===== TIENDA / INVENTARIO =====

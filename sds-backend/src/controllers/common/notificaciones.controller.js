@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const NotificacionModel = require('../../models/notificacion.model');
 const EmailService = require('../../services/email.service');
 const ConsultasModel = require('../../models/consultas.model');
+const notifSettings = require('../../services/notifSettings');
 
 const NotificacionesController = {
     // Obtener contadores para badge de notificaciones (legacy + nuevo)
@@ -168,11 +169,13 @@ const NotificacionesController = {
                         if (!user.email) continue;
                         try {
                             const nombre = nombreMap[user.id] || 'Usuario';
+                            // Envío manual desde el panel: sale aunque los correos automáticos estén pausados.
                             await EmailService.enviarEmailPersonalizado(
                                 user.email,
                                 nombre,
                                 titulo,
-                                mensaje
+                                mensaje,
+                                { force: true }
                             );
                         } catch (emailError) {
                             console.error(`[Background] Error enviando email a ${user.email}:`, emailError.message);
@@ -215,6 +218,33 @@ const NotificacionesController = {
         } catch (error) {
             console.error('Error deleting batch:', error);
             res.status(500).json({ success: false, message: 'Error eliminando notificaciones' });
+        }
+    },
+
+    // [ADMIN] Estado de pausa de notificaciones automáticas
+    async getPausa(req, res) {
+        try {
+            const estado = await notifSettings.getPausa();
+            res.json({ success: true, data: estado });
+        } catch (error) {
+            console.error('Error getPausa:', error);
+            res.status(500).json({ success: false, message: 'Error al leer el estado' });
+        }
+    },
+
+    // [ADMIN] Pausar / reanudar un canal ({ canal: 'wsp'|'email', pausado: bool })
+    async setPausa(req, res) {
+        try {
+            const { canal, pausado } = req.body;
+            if (canal !== 'wsp' && canal !== 'email') {
+                return res.status(400).json({ success: false, message: 'Canal inválido' });
+            }
+            await notifSettings.setPausa(canal, !!pausado);
+            const estado = await notifSettings.getPausa();
+            res.json({ success: true, data: estado });
+        } catch (error) {
+            console.error('Error setPausa:', error);
+            res.status(500).json({ success: false, message: 'Error al cambiar el estado' });
         }
     }
 };

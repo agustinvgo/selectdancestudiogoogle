@@ -1,4 +1,5 @@
 const whatsappBot = require('./whatsappBot');
+const notifSettings = require('./notifSettings');
 
 class WhatsAppService {
     constructor() {
@@ -107,8 +108,14 @@ class WhatsAppService {
      * @param {string} mensaje - Mensaje a enviar
      * @returns {Promise<Object>} - Resultado del envío
      */
-    async enviarMensaje(telefono, mensaje) {
+    async enviarMensaje(telefono, mensaje, opts = {}) {
         try {
+            // Pausa de notificaciones automáticas. Los envíos manuales pasan { force: true }.
+            if (!opts.force && await notifSettings.isPaused('wsp')) {
+                console.log('⏸️ WhatsApp pausado — mensaje automático no enviado.');
+                return { success: false, paused: true, skipped: true };
+            }
+
             const numeroNormalizado = this.normalizarTelefono(telefono);
 
             if (!numeroNormalizado) {

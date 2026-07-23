@@ -1,16 +1,83 @@
 import { useState, useEffect } from 'react';
-import { emailsAPI, alumnosAPI } from '../../services/api';
+import { emailsAPI, alumnosAPI, notificacionesAPI } from '../../services/api';
 import {
     EnvelopeIcon,
     PaperAirplaneIcon,
     CheckCircleIcon,
     ExclamationTriangleIcon,
-    UserIcon
+    UserIcon,
+    PauseCircleIcon
 } from '@heroicons/react/24/outline';
 import useToast from '../../hooks/useToast';
 import Button from '../../components/Button';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import useConfirm from '../../hooks/useConfirm';
+
+// Panel para pausar las notificaciones AUTOMÁTICAS por canal (WhatsApp / Correos).
+// Los envíos manuales y el reset de contraseña no se ven afectados.
+const PausaNotificaciones = () => {
+    const toast = useToast();
+    const [estado, setEstado] = useState(null);
+    const [saving, setSaving] = useState(null);
+
+    useEffect(() => {
+        notificacionesAPI.getPausa()
+            .then(r => setEstado(r.data.data))
+            .catch(() => setEstado({ wsp: false, email: false }));
+    }, []);
+
+    const toggle = async (canal) => {
+        if (!estado) return;
+        const nuevo = !estado[canal];
+        setSaving(canal);
+        try {
+            const r = await notificacionesAPI.setPausa(canal, nuevo);
+            setEstado(r.data.data);
+            toast.success(nuevo ? 'Notificaciones pausadas' : 'Notificaciones reanudadas');
+        } catch {
+            toast.error('No se pudo cambiar el estado');
+        } finally {
+            setSaving(null);
+        }
+    };
+
+    const algunaPausada = estado && (estado.wsp || estado.email);
+
+    const Switch = ({ canal, label }) => (
+        <div className="flex items-center justify-between py-2">
+            <span className="font-medium text-gray-800">{label}</span>
+            <button
+                type="button"
+                onClick={() => toggle(canal)}
+                disabled={!estado || saving === canal}
+                aria-pressed={!!estado?.[canal]}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${estado?.[canal] ? 'bg-amber-500' : 'bg-gray-300'}`}
+            >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${estado?.[canal] ? 'translate-x-6' : 'translate-x-1'}`} />
+            </button>
+        </div>
+    );
+
+    return (
+        <div className={`rounded-2xl border p-5 ${algunaPausada ? 'border-amber-300 bg-amber-50' : 'border-gray-200 bg-white'}`}>
+            <div className="flex items-center gap-2 mb-1">
+                <PauseCircleIcon className="h-5 w-5 text-amber-500" />
+                <h2 className="font-bold text-gray-900">Pausar notificaciones automáticas</h2>
+            </div>
+            <p className="text-sm text-gray-500 mb-3">
+                Frena los envíos automáticos (recordatorios de pago, cumpleaños, avisos). Tus envíos
+                manuales y el correo de recuperar contraseña siguen funcionando igual.
+            </p>
+            <Switch canal="wsp" label="WhatsApp" />
+            <Switch canal="email" label="Correos" />
+            {algunaPausada && (
+                <p className="text-xs font-semibold text-amber-700 mt-3">
+                    ⏸️ Hay notificaciones automáticas pausadas.
+                </p>
+            )}
+        </div>
+    );
+};
 
 const Notificaciones = () => {
     const [loading, setLoading] = useState(false);
@@ -212,6 +279,8 @@ const Notificaciones = () => {
                 <h1 className="text-3xl font-bold text-gray-900">Notificaciones por Email</h1>
                 <p className="text-gray-500 mt-1">Envía recordatorios y notificaciones automáticas</p>
             </div>
+
+            <PausaNotificaciones />
 
             {/* Resultado */}
             {result && (

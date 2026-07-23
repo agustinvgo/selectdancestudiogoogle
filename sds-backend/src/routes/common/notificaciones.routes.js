@@ -14,6 +14,8 @@ router.put('/:id/read', verifyToken, NotificacionesController.markAsRead);
 router.delete('/:id', verifyToken, NotificacionesController.delete);
 
 // Admin Only
+router.get('/pausa', verifyToken, isAdmin, NotificacionesController.getPausa);
+router.put('/pausa', verifyToken, isAdmin, NotificacionesController.setPausa);
 router.post('/send', verifyToken, isAdmin, upload.single('imagen'), NotificacionesController.sendNotification);
 router.get('/sent-history', verifyToken, isAdmin, NotificacionesController.getSentHistory);
 router.delete('/batch/:batch_id', verifyToken, isAdmin, NotificacionesController.deleteBatch);

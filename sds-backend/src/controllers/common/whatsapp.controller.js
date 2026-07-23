@@ -104,7 +104,8 @@ const WhatsAppController = {
                 });
             }
 
-            const resultado = await whatsappService.enviarMensaje(telefonoFinal, mensajeFinal);
+            // Envío manual desde el panel: siempre sale, aunque las automáticas estén pausadas.
+            const resultado = await whatsappService.enviarMensaje(telefonoFinal, mensajeFinal, { force: true });
 
             if (resultado.success) {
                 res.json({

@@ -1,6 +1,7 @@
 const nodemailer = require('nodemailer');
 const path = require('path');
 const { formatSchedule } = require('../utils/formatters');
+const notifSettings = require('./notifSettings');
 
 /**
  * Servicio de envío de emails
@@ -210,8 +211,13 @@ const emailTemplate = (title, content) => {
     `;
 };
 
-// Helper universal para enviar emails
-const sendEmail = async (mailOptions) => {
+// Helper universal para enviar emails.
+// opts.force = true -> salta la pausa (envíos manuales y críticos como reset de contraseña).
+const sendEmail = async (mailOptions, opts = {}) => {
+    if (!opts.force && await notifSettings.isPaused('email')) {
+        console.log('⏸️ Correos pausados — email automático no enviado.');
+        return { success: false, paused: true, skipped: true };
+    }
     const transporter = createTransporter();
     const attachments = mailOptions.attachments || [];
     const logoAttachment = getLogoAttachment();
@@ -329,12 +335,13 @@ const enviarResetPassword = async (email, nombre, token) => {
         </div>
         <p style="font-size: 13px; color: #9CA3AF;">Este enlace es válido por 1 hora.</p>
     `;
+    // Crítico: el reset de contraseña SIEMPRE se envía, aunque los correos estén pausados.
     return sendEmail({
         from: `"Select Dance Studio" <${process.env.SMTP_USER}>`,
         to: email,
         subject: 'Recuperación de Contraseña',
         html: emailTemplate('Recuperación de Contraseña', content)
-    });
+    }, { force: true });
 };
 
 const enviarConfirmacionSolicitudPrueba = async (email, nombre, interes, horario) => {
@@ -583,9 +590,9 @@ module.exports = {
     enviarFelicitacionCumpleanos,
 
     // Métodos alias para compatibilidad
-    enviarEmailPersonalizado: async (email, nombre, asunto, mensaje) => {
+    enviarEmailPersonalizado: async (email, nombre, asunto, mensaje, opts = {}) => {
         const content = `<h1>Hola <strong>${nombre}</strong>, 👋</h1><p>${mensaje}</p>`;
-        return sendEmail({ from: `"Select Dance Studio" <${process.env.SMTP_USER}>`, to: email, subject: asunto, html: emailTemplate(asunto, content) });
+        return sendEmail({ from: `"Select Dance Studio" <${process.env.SMTP_USER}>`, to: email, subject: asunto, html: emailTemplate(asunto, content) }, opts);
     },
     enviarNotificacionEvento: async (email, nombre, nombreEvento, fecha, lugar) => {
         const content = `<h1>¡Evento Próximo! 🎭</h1><div class="info-box"><h3>${nombreEvento}</h3><p><strong>Fecha:</strong> ${new Date(fecha).toLocaleDateString('es-AR')}</p><p><strong>Lugar:</strong> ${lugar || '-'}</p></div>`;
