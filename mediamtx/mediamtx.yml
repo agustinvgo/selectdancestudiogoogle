@@ -26,7 +26,7 @@ rtspAddress: 0.0.0.0:8554
 hls: true
 hlsAddress: 0.0.0.0:8888
 hlsAllowOrigins: ["*"]
-hlsVariant: mpegts
+hlsVariant: fmp4
 hlsAlwaysRemux: true
 hlsSegmentCount: 7
 hlsSegmentDuration: 1s
@@ -53,7 +53,7 @@ paths:
   # URL de la cámara Oryx/YCC365Plus del estudio (IP pública con port-forward :554):
   # Prerequisito: el router del estudio debe tener port-forwarding 554->192.168.0.86
   live/estudio:
-    source: rtsp://admin:123456@190.31.54.249:554/live/ch00_0
+    source: rtsp://admin:123456@190.31.54.249:554/live/ch00_1
     sourceOnDemand: false
 
   all_others:
