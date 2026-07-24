@@ -43,17 +43,24 @@ export const AuthProvider = ({ children }) => {
         const resetTimer = () => {
             if (activityTimer) clearTimeout(activityTimer);
             activityTimer = setTimeout(() => {
+                // Verificar si el usuario está viendo la transmisión o si hay un reproductor activo
+                const isWatchingVideo = window.location.pathname.includes('/en-vivo') ||
+                                        window.location.pathname.includes('/transmisiones') ||
+                                        Array.from(document.querySelectorAll('video')).some(v => !v.paused && !v.ended);
+
+                if (isWatchingVideo) {
+                    // Mantener la sesión activa si está mirando el video
+                    resetTimer();
+                    return;
+                }
+
                 logout();
-                // Optionally show a toast here, but logout usually redirects or clears state
-                // If you have a toast service available in context or imported:
-                // toast.error('Sesión cerrada por inactividad'); 
-                // Since toast isn't directly imported here, we rely on the UI reflecting the logout
                 window.location.href = '/login?reason=inactivity';
             }, TIMEOUT_MS);
         };
 
         // Events to monitor
-        const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+        const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
 
         // Attach listeners
         events.forEach(event => document.addEventListener(event, resetTimer));
