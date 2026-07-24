@@ -1,5 +1,9 @@
 # Transmisión en vivo — Guía de despliegue (VPS)
 
+> **Actualización:** El sistema ahora usa una **cámara IP Oryx/YCC365Plus** con pull RTSP automático
+> en vez de celular con push RTMP. MediaMTX se conecta a la cámara solo — no hay nada que configurar
+> en la cámara misma.
+
 Cómo poner en producción la transmisión en vivo de clases. **Nada de esto está deployado todavía** — es la guía para hacerlo cuando se decida.
 
 ## Qué se agregó

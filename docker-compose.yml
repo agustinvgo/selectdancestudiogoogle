@@ -84,18 +84,21 @@ services:
     networks:
       - sds-network
 
-  # ── Servidor de medios para transmisión en vivo ──────────────
+  # ── Servidor de medios para transmisión en vivo ───────────────────────
   mediamtx:
     image: bluenviron/mediamtx:1.19.2
     container_name: sds-mediamtx
     restart: always
     ports:
-      # Único puerto público: la cámara/celular PUBLICA acá con contraseña.
-      # HLS (8888) y API (9997) quedan internos (solo nginx y backend los alcanzan).
+      # Puerto RTMP: disponible por si se quisiera usar en el futuro.
+      # Con la cámara IP (pull RTSP) este puerto no es necesario.
       - "1935:1935"
     environment:
-      # La contraseña real de la cámara viene del .env del VPS (no se commitea).
+      # Contraseña de publicación RTMP (legado / por si acaso).
       - MTX_AUTHINTERNALUSERS_0_PASS=${MEDIAMTX_PUBLISH_PASS}
+      # URL RTSP de la cámara IP del estudio (Oryx/YCC365Plus).
+      # MediaMTX hace PULL automático: la cámara no necesita configuración.
+      - CAMERA_RTSP_URL=${CAMERA_RTSP_URL}
     volumes:
       - ./mediamtx/mediamtx.yml:/mediamtx.yml:ro
     networks:

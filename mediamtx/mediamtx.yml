@@ -46,4 +46,12 @@ authInternalUsers:
       - action: api
 
 paths:
+  # Stream principal del estudio: MediaMTX hace PULL de la cámara IP (RTSP).
+  # La cámara NO necesita configurarse; es MediaMTX quien se conecta a ella.
+  # Si la cámara se reinicia, MediaMTX reconecta automáticamente (sourceOnDemand: false).
+  live/estudio:
+    source: $CAMERA_RTSP_URL
+    sourceOnDemand: false          # Conecta apenas arranca, no espera viewers
+    sourceReconnectInterval: 5s   # Reintenta cada 5 s si la cámara se desconecta
+
   all_others:
