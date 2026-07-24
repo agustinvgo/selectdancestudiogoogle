@@ -25,10 +25,40 @@ const HlsPlayer = ({ src }) => {
         }
 
         if (Hls.isSupported()) {
-            const hls = new Hls({ liveDurationInfinity: true, lowLatencyMode: false });
+            const hls = new Hls({
+                liveDurationInfinity: true,
+                lowLatencyMode: false,
+                manifestLoadingTimeOut: 10000,
+                manifestLoadingMaxRetry: 15,
+                levelLoadingTimeOut: 10000,
+                levelLoadingMaxRetry: 15,
+                fragLoadingTimeOut: 20000,
+                fragLoadingMaxRetry: 15,
+            });
             hls.loadSource(src);
             hls.attachMedia(video);
             hls.on(Hls.Events.MANIFEST_PARSED, tryPlay);
+
+            // Autorrecuperación transparente si hay microcortes durante transmisiones de >1 hora
+            hls.on(Hls.Events.ERROR, (event, data) => {
+                if (data.fatal) {
+                    switch (data.type) {
+                        case Hls.ErrorTypes.NETWORK_ERROR:
+                            console.warn('[HLS] Microcorte de red detectado, reconectando...');
+                            hls.startLoad();
+                            break;
+                        case Hls.ErrorTypes.MEDIA_ERROR:
+                            console.warn('[HLS] Fallo en buffer de video, recuperando...');
+                            hls.recoverMediaError();
+                            break;
+                        default:
+                            console.error('[HLS] Reiniciando reproductor...');
+                            hls.destroy();
+                            break;
+                    }
+                }
+            });
+
             return () => hls.destroy();
         }
     }, [src]);

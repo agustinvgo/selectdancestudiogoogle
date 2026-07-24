@@ -58,18 +58,10 @@ const Transmisiones = () => {
             </div>
 
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
-                <p className="font-semibold mb-2">📹 URL de la cámara — configurala una sola vez</p>
-                <button
-                    onClick={() => copiar(camUrl)}
-                    title="Copiar"
-                    className="font-mono text-blue-700 bg-white border border-blue-200 rounded-lg px-3 py-2 hover:bg-blue-100 transition-colors break-all text-left w-full"
-                >
-                    📋 {camUrl}
-                </button>
-                <p className="mt-2 text-blue-700/80">
-                    La cámara del estudio empuja siempre a esta dirección. El sistema muestra
-                    automáticamente la clase que esté <strong>en horario</strong> a los padres inscriptos —
-                    no hace falta cambiar nada por clase.
+                <p className="font-semibold mb-1">📹 Cámara IP del Estudio Conectada</p>
+                <p className="text-blue-700/90">
+                    El servidor se conecta automáticamente a la cámara IP del estudio.
+                    El sistema muestra de forma automática la clase que esté <strong>en horario</strong> a los padres inscriptos.
                 </p>
             </div>
 
