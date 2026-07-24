@@ -206,7 +206,9 @@ app.use('/api/gastos',       adminLimiter, require('./routes/admin/gastos.routes
 app.use('/api/espera',       adminLimiter, require('./routes/admin/espera.routes'));
 app.use('/api/admin/bot',    adminLimiter, require('./routes/admin/bot.routes'));
 app.use('/api/emails',       adminLimiter, emailRoutes);
-app.use('/api/transmisiones', adminLimiter, require('./routes/common/transmisiones.routes'));
+// /api/transmisiones/authorize es consultado continuamente por Nginx/HLS player para cada segmento de video.
+// No debe llevar rate limiter para evitar HTTP 429 (que Nginx transforma en 500).
+app.use('/api/transmisiones', require('./routes/common/transmisiones.routes'));
 
 // 🌐 Público — más restrictivo para evitar bots/spam
 app.use('/api/store',          publicLimiter, require('./routes/public/store.routes'));
