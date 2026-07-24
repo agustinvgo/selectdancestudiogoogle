@@ -49,8 +49,11 @@ paths:
   # Stream principal del estudio: MediaMTX hace PULL de la cámara IP (RTSP).
   # La cámara NO necesita configurarse; es MediaMTX quien se conecta a ella.
   # Si la cámara se reinicia, MediaMTX reconecta automáticamente.
+  #
+  # URL de la cámara Oryx/YCC365Plus del estudio (IP pública con port-forward :554):
+  # Prerequisito: el router del estudio debe tener port-forwarding 554->192.168.0.86
   live/estudio:
-    source: $CAMERA_RTSP_URL
-    sourceOnDemand: false          # Conecta apenas arranca, no espera viewers
+    source: rtsp://admin:123456@190.31.54.249:554/live/ch00_0
+    sourceOnDemand: false
 
   all_others:
