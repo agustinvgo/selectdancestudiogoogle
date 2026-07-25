@@ -34,8 +34,19 @@ function rtmpUrl(key) {
     return `${RTMP_BASE}/${key}`;
 }
 
+// Suma N minutos a un string "HH:MM:SS" (maneja overflow de hora)
+function agregarMinutos(hhmmss, mins) {
+    const [h, m, s] = (hhmmss || '00:00:00').split(':').map(Number);
+    const totalSecs = h * 3600 + m * 60 + s + mins * 60;
+    const hh = String(Math.floor(totalSecs / 3600) % 24).padStart(2, '0');
+    const mm = String(Math.floor((totalSecs % 3600) / 60)).padStart(2, '0');
+    const ss = String(totalSecs % 60).padStart(2, '0');
+    return `${hh}:${mm}:${ss}`;
+}
+
 // ¿El curso está dentro de su ventana horaria ahora mismo? (siempre en hora de Buenos Aires)
-function dentroDeHorario(curso, now = new Date()) {
+// graciaMinutos: minutos extra que se suman al hora_fin antes de comparar
+function dentroDeHorario(curso, now = new Date(), graciaMinutos = 0) {
     if (!curso.dia_semana || !curso.hora_inicio || !curso.hora_fin) return false;
 
     // Obtener partes de fecha/hora en la timezone de Buenos Aires
@@ -53,13 +64,15 @@ function dentroDeHorario(curso, now = new Date()) {
     const get = (type) => parts.find(p => p.type === type)?.value ?? '';
 
     // Día de la semana en español, normalizado (sin acentos, minúsculas)
-    const diaBa   = norm(get('weekday'));
+    const diaBa  = norm(get('weekday'));
 
     // Hora como "HH:MM:SS"
-    const hhmmss  = `${get('hour').padStart(2, '0')}:${get('minute').padStart(2, '0')}:${get('second').padStart(2, '0')}`;
+    const hhmmss = `${get('hour').padStart(2, '0')}:${get('minute').padStart(2, '0')}:${get('second').padStart(2, '0')}`;
 
     if (norm(curso.dia_semana) !== diaBa) return false;
-    return curso.hora_inicio <= hhmmss && hhmmss <= curso.hora_fin;
+
+    const finEfectivo = graciaMinutos > 0 ? agregarMinutos(curso.hora_fin, graciaMinutos) : curso.hora_fin;
+    return curso.hora_inicio <= hhmmss && hhmmss <= finEfectivo;
 }
 
 // ¿MediaMTX está recibiendo video en ese path? (API v3)
@@ -93,25 +106,36 @@ async function setManual(cursoId, activo) {
     );
 }
 
+// Minutos de gracia después del hora_fin: si la cámara sigue transmitiendo,
+// el stream se mantiene en vivo hasta este tope (evita cortes bruscos en clases que se alargan).
+const GRACIA_MINUTOS = 10;
+
 /**
  * Estado completo de un curso:
- *  - 'en_vivo'   → debería estar al aire (manual u horario) Y hay video llegando
- *  - 'esperando' → debería estar al aire pero la cámara aún no transmite
- *  - 'offline'   → fuera de horario y sin override manual
+ *  - 'en_vivo'   → (manual u horario+gracia) Y hay video llegando
+ *  - 'esperando' → dentro del horario exacto pero la cámara aún no transmite
+ *  - 'offline'   → fuera de horario (+ gracia) y sin override manual
  */
 async function estadoCurso(curso) {
     const key = streamKey();
     const manual = await getManual(curso.id);
-    const programada = manual || dentroDeHorario(curso);
+
+    // Horario exacto (sin gracia): para el estado 'esperando'
+    const enHorario = dentroDeHorario(curso);
+    // Horario + gracia: para decidir si consultar la cámara
+    const enHorarioConGracia = dentroDeHorario(curso, new Date(), GRACIA_MINUTOS);
+
+    const programada = manual || enHorarioConGracia;
     const video = programada ? await hayPublisher(key) : false;
 
     // Reglas:
-    //  - Hay video (cámara prendida)  -> 'en_vivo'.
-    //  - El admin lo inició MANUAL     -> 'esperando' (feedback: espera la cámara).
-    //  - Solo por horario, sin cámara  -> 'offline' (día sin clase = no se muestra nada).
+    //  - Hay video (cámara prendida)           -> 'en_vivo' (incluso dentro de los 10 min de gracia).
+    //  - Manual activo, sin cámara aún         -> 'esperando'.
+    //  - En horario exacto, sin cámara         -> 'offline' (no confundir a los padres).
+    //  - Fuera de horario+gracia, sin override -> 'offline'.
     let estado = 'offline';
     if (video) estado = 'en_vivo';
-    else if (manual) estado = 'esperando';
+    else if (manual || enHorario) estado = 'esperando';
 
     return { estado, programada, video, manual, streamKey: key, hlsUrl: hlsUrl(key), playerUrl: playerUrl(key), rtmpUrl: rtmpUrl(key) };
 }
