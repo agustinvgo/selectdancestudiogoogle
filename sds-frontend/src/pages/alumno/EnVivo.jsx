@@ -59,28 +59,56 @@ const HlsPlayer = ({ src }) => {
                 }
             });
 
-            // Cuando el usuario vuelve a la pestaña después de inactividad, el navegador
-            // pausó hls.js y el video quedó atrás o congelado.
-            // Al volver: retomamos la descarga y saltamos al borde en vivo.
+            // Helper: saltar al borde en vivo y reanudar
+            const syncToLive = () => {
+                hls.startLoad();
+                // Esperamos al próximo fragmento para tener liveSyncPosition disponible
+                hls.once(Hls.Events.FRAG_BUFFERED, () => {
+                    const edge = hls.liveSyncPosition;
+                    if (edge && isFinite(edge)) video.currentTime = edge;
+                    video.play().catch(() => {});
+                });
+                video.play().catch(() => {});
+            };
+
+            // Fix 1: cuando el usuario vuelve a la pestaña (PC o móvil)
             const handleVisibility = () => {
                 if (document.visibilityState === 'visible') {
-                    console.log('[HLS] Pestaña activa de nuevo → sincronizando al vivo...');
-                    hls.startLoad();
-                    // Saltar al borde en vivo (liveSyncPosition es el punto óptimo de HLS)
-                    const liveEdge = hls.liveSyncPosition;
-                    if (liveEdge && isFinite(liveEdge)) {
-                        video.currentTime = liveEdge;
-                    }
-                    video.play().catch(() => {});
+                    console.log('[HLS] Pestaña activa → resincronizando al vivo...');
+                    syncToLive();
                 }
             };
             document.addEventListener('visibilitychange', handleVisibility);
 
+            // Fix 2: detector de video congelado (cubre el caso PC sin cambio de pestaña)
+            // Cada 5 segundos verifica si currentTime avanzó.
+            // Si no avanzó 2 veces seguidas (~10 seg) y el video debería correr → resincroniza.
+            let lastTime = -1;
+            let staleCount = 0;
+            const staleChecker = setInterval(() => {
+                // No chequear si la pestaña está oculta (visibilitychange lo cubre)
+                // o si el video está pausado intencionalmente por el usuario
+                if (document.hidden) return;
+                if (video.currentTime === lastTime && !video.paused) {
+                    staleCount++;
+                    if (staleCount >= 2) {
+                        console.warn('[HLS] Video congelado detectado → resincronizando al vivo...');
+                        syncToLive();
+                        staleCount = 0;
+                    }
+                } else {
+                    staleCount = 0;
+                }
+                lastTime = video.currentTime;
+            }, 5000);
+
             return () => {
                 document.removeEventListener('visibilitychange', handleVisibility);
+                clearInterval(staleChecker);
                 hls.destroy();
             };
         }
+
     }, [src]);
 
     return (
