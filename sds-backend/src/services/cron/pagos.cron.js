@@ -5,7 +5,7 @@ const whatsappService = require('../whatsapp.service');
 
 const PagosCron = {
     init() {
-        // GENERACIÓN DE CUOTAS: Día 1 de cada mes a las 00:00
+        // GENERACIÓN DE CUOTAS: Día 1 de cada mes a las 00:00 (hora Buenos Aires)
         cron.schedule('0 0 1 * *', async () => {
             console.log('🔔 [CRON-PAGOS] Generando cuotas automáticas del mes...');
             const now = new Date();
@@ -13,13 +13,13 @@ const PagosCron = {
                 const rs = await PagosModel.generarMasivosInternal(now.getMonth() + 1, now.getFullYear());
                 console.log(`✅ [CRON-PAGOS] Cuotas generadas. Creadas: ${rs.generados}, Omitidas: ${rs.omitidos}`);
             } catch (e) { console.error('❌ [CRON-PAGOS] Error generando cuotas:', e); }
-        });
+        }, { timezone: 'America/Argentina/Buenos_Aires' });
 
-        // RECORDATORIOS POR VENCER (2 días antes): 14:00 PM
-        cron.schedule('0 14 * * *', async () => await this.procesarRecordatorios());
+        // RECORDATORIOS POR VENCER (2 días antes): 14:00 PM (hora Buenos Aires)
+        cron.schedule('0 14 * * *', async () => await this.procesarRecordatorios(), { timezone: 'America/Argentina/Buenos_Aires' });
 
-        // AVISOS DE VENCIMIENTO (5 días después): 14:30 PM
-        cron.schedule('30 14 * * *', async () => await this.procesarVencidos());
+        // AVISOS DE VENCIMIENTO (5 días después): 14:30 PM (hora Buenos Aires)
+        cron.schedule('30 14 * * *', async () => await this.procesarVencidos(), { timezone: 'America/Argentina/Buenos_Aires' });
     },
 
     async procesarRecordatorios() {

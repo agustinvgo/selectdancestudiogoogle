@@ -5,8 +5,7 @@ const db = require('../config/db');
 const RTMP_BASE = process.env.MEDIAMTX_RTMP_BASE || 'rtmp://192.168.100.21:1935';
 const API_URL = process.env.MEDIAMTX_API_URL || 'http://localhost:9997';
 
-// getDay(): 0=domingo ... 6=sábado
-const DIAS = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+
 
 // Normaliza para comparar días sin depender de acentos/mayúsculas
 // (ej: "Miércoles" y "Miercoles" quedan iguales)
@@ -35,11 +34,31 @@ function rtmpUrl(key) {
     return `${RTMP_BASE}/${key}`;
 }
 
-// ¿El curso está dentro de su ventana horaria ahora mismo?
+// ¿El curso está dentro de su ventana horaria ahora mismo? (siempre en hora de Buenos Aires)
 function dentroDeHorario(curso, now = new Date()) {
     if (!curso.dia_semana || !curso.hora_inicio || !curso.hora_fin) return false;
-    if (norm(curso.dia_semana) !== DIAS[now.getDay()]) return false;
-    const hhmmss = now.toTimeString().slice(0, 8); // "HH:MM:SS" hora local
+
+    // Obtener partes de fecha/hora en la timezone de Buenos Aires
+    // (independientemente del timezone del servidor/VPS)
+    const TZ = 'America/Argentina/Buenos_Aires';
+    const parts = new Intl.DateTimeFormat('es-AR', {
+        timeZone: TZ,
+        weekday: 'long',   // ej: "lunes", "martes"...
+        hour:    '2-digit',
+        minute:  '2-digit',
+        second:  '2-digit',
+        hour12:  false,
+    }).formatToParts(now);
+
+    const get = (type) => parts.find(p => p.type === type)?.value ?? '';
+
+    // Día de la semana en español, normalizado (sin acentos, minúsculas)
+    const diaBa   = norm(get('weekday'));
+
+    // Hora como "HH:MM:SS"
+    const hhmmss  = `${get('hour').padStart(2, '0')}:${get('minute').padStart(2, '0')}:${get('second').padStart(2, '0')}`;
+
+    if (norm(curso.dia_semana) !== diaBa) return false;
     return curso.hora_inicio <= hhmmss && hhmmss <= curso.hora_fin;
 }
 

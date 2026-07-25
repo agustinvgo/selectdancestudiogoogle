@@ -5,8 +5,8 @@ const whatsappService = require('../whatsapp.service');
 
 const AlumnosCron = {
     init() {
-        // CUMPLEAÑOS: Todos los días a las 09:00 AM
-        cron.schedule('0 9 * * *', async () => await this.procesarCumpleanos());
+        // CUMPLEAÑOS: Todos los días a las 09:00 AM (hora Buenos Aires)
+        cron.schedule('0 9 * * *', async () => await this.procesarCumpleanos(), { timezone: 'America/Argentina/Buenos_Aires' });
     },
 
     async procesarCumpleanos() {
