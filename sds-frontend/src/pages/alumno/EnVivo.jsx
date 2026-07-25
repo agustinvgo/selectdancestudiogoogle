@@ -59,7 +59,27 @@ const HlsPlayer = ({ src }) => {
                 }
             });
 
-            return () => hls.destroy();
+            // Cuando el usuario vuelve a la pestaña después de inactividad, el navegador
+            // pausó hls.js y el video quedó atrás o congelado.
+            // Al volver: retomamos la descarga y saltamos al borde en vivo.
+            const handleVisibility = () => {
+                if (document.visibilityState === 'visible') {
+                    console.log('[HLS] Pestaña activa de nuevo → sincronizando al vivo...');
+                    hls.startLoad();
+                    // Saltar al borde en vivo (liveSyncPosition es el punto óptimo de HLS)
+                    const liveEdge = hls.liveSyncPosition;
+                    if (liveEdge && isFinite(liveEdge)) {
+                        video.currentTime = liveEdge;
+                    }
+                    video.play().catch(() => {});
+                }
+            };
+            document.addEventListener('visibilitychange', handleVisibility);
+
+            return () => {
+                document.removeEventListener('visibilitychange', handleVisibility);
+                hls.destroy();
+            };
         }
     }, [src]);
 
