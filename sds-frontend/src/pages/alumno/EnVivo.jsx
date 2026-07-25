@@ -2,12 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Hls from 'hls.js';
 import { transmisionesAPI } from '../../services/api';
-import { VideoCameraIcon, SignalIcon, SpeakerWaveIcon, SpeakerXMarkIcon } from '@heroicons/react/24/outline';
+import { VideoCameraIcon, SignalIcon } from '@heroicons/react/24/outline';
 
 // Reproductor HLS reutilizable (usa hls.js; en Safari usa el player nativo)
-// Arranca siempre muteado para garantizar autoplay. El control de audio
-// se maneja desde afuera con el prop `muted` y el callback `onMutedChange`.
-const HlsPlayer = ({ src, muted, onMutedChange }) => {
+const HlsPlayer = ({ src }) => {
     const videoRef = useRef(null);
 
     useEffect(() => {
@@ -65,13 +63,6 @@ const HlsPlayer = ({ src, muted, onMutedChange }) => {
         }
     }, [src]);
 
-    // Sincronizar el mute del <video> cuando cambia el prop externo
-    useEffect(() => {
-        const video = videoRef.current;
-        if (!video) return;
-        video.muted = muted;
-    }, [muted]);
-
     return (
         <video
             ref={videoRef}
@@ -86,9 +77,6 @@ const HlsPlayer = ({ src, muted, onMutedChange }) => {
 
 const EnVivo = () => {
     const [now, setNow] = useState(Date.now());
-    // El stream arranca siempre muteado (requerimiento del autoplay del navegador).
-    // El usuario puede activar el audio con el botón flotante.
-    const [muted, setMuted] = useState(true);
 
     // Poll cada 10s para detectar inicio/fin de la transmisión
     const { data } = useQuery({
@@ -102,10 +90,6 @@ const EnVivo = () => {
         const t = setInterval(() => setNow(Date.now()), 30000);
         return () => clearInterval(t);
     }, []);
-
-    // Resetear a muteado si cambia la transmisión (nueva clase)
-    const hlsUrl = data?.hlsUrl;
-    useEffect(() => { setMuted(true); }, [hlsUrl]);
 
     const estado = data?.estado;
 
@@ -128,35 +112,9 @@ const EnVivo = () => {
                         </span>
                         <span className="text-gray-700 font-semibold">{data.curso?.nombre}</span>
                     </div>
-
-                    {/* Contenedor del video con botón flotante de audio */}
-                    <div className="relative rounded-2xl overflow-hidden border border-gray-200 aspect-video bg-black shadow-lg">
-                        <HlsPlayer
-                            src={data.hlsUrl}
-                            muted={muted}
-                            onMutedChange={setMuted}
-                        />
-
-                        {/* Botón flotante de activar/silenciar audio (esquina inferior izquierda) */}
-                        <button
-                            onClick={() => setMuted(m => !m)}
-                            title={muted ? 'Activar audio' : 'Silenciar'}
-                            className="absolute bottom-3 left-3 z-10 flex items-center gap-2 bg-black/60 hover:bg-black/80 text-white text-xs font-semibold px-3 py-2 rounded-full backdrop-blur-sm transition-all duration-200 select-none"
-                        >
-                            {muted ? (
-                                <>
-                                    <SpeakerXMarkIcon className="h-4 w-4" />
-                                    <span>Activar audio</span>
-                                </>
-                            ) : (
-                                <>
-                                    <SpeakerWaveIcon className="h-4 w-4" />
-                                    <span>Silenciar</span>
-                                </>
-                            )}
-                        </button>
+                    <div className="rounded-2xl overflow-hidden border border-gray-200 aspect-video bg-black shadow-lg">
+                        <HlsPlayer src={data.hlsUrl} />
                     </div>
-
                     <p className="text-xs text-gray-400">
                         Si el video se corta unos segundos, es normal: se está transmitiendo en tiempo real.
                     </p>
