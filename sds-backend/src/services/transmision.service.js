@@ -5,8 +5,6 @@ const db = require('../config/db');
 const RTMP_BASE = process.env.MEDIAMTX_RTMP_BASE || 'rtmp://192.168.100.21:1935';
 const API_URL = process.env.MEDIAMTX_API_URL || 'http://localhost:9997';
 
-
-
 // Normaliza para comparar días sin depender de acentos/mayúsculas
 // (ej: "Miércoles" y "Miercoles" quedan iguales)
 const norm = (s) => (s || '').toString().trim().toLowerCase()
@@ -34,19 +32,8 @@ function rtmpUrl(key) {
     return `${RTMP_BASE}/${key}`;
 }
 
-// Suma N minutos a un string "HH:MM:SS" (maneja overflow de hora)
-function agregarMinutos(hhmmss, mins) {
-    const [h, m, s] = (hhmmss || '00:00:00').split(':').map(Number);
-    const totalSecs = h * 3600 + m * 60 + s + mins * 60;
-    const hh = String(Math.floor(totalSecs / 3600) % 24).padStart(2, '0');
-    const mm = String(Math.floor((totalSecs % 3600) / 60)).padStart(2, '0');
-    const ss = String(totalSecs % 60).padStart(2, '0');
-    return `${hh}:${mm}:${ss}`;
-}
-
 // ¿El curso está dentro de su ventana horaria ahora mismo? (siempre en hora de Buenos Aires)
-// graciaMinutos: minutos extra que se suman al hora_fin antes de comparar
-function dentroDeHorario(curso, now = new Date(), graciaMinutos = 0) {
+function dentroDeHorario(curso, now = new Date()) {
     if (!curso.dia_semana || !curso.hora_inicio || !curso.hora_fin) return false;
 
     // Obtener partes de fecha/hora en la timezone de Buenos Aires
@@ -71,8 +58,7 @@ function dentroDeHorario(curso, now = new Date(), graciaMinutos = 0) {
 
     if (norm(curso.dia_semana) !== diaBa) return false;
 
-    const finEfectivo = graciaMinutos > 0 ? agregarMinutos(curso.hora_fin, graciaMinutos) : curso.hora_fin;
-    return curso.hora_inicio <= hhmmss && hhmmss <= finEfectivo;
+    return curso.hora_inicio <= hhmmss && hhmmss <= curso.hora_fin;
 }
 
 // ¿MediaMTX está recibiendo video en ese path? (API v3)
@@ -106,33 +92,20 @@ async function setManual(cursoId, activo) {
     );
 }
 
-// Minutos de gracia después del hora_fin: si la cámara sigue transmitiendo,
-// el stream se mantiene en vivo hasta este tope (evita cortes bruscos en clases que se alargan).
-const GRACIA_MINUTOS = 10;
-
 /**
  * Estado completo de un curso:
- *  - 'en_vivo'   → (manual u horario+gracia) Y hay video llegando
- *  - 'esperando' → dentro del horario exacto pero la cámara aún no transmite
- *  - 'offline'   → fuera de horario (+ gracia) y sin override manual
+ *  - 'en_vivo'   → (manual u horario exacto) Y hay video llegando
+ *  - 'esperando' → (manual u horario exacto) pero la cámara aún no transmite
+ *  - 'offline'   → fuera de horario y sin override manual
  */
 async function estadoCurso(curso) {
     const key = streamKey();
     const manual = await getManual(curso.id);
-
-    // Horario exacto (sin gracia): para el estado 'esperando'
     const enHorario = dentroDeHorario(curso);
-    // Horario + gracia: para decidir si consultar la cámara
-    const enHorarioConGracia = dentroDeHorario(curso, new Date(), GRACIA_MINUTOS);
 
-    const programada = manual || enHorarioConGracia;
+    const programada = manual || enHorario;
     const video = programada ? await hayPublisher(key) : false;
 
-    // Reglas:
-    //  - Hay video (cámara prendida)           -> 'en_vivo' (incluso dentro de los 10 min de gracia).
-    //  - Manual activo, sin cámara aún         -> 'esperando'.
-    //  - En horario exacto, sin cámara         -> 'offline' (no confundir a los padres).
-    //  - Fuera de horario+gracia, sin override -> 'offline'.
     let estado = 'offline';
     if (video) estado = 'en_vivo';
     else if (manual || enHorario) estado = 'esperando';
