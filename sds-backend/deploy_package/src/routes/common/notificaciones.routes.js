@@ -16,6 +16,7 @@ router.delete('/:id', verifyToken, NotificacionesController.delete);
 // Admin Only
 router.post('/send', verifyToken, isAdmin, upload.single('imagen'), NotificacionesController.sendNotification);
 router.get('/sent-history', verifyToken, isAdmin, NotificacionesController.getSentHistory);
+router.get('/batch/:batch_id/recipients', verifyToken, isAdmin, NotificacionesController.getBatchRecipients);
 router.delete('/batch/:batch_id', verifyToken, isAdmin, NotificacionesController.deleteBatch);
 
 module.exports = router;

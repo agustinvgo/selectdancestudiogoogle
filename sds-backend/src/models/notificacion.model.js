@@ -147,6 +147,30 @@ const NotificacionModel = {
         }
     },
 
+    // Obtener destinatarios de un batch
+    async getBatchRecipients(batch_id) {
+        try {
+            const [rows] = await db.query(`
+                SELECT 
+                    n.id as notificacion_id,
+                    n.usuario_id,
+                    n.leido,
+                    n.created_at,
+                    u.nombre,
+                    u.apellido,
+                    u.email,
+                    u.rol
+                FROM notificaciones n
+                JOIN usuarios u ON n.usuario_id = u.id
+                WHERE n.batch_id = ?
+                ORDER BY u.nombre ASC, u.apellido ASC
+            `, [batch_id]);
+            return rows;
+        } catch (error) {
+            throw error;
+        }
+    },
+
     // Eliminar notificación
     async delete(id, usuario_id) {
         try {

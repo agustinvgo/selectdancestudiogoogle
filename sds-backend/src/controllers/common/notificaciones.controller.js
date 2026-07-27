@@ -209,6 +209,18 @@ const NotificacionesController = {
         }
     },
 
+    // [ADMIN] Obtener destinatarios de un envío masivo (batch)
+    async getBatchRecipients(req, res) {
+        try {
+            const { batch_id } = req.params;
+            const recipients = await NotificacionModel.getBatchRecipients(batch_id);
+            res.json({ success: true, data: recipients });
+        } catch (error) {
+            console.error('[getBatchRecipients] Error:', error);
+            res.status(500).json({ success: false, message: 'Error obteniendo destinatarios' });
+        }
+    },
+
     // [ADMIN] Eliminar batch
     async deleteBatch(req, res) {
         try {

@@ -247,6 +247,7 @@ export const notificacionesAPI = {
         headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : undefined
     }),
     getSentHistory: () => api.get('/notificaciones/sent-history'),
+    getBatchRecipients: (batchId) => api.get(`/notificaciones/batch/${batchId}/recipients`),
     deleteBatch: (batchId) => api.delete(`/notificaciones/batch/${batchId}`),
     getPausa: () => api.get('/notificaciones/pausa'),
     setPausa: (canal, pausado) => api.put('/notificaciones/pausa', { canal, pausado }),

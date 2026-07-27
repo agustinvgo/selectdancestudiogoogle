@@ -41,8 +41,8 @@ router.post('/forgot-password',
 router.post('/reset-password',
     authLimiter,
     [
-        commonValidations.password,
-        require('express-validator').body('token').notEmpty()
+        require('express-validator').body('newPassword').isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres'),
+        require('express-validator').body('token').notEmpty().withMessage('El token es requerido')
     ],
     handleValidationErrors,
     AuthController.resetPassword
