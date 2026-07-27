@@ -1,5 +1,5 @@
-import { motion, useReducedMotion } from 'framer-motion';
 import { Instagram, Video, MessageCircle } from 'lucide-react';
+
 
 const SOCIAL_LINKS = [
     {
@@ -29,58 +29,25 @@ const SOCIAL_LINKS = [
 ];
 
 const SocialMediaSection = () => {
-    const shouldReduceMotion = useReducedMotion();
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: shouldReduceMotion ? 0 : 0.2
-            }
-        }
-    };
-
-    const cardVariants = {
-        hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 30 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: {
-                duration: 0.6,
-                ease: "easeOut"
-            }
-        }
-    };
 
     return (
         <section className="py-24 bg-transparent text-inherit overflow-hidden transition-colors duration-500">
             <div className="max-w-7xl mx-auto px-6">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="text-center mb-16"
-                >
+                <div className="text-center mb-16">
                     <span className="text-red-500 tracking-[0.3em] text-xs font-bold uppercase block mb-4">Comunidad</span>
                     <h2 className="text-4xl md:text-5xl font-bold">Conecta con Nosotros</h2>
-                </motion.div>
+                </div>
 
-                <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, margin: "-100px" }}
+                <div
                     className="grid grid-cols-1 md:grid-cols-3 gap-6"
                 >
                     {SOCIAL_LINKS.map((social) => (
-                        <motion.a
+                        <a
                             key={social.name}
                             href={social.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            variants={cardVariants}
-                            whileHover={shouldReduceMotion ? {} : { y: -10, scale: 1.02 }}
                             className={`relative group p-8 rounded-3xl overflow-hidden bg-gradient-to-br ${social.gradient}`}
                         >
                             <div className="absolute inset-0 bg-white/20 group-hover:bg-transparent transition-colors duration-500" />
@@ -101,9 +68,9 @@ const SocialMediaSection = () => {
 
                             {/* Decorative blur/shine */}
                             <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all duration-500" />
-                        </motion.a>
+                        </a>
                     ))}
-                </motion.div>
+                </div>
             </div>
         </section>
     );

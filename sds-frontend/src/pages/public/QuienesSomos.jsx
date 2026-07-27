@@ -60,7 +60,7 @@ const QuienesSomos = () => {
                                         <img
                                             src={`${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${member.foto_url}`}
                                             alt={member.nombre}
-                                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 filter grayscale group-hover:grayscale-0"
+                                            className="absolute inset-0 w-full h-full object-cover"
                                             loading="lazy"
                                         />
                                     )}

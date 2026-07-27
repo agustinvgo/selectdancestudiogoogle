@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
 const FAQS = [
@@ -43,20 +42,9 @@ const FAQItem = ({ q, a, isOpen, onToggle }) => (
                 className={`w-5 h-5 shrink-0 text-red-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
             />
         </button>
-        <AnimatePresence initial={false}>
-            {isOpen && (
-                <motion.div
-                    key="answer"
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.28, ease: 'easeInOut' }}
-                    className="overflow-hidden"
-                >
-                    <p className="pb-5 text-zinc-400 text-sm leading-relaxed pr-8">{a}</p>
-                </motion.div>
-            )}
-        </AnimatePresence>
+        <div className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
+            <p className="pb-5 text-zinc-400 text-sm leading-relaxed pr-8">{a}</p>
+        </div>
     </div>
 );
 
@@ -80,12 +68,7 @@ const RoomRentalSection = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-start">
 
                     {/* ── Columna izquierda: info + CTA ── */}
-                    <motion.div
-                        initial={{ opacity: 0, x: -24 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, margin: '-80px' }}
-                        transition={{ duration: 0.6 }}
-                    >
+                    <div>
                         <p className="text-red-500 text-xs font-bold uppercase tracking-[0.4em] mb-4">
                             Espacios Disponibles
                         </p>
@@ -146,16 +129,10 @@ const RoomRentalSection = () => {
                                 </span>
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
 
                     {/* ── Columna derecha: FAQ ── */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 24 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, margin: '-80px' }}
-                        transition={{ duration: 0.6, delay: 0.1 }}
-                        className="bg-zinc-900/50 border border-zinc-800/60 rounded-2xl p-6 md:p-8 backdrop-blur-sm"
-                    >
+                    <div className="bg-zinc-900/50 border border-zinc-800/60 rounded-2xl p-6 md:p-8 backdrop-blur-sm">
                         <p className="text-red-500 text-xs font-bold uppercase tracking-[0.4em] mb-1">Preguntas Frecuentes</p>
                         <h3 className="text-xl font-black text-white uppercase tracking-tighter mb-6">
                             Todo lo que necesitás saber

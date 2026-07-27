@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { TrophyIcon, FireIcon, ArrowRightIcon, StarIcon } from '@heroicons/react/24/solid';
-import { motion } from 'framer-motion';
 
 // Palmarés real agrupado por torneo — cada uno con su foto del equipo
 const TOURNAMENTS = [
@@ -57,41 +56,6 @@ const CompetitionGallery = ({ onJoinClick }) => {
     return (
         <section className="py-20 bg-black relative w-full overflow-hidden">
 
-            {/* ── Estilos de animación ── */}
-            <style>{`
-                @property --angle {
-                    syntax: '<angle>';
-                    initial-value: 0deg;
-                    inherits: false;
-                }
-                @keyframes rotate-border {
-                    to { --angle: 360deg; }
-                }
-                .moving-border-wrap-card {
-                    position: relative;
-                    border-radius: 1.25rem;
-                    padding: 2px;
-                    background: conic-gradient(
-                        from var(--angle),
-                        #09090b 0%, #7f1d1d 20%, #dc2626 40%,
-                        #ffffff 50%, #dc2626 60%, #7f1d1d 80%, #09090b 100%
-                    );
-                    animation: rotate-border 4s linear infinite;
-                    width: min(520px, 90vw);
-                    /* GPU layer propio para no invalidar el resto del layout */
-                    will-change: --angle;
-                    transform: translateZ(0);
-                    contain: layout style;
-                }
-                .moving-border-inner-card {
-                    background: #000;
-                    border-radius: calc(1.25rem - 2px);
-                    position: relative;
-                    z-index: 1;
-                    padding: 3rem 2.5rem;
-                    overflow: hidden;
-                }
-            `}</style>
 
             <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
 
@@ -104,24 +68,15 @@ const CompetitionGallery = ({ onJoinClick }) => {
                         </h2>
                     </div>
 
-                    <motion.div
-                        initial="hidden"
-                        whileInView="show"
-                        viewport={{ once: true, margin: "-100px" }}
-                        variants={{
-                            hidden: { opacity: 0 },
-                            show: { opacity: 1, transition: { staggerChildren: 0.08 } }
-                        }}
+                    <div
                         className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 auto-rows-[150px] md:auto-rows-[220px] grid-flow-dense"
                     >
                         {BENTO_IMAGES.map((img) => (
-                            <motion.div
+                            <div
                                 key={img.id}
-                                variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
                                 onMouseEnter={() => !isTouchDevice && setHoveredImage(img.id)}
                                 onMouseLeave={() => !isTouchDevice && setHoveredImage(null)}
-                                className={`relative rounded-2xl overflow-hidden bg-zinc-900 cursor-pointer ${img.span} border border-white/5 z-10 hover:z-20`}
-                                style={{ willChange: 'transform', transform: 'translateZ(0)' }}
+                                className={`relative rounded-2xl overflow-hidden bg-zinc-900 cursor-pointer ${img.span} border border-white/5 z-10`}
                             >
                                 {/* Oscurecimiento de las no-activas */}
                                 <div className={`absolute inset-0 bg-black transition-opacity duration-300 z-10 pointer-events-none hidden md:block ${hoveredImage !== null && hoveredImage !== img.id ? 'opacity-60' : 'opacity-0'}`} />
@@ -131,16 +86,16 @@ const CompetitionGallery = ({ onJoinClick }) => {
                                     alt={img.alt}
                                     loading="lazy"
                                     decoding="async"
-                                    className={`w-full h-full object-cover transition-transform duration-500 ease-out will-change-transform ${hoveredImage === img.id ? 'scale-110' : 'scale-100'}`}
+                                    className="w-full h-full object-cover"
                                     onError={(e) => { e.target.style.display = 'none'; }}
                                 />
 
                                 {!isTouchDevice && hoveredImage === img.id && (
                                     <div className="absolute inset-0 border-2 border-red-500/50 rounded-2xl pointer-events-none z-20" />
                                 )}
-                            </motion.div>
+                            </div>
                         ))}
-                    </motion.div>
+                    </div>
                 </div>
 
                 {/* ── LOGROS POR TORNEO — foto real de cada momento ── */}
@@ -157,20 +112,12 @@ const CompetitionGallery = ({ onJoinClick }) => {
                     </div>
 
                     {/* Tarjetas de torneo con foto */}
-                    <motion.div
-                        initial="hidden"
-                        whileInView="show"
-                        viewport={{ once: true, margin: '-80px' }}
-                        variants={{
-                            hidden: { opacity: 0 },
-                            show: { opacity: 1, transition: { staggerChildren: 0.12 } }
-                        }}
+                    <div
                         className="grid md:grid-cols-3 gap-5"
                     >
                         {TOURNAMENTS.map((t) => (
-                            <motion.div
+                            <div
                                 key={t.name}
-                                variants={{ hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0 } }}
                                 className="group relative rounded-2xl overflow-hidden min-h-[420px] md:min-h-[500px] flex flex-col justify-end border border-white/10"
                             >
                                 {/* Foto de fondo */}
@@ -226,23 +173,19 @@ const CompetitionGallery = ({ onJoinClick }) => {
                                         ))}
                                     </div>
                                 </div>
-                            </motion.div>
+                            </div>
                         ))}
-                    </motion.div>
+                    </div>
                 </div>
 
                 {/* ── CTA — Gran cuadrado con borde animado ── */}
-                <motion.div
-                    initial={{ opacity: 0, y: 40 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: '-60px' }}
-                    transition={{ duration: 0.7, ease: 'easeOut' }}
+                <div
                     className="mt-24 flex flex-col items-center"
                 >
                     <p className="text-zinc-500 text-xs uppercase tracking-[0.4em] mb-10">¿Quieres ser parte?</p>
 
-                    <div className="moving-border-wrap-card">
-                        <div className="moving-border-inner-card">
+                    <div className="relative rounded-3xl border-2 border-red-600/40 w-full max-w-[520px] overflow-hidden" style={{ boxShadow: '0 0 40px -10px rgba(220,38,38,0.3)' }}>
+                        <div className="bg-black relative p-12 overflow-hidden">
                             {/* Foto de fondo */}
                             <img
                                 src="/hof/9.webp"
@@ -279,7 +222,7 @@ const CompetitionGallery = ({ onJoinClick }) => {
                             </div>
                         </div>
                     </div>
-                </motion.div>
+                </div>
 
             </div>
         </section>
