@@ -23,7 +23,7 @@ const EquipoController = {
         try {
             const { nombre, cargo, descripcion } = req.body;
             // Multer saves file info in req.file
-            const foto_url = req.file ? `/uploads/${req.file.filename}` : null;
+            const foto_url = req.file ? `/uploads/equipo/${req.file.filename}` : null;
 
             if (!nombre) {
                 return res.status(400).json({ success: false, message: 'El nombre es requerido' });
@@ -50,7 +50,7 @@ const EquipoController = {
         try {
             const { id } = req.params;
             const { nombre, cargo, descripcion, activo } = req.body;
-            const foto_url = req.file ? `/uploads/${req.file.filename}` : undefined;
+            const foto_url = req.file ? `/uploads/equipo/${req.file.filename}` : undefined;
 
             const updated = await EquipoModel.update(id, { nombre, cargo, descripcion, foto_url, activo });
 

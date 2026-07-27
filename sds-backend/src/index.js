@@ -159,7 +159,19 @@ app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use(cookieParser());
 
-// Servir archivos estáticos (imágenes subidas) — requiere autenticación
+// Servir carpetas públicas de uploads sin autenticación
+app.use('/uploads/equipo', express.static(path.join(__dirname, '../uploads/equipo'), {
+    maxAge: '7d',
+    etag: true,
+    lastModified: true,
+}));
+app.use('/uploads/productos', express.static(path.join(__dirname, '../uploads/productos'), {
+    maxAge: '7d',
+    etag: true,
+    lastModified: true,
+}));
+
+// Servir archivos estáticos privados (comprobantes, perfiles, etc.) — requiere autenticación
 const { verifyToken } = require('./middlewares/auth.middleware');
 app.use('/uploads', verifyToken, express.static(path.join(__dirname, '../uploads'), {
     maxAge: '7d',
