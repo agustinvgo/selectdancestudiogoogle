@@ -50,6 +50,14 @@ const getLogoAttachment = () => {
 const emailTemplate = (title, content) => {
     const year = new Date().getFullYear();
 
+    let formattedContent = content;
+    // Insertar la marca de garras rojas debajo del título principal si existe
+    if (formattedContent.includes('</h1>')) {
+        formattedContent = formattedContent.replace('</h1>', '</h1><div class="greeting-line"><svg width="40" height="16" viewBox="0 0 40 16" style="display: inline-block; vertical-align: middle;" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 C14 5, 16 9, 17 14" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round"/><path d="M20 2 C22 5, 24 9, 25 14" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round"/><path d="M28 2 C30 5, 32 9, 33 14" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round"/></svg></div>');
+    } else if (formattedContent.includes('</h2>')) {
+        formattedContent = formattedContent.replace('</h2>', '</h2><div class="greeting-line"><svg width="40" height="16" viewBox="0 0 40 16" style="display: inline-block; vertical-align: middle;" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 C14 5, 16 9, 17 14" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round"/><path d="M20 2 C22 5, 24 9, 25 14" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round"/><path d="M28 2 C30 5, 32 9, 33 14" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round"/></svg></div>');
+    }
+
     return `
 <!DOCTYPE html>
 <html lang="es">
@@ -65,14 +73,15 @@ const emailTemplate = (title, content) => {
     </xml>
     <![endif]-->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Oswald:wght@500;700&display=swap');
         
         body {
             margin: 0;
             padding: 0;
-            background-color: #F3F4F6;
-            font-family: 'Inter', Arial, sans-serif;
-            color: #1F2937;
+            background-color: #f3f4f6;
+            font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+            color: #1f2937;
+            -webkit-font-smoothing: antialiased;
         }
         
         table { border-spacing: 0; width: 100%; }
@@ -82,102 +91,207 @@ const emailTemplate = (title, content) => {
         .wrapper {
             width: 100%;
             table-layout: fixed;
-            background: repeating-linear-gradient(
-                135deg,
-                #ffffff,
-                #ffffff 20px,
-                #f8d7da 20px,
-                #f8d7da 22px
-            );
+            background-color: #f3f4f6;
             padding: 40px 0;
         }
         
         .main {
-            background-color: #FFFFFF;
+            background-color: #ffffff;
             margin: 0 auto;
             width: 100%;
             max-width: 600px;
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-            border: 1px solid #E5E7EB;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border: 1px solid #e5e7eb;
         }
         
         .header {
-            padding: 30px 20px;
+            background-color: #000000;
+            padding: 24px 20px;
             text-align: center;
-            background-color: #FFFFFF;
-            border-bottom: 4px solid #DC2626;
         }
         
-        .logo {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 3px solid #F3F4F6;
+        .header-logo {
+            max-height: 90px;
+            max-width: 100%;
+            width: auto;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            filter: drop-shadow(0px 0px 8px rgba(220, 38, 38, 0.35));
+        }
+
+        .divider-red {
+            height: 4px;
+            background-color: #dc2626;
+        }
+
+        .claw-divider-container {
+            background-color: #ffffff;
+            padding: 18px 0 6px 0;
+            text-align: center;
         }
         
-        .brand-name {
-            color: #111827;
-            font-size: 28px;
-            font-weight: 800;
-            margin: 0;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+        .content-body {
+            padding: 30px 50px 45px 50px;
+            text-align: center;
+            background-color: #ffffff;
         }
-        
-        .brand-subtitle {
-            font-size: 12px;
-            color: #777777;
-            margin-top: 4px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .content-body { padding: 30px 40px; text-align: center; }
         
         @media screen and (max-width: 600px) {
-            .content-body { padding: 30px 20px; }
+            .content-body { padding: 30px 24px; }
+            .wrapper { padding: 20px 0; }
         }
         
-        h2 { font-size: 24px; margin-bottom: 25px; text-align: center; color: #111827; font-weight: 700; }
-        p { margin: 0 0 18px 0; line-height: 1.7; color: #4B5563; font-size: 16px; }
-        ul { color: #4B5563; padding-left: 20px; line-height: 1.8; }
+        h1, h2, h3 { 
+            color: #000000; 
+            margin-top: 0;
+            font-family: 'Oswald', Arial, sans-serif;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        h1 {
+            font-size: 24px;
+            line-height: 1.3;
+            margin-bottom: 8px;
+        }
+
+        .greeting-line {
+            margin: 16px auto 24px auto;
+            text-align: center;
+            line-height: 0;
+        }
         
-        .button-container { text-align: center; margin: 35px 0; }
+        p { 
+            margin: 0 0 18px 0; 
+            line-height: 1.8; 
+            color: #374151; 
+            font-size: 16px; 
+        }
+
+        p:last-child {
+            margin-bottom: 0;
+        }
+        
+        ul { 
+            color: #374151; 
+            padding-left: 20px; 
+            line-height: 1.8; 
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        
+        .button-container { 
+            text-align: center; 
+            margin: 32px 0; 
+        }
+
         .button {
             display: inline-block;
-            padding: 16px 40px;
-            background-color: #111827;
+            padding: 14px 32px;
+            background-color: #000000;
             color: #ffffff !important;
             text-decoration: none;
-            border-radius: 12px;
+            font-family: 'Oswald', sans-serif;
             font-weight: 700;
-            font-size: 16px;
-            border-bottom: 4px solid #000000;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border: 2px solid #000000;
+            box-shadow: 4px 4px 0px #dc2626;
+            transition: all 0.15s ease;
         }
-        .button:hover { background-color: #DC2626; border-bottom-color: #B91C1C; }
+
+        .button:hover { 
+            background-color: #dc2626; 
+            border-color: #dc2626;
+            box-shadow: 2px 2px 0px #000000;
+            transform: translate(2px, 2px);
+        }
         
         .info-box {
-            background-color: #F9FAFB;
-            border-top: 4px solid #DC2626;
-            padding: 25px;
-            margin: 30px 0;
-            border-radius: 12px;
-            border: 1px solid #E5E7EB;
+            background-color: #f9fafb;
+            border-left: 4px solid #dc2626;
+            padding: 24px;
+            margin: 28px 0;
+            border-radius: 4px;
+            border-top: 1px dashed #e5e7eb;
+            border-right: 1px dashed #e5e7eb;
+            border-bottom: 1px dashed #e5e7eb;
+            text-align: left;
+            box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.03);
         }
-        .info-box h3 { color: #DC2626; font-size: 18px; margin-bottom: 12px; margin-top: 0; }
+
+        .info-box h3 { 
+            color: #dc2626; 
+            font-size: 17px; 
+            margin-bottom: 12px; 
+            margin-top: 0; 
+            font-weight: 700;
+        }
+
+        .info-box p {
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .info-box p:last-child {
+            margin-bottom: 0;
+        }
         
         .footer {
-            background-color: #F9FAFB;
-            padding: 30px 20px;
+            background-color: #000000;
+            padding: 35px 24px;
             text-align: center;
-            font-size: 14px;
-            color: #9CA3AF;
         }
-        .footer a { color: #4B5563; text-decoration: none; margin: 0 12px; font-weight: 600; }
-        strong { color: #111827; font-weight: 700; }
+
+        .footer p {
+            color: #9ca3af;
+            font-size: 13px;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .footer-line {
+            width: 50px;
+            height: 1px;
+            background-color: #dc2626;
+            margin: 16px auto;
+        }
+
+        .social-links {
+            margin-top: 5px;
+        }
+
+        .social-links a { 
+            color: #ffffff; 
+            text-decoration: none; 
+            margin: 0 8px; 
+            font-weight: 600;
+            font-size: 13px;
+            transition: color 0.15s ease;
+        }
+
+        .social-links a:hover {
+            color: #dc2626;
+        }
+
+        .bullet-divider {
+            color: #dc2626;
+            font-weight: bold;
+        }
+        
+        strong { 
+            color: #000000; 
+            font-weight: 700; 
+        }
+
+        .info-box strong {
+            color: #000000;
+        }
     </style>
 </head>
 <body>
@@ -185,21 +299,33 @@ const emailTemplate = (title, content) => {
         <table class="main">
             <tr>
                 <td class="header">
-                    <img src="cid:sdslogo" alt="SDS Logo" class="logo">
-                    <h1 class="brand-name">SDS</h1>
-                    <div class="brand-subtitle">SELECT DANCE STUDIO</div>
+                    <img src="cid:sdslogo" alt="SDS Logo" class="header-logo">
+                </td>
+            </tr>
+            <tr>
+                <td class="divider-red"></td>
+            </tr>
+            <tr>
+                <td class="claw-divider-container">
+                    <svg width="60" height="24" viewBox="0 0 60 24" style="display: inline-block; vertical-align: middle;" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 3 C19 7, 21 13, 23 21" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round"/>
+                        <path d="M26 3 C29 7, 31 13, 33 21" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round"/>
+                        <path d="M36 3 C39 7, 41 13, 43 21" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round"/>
+                    </svg>
                 </td>
             </tr>
             <tr>
                 <td class="content-body">
-                    ${content}
+                    ${formattedContent}
                 </td>
             </tr>
             <tr>
                 <td class="footer">
                     <p>&copy; ${year} Select Dance Studio. Todos los derechos reservados.</p>
+                    <div class="footer-line"></div>
                     <div class="social-links">
-                        <a href="https://www.instagram.com/selectdance.studio/">Instagram</a> • 
+                        <a href="https://www.instagram.com/selectdance.studio/">Instagram</a>
+                        <span class="bullet-divider">•</span> 
                         <a href="${process.env.FRONTEND_URL || '#'}">Sitio Web</a>
                     </div>
                 </td>
