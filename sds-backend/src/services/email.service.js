@@ -27,17 +27,16 @@ const createTransporter = () => {
 const getLogoAttachment = () => {
     try {
         const fs = require('fs');
-        // Ruta en desarrollo local
-        const localPath = path.join(__dirname, '../../../sds-frontend/public/logo.jpg');
-        if (fs.existsSync(localPath)) {
-            return { filename: 'logo.jpg', path: localPath, cid: 'sdslogo' };
+        const pathsToTry = [
+            path.join(__dirname, '../public/logo.jpg'),
+            path.join(__dirname, '../../public/logo.jpg'),
+            path.join(__dirname, '../../../sds-frontend/public/logo.jpg')
+        ];
+        for (const p of pathsToTry) {
+            if (fs.existsSync(p)) {
+                return { filename: 'logo.jpg', path: p, cid: 'sdslogo' };
+            }
         }
-        // Ruta dentro del contenedor Docker
-        const dockerPath = path.join(__dirname, '../../public/logo.jpg');
-        if (fs.existsSync(dockerPath)) {
-            return { filename: 'logo.jpg', path: dockerPath, cid: 'sdslogo' };
-        }
-        // No hay logo local disponible
         return null;
     } catch (error) {
         return null;

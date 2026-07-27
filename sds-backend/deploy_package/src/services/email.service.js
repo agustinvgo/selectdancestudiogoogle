@@ -25,14 +25,19 @@ const createTransporter = () => {
 // Helper: Obtener adjunto del logo
 const getLogoAttachment = () => {
     try {
-        const logoPath = path.join(__dirname, '../../../sds-frontend/public/logo.jpg');
-        return {
-            filename: 'logo.jpg',
-            path: logoPath,
-            cid: 'sdslogo'
-        };
+        const fs = require('fs');
+        const pathsToTry = [
+            path.join(__dirname, '../public/logo.jpg'),
+            path.join(__dirname, '../../public/logo.jpg'),
+            path.join(__dirname, '../../../sds-frontend/public/logo.jpg')
+        ];
+        for (const p of pathsToTry) {
+            if (fs.existsSync(p)) {
+                return { filename: 'logo.jpg', path: p, cid: 'sdslogo' };
+            }
+        }
+        return null;
     } catch (error) {
-        console.warn('No se pudo resolver la ruta del logo:', error);
         return null;
     }
 };
