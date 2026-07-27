@@ -725,8 +725,8 @@ const Comunicados = () => {
 
         <ConfirmDialog
             isOpen={isOpen}
-            config={confirmConfig}
             onClose={closeConfirm}
+            {...confirmConfig}
         />
         </>
     );

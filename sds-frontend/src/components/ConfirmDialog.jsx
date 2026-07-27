@@ -22,10 +22,20 @@ const ConfirmDialog = ({
     message,
     confirmText = 'Confirmar',
     cancelText = 'Cancelar',
-    variant = 'warning'
+    variant = 'warning',
+    config: propConfig
 }) => {
+    const activeTitle = propConfig?.title || title;
+    const activeMessage = propConfig?.message || message;
+    const activeConfirmText = propConfig?.confirmText || confirmText;
+    const activeCancelText = propConfig?.cancelText || cancelText;
+    const activeVariant = propConfig?.variant || variant;
+    const activeOnConfirm = propConfig?.onConfirm || onConfirm;
+
     const handleConfirm = () => {
-        onConfirm();
+        if (activeOnConfirm) {
+            activeOnConfirm();
+        }
         onClose();
     };
 
@@ -61,7 +71,7 @@ const ConfirmDialog = ({
         }
     };
 
-    const config = variantConfig[variant] || variantConfig.warning;
+    const config = variantConfig[activeVariant] || variantConfig.warning;
     const Icon = config.icon;
 
     return (
@@ -108,13 +118,13 @@ const ConfirmDialog = ({
                                         as="h3"
                                         className="text-xl font-bold text-gray-900 mb-3"
                                     >
-                                        {title}
+                                        {activeTitle}
                                     </Dialog.Title>
 
                                     {/* Mensaje */}
                                     <div className="mt-2 mb-6">
                                         <p className="text-sm text-gray-600 leading-relaxed">
-                                            {message}
+                                            {activeMessage}
                                         </p>
                                     </div>
 
@@ -129,7 +139,7 @@ const ConfirmDialog = ({
                                                 transition-colors duration-200"
                                             onClick={onClose}
                                         >
-                                            {cancelText}
+                                            {activeCancelText}
                                         </button>
                                         <button
                                             type="button"
@@ -140,7 +150,7 @@ const ConfirmDialog = ({
                                                 transition-colors duration-200 shadow-lg`}
                                             onClick={handleConfirm}
                                         >
-                                            {confirmText}
+                                            {activeConfirmText}
                                         </button>
                                     </div>
                                 </div>
