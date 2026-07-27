@@ -68,24 +68,24 @@ const Comunicados = () => {
         }
     };
 
-    const handleDeleteBatch = async (batchId) => {
-        const confirmed = await confirm({
+    const handleDeleteBatch = (batchId) => {
+        confirm({
             title: 'Eliminar comunicado',
             message: '¿Estás seguro de que deseas eliminar este comunicado para TODOS los destinatarios? Esta acción no se puede deshacer.',
             confirmText: 'Sí, eliminar',
             cancelText: 'Cancelar',
-            type: 'danger'
+            variant: 'danger',
+            onConfirm: async () => {
+                try {
+                    await notificacionesAPI.deleteBatch(batchId);
+                    toast.success('Comunicado eliminado exitosamente');
+                    cargarHistorial();
+                } catch (error) {
+                    console.error('Error eliminando comunicado:', error);
+                    toast.error('Error al eliminar comunicado');
+                }
+            }
         });
-        if (!confirmed) return;
-
-        try {
-            await notificacionesAPI.deleteBatch(batchId);
-            toast.success('Comunicado eliminado exitosamente');
-            cargarHistorial();
-        } catch (error) {
-            console.error('Error eliminando comunicado:', error);
-            toast.error('Error al eliminar comunicado');
-        }
     };
 
     const handleViewRecipients = async (batch) => {
