@@ -6,7 +6,7 @@ import SchemaBreadcrumb from '../../components/SEO/SchemaBreadcrumb';
 import { motion } from 'framer-motion';
 import TrialModal from '../../components/public/TrialModal';
 import { clasePruebaAPI } from '../../services/api';
-import { ChevronDownIcon } from '@heroicons/react/24/solid';
+
 
 const Competition = () => {
     const [trialModalOpen, setTrialModalOpen] = useState(false);
@@ -55,20 +55,7 @@ const Competition = () => {
                     transition={{ duration: 0.9, ease: 'easeOut' }}
                     className="relative z-20 text-center px-4 w-full"
                 >
-                    <style>{`
-                        .text-outline {
-                            color: transparent;
-                            -webkit-text-stroke: 1px rgba(255,255,255,0.2);
-                            transition: all 0.5s ease;
-                        }
-                        .text-outline:hover {
-                            color: white;
-                            -webkit-text-stroke: 1px white;
-                            text-shadow: 0 0 40px rgba(220, 38, 38, 0.8);
-                        }
-                    `}</style>
-
-                    <h1 className="text-7xl md:text-9xl lg:text-[10rem] font-black tracking-tighter uppercase text-outline cursor-default select-none mb-2">
+                    <h1 className="text-7xl md:text-9xl lg:text-[10rem] font-black tracking-tighter uppercase text-white cursor-default select-none mb-2" style={{ textShadow: '0 0 40px rgba(220, 38, 38, 0.8), 0 0 80px rgba(220, 38, 38, 0.4)' }}>
                         BUILT DIFFERENT
                     </h1>
                     <p className="text-xl md:text-3xl font-light text-zinc-300 max-w-3xl mx-auto tracking-wide">
@@ -80,17 +67,6 @@ const Competition = () => {
                         <div className="w-2 h-2 rounded-full bg-red-600 shadow-[0_0_10px_rgba(220,38,38,1)]" />
                         <div className="h-px w-16 bg-gradient-to-l from-transparent to-white" />
                     </div>
-                </motion.div>
-
-                {/* Indicador de scroll */}
-                <motion.div
-                    animate={{ y: [0, 10, 0] }}
-                    transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
-                    className="absolute bottom-12 z-20 flex flex-col items-center cursor-pointer"
-                    onClick={() => window.scrollTo({ top: window.innerHeight - 50, behavior: 'smooth' })}
-                >
-                    <span className="text-xs uppercase tracking-[0.2em] text-white/50 mb-2">Descubrir</span>
-                    <ChevronDownIcon className="w-6 h-6 text-red-500" />
                 </motion.div>
             </div>
 
