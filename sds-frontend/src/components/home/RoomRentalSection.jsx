@@ -155,6 +155,7 @@ const RoomRentalSection = () => {
                             <p className="text-zinc-500 text-xs leading-relaxed">
                                 ¿Tenés alguna duda que no aparece acá? 
                                 Escribinos directamente y te respondemos a la brevedad.
+                            </p>
                         </div>
                     </div>
 
