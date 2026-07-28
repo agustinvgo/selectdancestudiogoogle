@@ -334,11 +334,6 @@ const emailTemplate = (title, content) => {
                 <td class="divider-red"></td>
             </tr>
             <tr>
-                <td class="claw-divider-container">
-                    <span class="badge-official">SELECT DANCE STUDIO</span>
-                </td>
-            </tr>
-            <tr>
                 <td class="content-body">
                     ${formattedContent}
                 </td>
