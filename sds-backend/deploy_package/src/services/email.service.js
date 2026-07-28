@@ -55,7 +55,7 @@ const capitalizeName = (str) => {
 };
 
 /**
- * Template base para emails (Modo Dark Premium Elite)
+ * Template base para emails (Modo Dark Luxury Elite)
  */
 const emailTemplate = (title, content) => {
     const year = new Date().getFullYear();
@@ -88,7 +88,7 @@ const emailTemplate = (title, content) => {
         body {
             margin: 0;
             padding: 0;
-            background-color: #09090b;
+            background-color: #08080a;
             font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
             color: #e4e4e7;
             -webkit-font-smoothing: antialiased;
@@ -101,69 +101,72 @@ const emailTemplate = (title, content) => {
         .wrapper {
             width: 100%;
             table-layout: fixed;
-            background-color: #09090b;
+            background-color: #08080a;
             padding: 40px 0;
         }
         
         .main {
-            background-color: #121215;
+            background-color: #111114;
             margin: 0 auto;
             width: 100%;
-            max-width: 600px;
-            border-radius: 20px;
+            max-width: 580px;
+            border-radius: 18px;
             overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.9), 0 0 30px rgba(220, 38, 38, 0.2);
-            border: 1px solid #27272a;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95), 0 0 35px rgba(220, 38, 38, 0.12);
+            border: 1px solid #222226;
         }
         
         .header {
             background-color: #000000;
-            padding: 0;
+            padding: 28px 20px 22px 20px;
             text-align: center;
         }
         
         .header-logo {
-            width: 100%;
-            max-width: 600px;
+            width: 85%;
+            max-width: 380px;
+            max-height: 120px;
             height: auto;
             display: block;
             margin: 0 auto;
+            object-fit: contain;
         }
 
         .divider-red {
-            height: 3px;
-            background: linear-gradient(90deg, #7f1d1d 0%, #dc2626 50%, #7f1d1d 100%);
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, #dc2626 50%, transparent 100%);
         }
 
         .claw-divider-container {
-            background-color: #121215;
-            padding: 24px 0 8px 0;
+            background-color: #111114;
+            padding: 24px 0 6px 0;
             text-align: center;
         }
         
         .content-body {
-            padding: 30px 45px 50px 45px;
+            padding: 30px 40px 48px 40px;
             text-align: center;
-            background-color: #121215;
+            background-color: #111114;
         }
         
         @media screen and (max-width: 600px) {
             .content-body { padding: 24px 20px; }
             .wrapper { padding: 15px 0; }
+            .header-logo { width: 90%; max-width: 300px; }
         }
 
         .badge-official {
             display: inline-block;
-            padding: 4px 14px;
-            background-color: rgba(220, 38, 38, 0.15);
-            border: 1px solid rgba(220, 38, 38, 0.4);
+            padding: 5px 16px;
+            background-color: rgba(220, 38, 38, 0.12);
+            border: 1px solid rgba(220, 38, 38, 0.35);
             color: #ef4444;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
-            letter-spacing: 2px;
+            letter-spacing: 2.5px;
             text-transform: uppercase;
             border-radius: 20px;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
         }
         
         h1, h2, h3 { 
@@ -171,16 +174,15 @@ const emailTemplate = (title, content) => {
             margin-top: 0;
             font-family: 'Oswald', Arial, sans-serif;
             text-transform: uppercase;
-            font-weight: 700;
+            font-weight: 600;
             letter-spacing: 1px;
         }
 
         h1 {
-            font-size: 26px;
-            line-height: 1.35;
-            margin-bottom: 12px;
+            font-size: 24px;
+            line-height: 1.4;
+            margin-bottom: 14px;
             color: #ffffff;
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
         }
 
         .greeting-line {
@@ -210,53 +212,53 @@ const emailTemplate = (title, content) => {
         
         .button-container { 
             text-align: center; 
-            margin: 35px 0; 
+            margin: 32px 0; 
         }
 
         .button {
             display: inline-block;
-            padding: 16px 36px;
-            background-color: #dc2626;
+            padding: 14px 34px;
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
             color: #ffffff !important;
             text-decoration: none;
             font-family: 'Oswald', sans-serif;
-            font-weight: 700;
-            font-size: 16px;
+            font-weight: 600;
+            font-size: 14px;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            letter-spacing: 2px;
             border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(220, 38, 38, 0.45);
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
             transition: all 0.2s ease;
         }
 
         .button:hover { 
-            background-color: #b91c1c; 
-            box-shadow: 0 6px 25px rgba(220, 38, 38, 0.65);
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 8px 25px rgba(220, 38, 38, 0.6);
         }
         
         .info-box {
-            background-color: #18181b;
-            border-left: 4px solid #dc2626;
-            padding: 24px;
-            margin: 28px 0;
+            background-color: #16161a;
+            border-left: 3px solid #dc2626;
+            padding: 22px 24px;
+            margin: 26px 0;
             border-radius: 8px;
-            border-top: 1px solid #27272a;
-            border-right: 1px solid #27272a;
-            border-bottom: 1px solid #27272a;
+            border-top: 1px solid #222226;
+            border-right: 1px solid #222226;
+            border-bottom: 1px solid #222226;
             text-align: left;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
         .info-box h3 { 
             color: #ef4444; 
-            font-size: 18px; 
-            margin-bottom: 12px; 
+            font-size: 17px; 
+            margin-bottom: 10px; 
             margin-top: 0; 
-            font-weight: 700;
+            font-weight: 600;
         }
 
         .info-box p {
-            font-size: 15px;
+            font-size: 14px;
             margin-bottom: 8px;
             color: #d4d4d8;
         }
@@ -266,24 +268,25 @@ const emailTemplate = (title, content) => {
         }
         
         .footer {
-            background-color: #09090b;
-            padding: 35px 24px;
+            background-color: #060608;
+            padding: 30px 24px;
             text-align: center;
-            border-top: 1px solid #18181b;
+            border-top: 1px solid #18181c;
         }
 
         .footer p {
             color: #71717a;
-            font-size: 13px;
+            font-size: 12px;
             margin: 0;
             line-height: 1.6;
+            letter-spacing: 0.3px;
         }
 
         .footer-line {
-            width: 50px;
+            width: 40px;
             height: 2px;
             background-color: #dc2626;
-            margin: 16px auto;
+            margin: 14px auto;
             border-radius: 2px;
         }
 
@@ -296,7 +299,7 @@ const emailTemplate = (title, content) => {
             text-decoration: none; 
             margin: 0 10px; 
             font-weight: 600;
-            font-size: 13px;
+            font-size: 12px;
             transition: color 0.15s ease;
         }
 
@@ -311,7 +314,7 @@ const emailTemplate = (title, content) => {
         
         strong { 
             color: #ffffff; 
-            font-weight: 700; 
+            font-weight: 600; 
         }
 
         .info-box strong {
