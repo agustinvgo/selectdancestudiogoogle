@@ -110,7 +110,7 @@ const emailTemplate = (title, content) => {
             background-color: #111114;
             margin: 0 auto;
             width: 100%;
-            max-width: 580px;
+            max-width: 600px;
             border-radius: 18px;
             overflow: hidden;
             box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95), 0 0 35px rgba(220, 38, 38, 0.12);
@@ -119,23 +119,24 @@ const emailTemplate = (title, content) => {
         
         .header {
             background-color: #000000;
-            padding: 28px 20px 22px 20px;
+            padding: 0;
+            margin: 0;
             text-align: center;
+            line-height: 0;
         }
         
         .header-logo {
-            width: 85%;
-            max-width: 380px;
-            max-height: 120px;
+            width: 100%;
+            max-width: 100%;
             height: auto;
             display: block;
             margin: 0 auto;
-            object-fit: contain;
+            border: 0;
         }
 
         .divider-red {
-            height: 2px;
-            background: linear-gradient(90deg, transparent 0%, #dc2626 50%, transparent 100%);
+            height: 3px;
+            background: linear-gradient(90deg, #7f1d1d 0%, #dc2626 50%, #7f1d1d 100%);
         }
 
         .claw-divider-container {
@@ -153,7 +154,6 @@ const emailTemplate = (title, content) => {
         @media screen and (max-width: 600px) {
             .content-body { padding: 24px 20px; }
             .wrapper { padding: 15px 0; }
-            .header-logo { width: 90%; max-width: 300px; }
         }
 
         .badge-official {
@@ -744,7 +744,7 @@ module.exports = {
     // Métodos alias para compatibilidad
     enviarEmailPersonalizado: async (email, nombre, asunto, mensaje, opts = {}) => {
         const nameFormatted = capitalizeName(nombre);
-        const content = `<h1>Hola <strong>${nameFormatted}</strong>, 👋</h1><p>${mensaje}</p>`;
+        const content = `<h1>Hola <strong>${nameFormatted}</strong></h1><p>${mensaje}</p>`;
         return sendEmail({ from: `"Select Dance Studio" <${process.env.SMTP_USER}>`, to: email, subject: asunto, html: emailTemplate(asunto, content) }, opts);
     },
     enviarNotificacionEvento: async (email, nombre, nombreEvento, fecha, lugar) => {
