@@ -43,7 +43,19 @@ const getLogoAttachment = () => {
 };
 
 /**
- * Template base para emails (Modo Claro Premium)
+ * Helper para capitalizar nombres (ej: "AGUSTIN VEGA" -> "Agustín Vega")
+ */
+const capitalizeName = (str) => {
+    if (!str) return '';
+    return str
+        .toLowerCase()
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+};
+
+/**
+ * Template base para emails (Modo Dark Premium Elite)
  */
 const emailTemplate = (title, content) => {
     const year = new Date().getFullYear();
@@ -71,14 +83,14 @@ const emailTemplate = (title, content) => {
     </xml>
     <![endif]-->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Oswald:wght@500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap');
         
         body {
             margin: 0;
             padding: 0;
-            background-color: #f3f4f6;
+            background-color: #09090b;
             font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-            color: #1f2937;
+            color: #e4e4e7;
             -webkit-font-smoothing: antialiased;
         }
         
@@ -89,61 +101,73 @@ const emailTemplate = (title, content) => {
         .wrapper {
             width: 100%;
             table-layout: fixed;
-            background-color: #f3f4f6;
+            background-color: #09090b;
             padding: 40px 0;
         }
         
         .main {
-            background-color: #ffffff;
+            background-color: #121215;
             margin: 0 auto;
             width: 100%;
             max-width: 600px;
-            border-radius: 16px;
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            border: 1px solid #e5e7eb;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9), 0 0 30px rgba(220, 38, 38, 0.2);
+            border: 1px solid #27272a;
         }
         
         .header {
             background-color: #000000;
-            padding: 24px 20px;
+            padding: 0;
             text-align: center;
         }
         
         .header-logo {
-            max-height: 90px;
-            max-width: 100%;
-            width: auto;
+            width: 100%;
+            max-width: 600px;
             height: auto;
             display: block;
             margin: 0 auto;
-            filter: drop-shadow(0px 0px 8px rgba(220, 38, 38, 0.35));
         }
 
         .divider-red {
-            height: 4px;
-            background-color: #dc2626;
+            height: 3px;
+            background: linear-gradient(90deg, #7f1d1d 0%, #dc2626 50%, #7f1d1d 100%);
         }
 
         .claw-divider-container {
-            background-color: #ffffff;
-            padding: 18px 0 6px 0;
+            background-color: #121215;
+            padding: 24px 0 8px 0;
             text-align: center;
         }
         
         .content-body {
-            padding: 30px 50px 45px 50px;
+            padding: 30px 45px 50px 45px;
             text-align: center;
-            background-color: #ffffff;
+            background-color: #121215;
         }
         
         @media screen and (max-width: 600px) {
-            .content-body { padding: 30px 24px; }
-            .wrapper { padding: 20px 0; }
+            .content-body { padding: 24px 20px; }
+            .wrapper { padding: 15px 0; }
+        }
+
+        .badge-official {
+            display: inline-block;
+            padding: 4px 14px;
+            background-color: rgba(220, 38, 38, 0.15);
+            border: 1px solid rgba(220, 38, 38, 0.4);
+            color: #ef4444;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border-radius: 20px;
+            margin-bottom: 8px;
         }
         
         h1, h2, h3 { 
-            color: #000000; 
+            color: #ffffff; 
             margin-top: 0;
             font-family: 'Oswald', Arial, sans-serif;
             text-transform: uppercase;
@@ -152,9 +176,11 @@ const emailTemplate = (title, content) => {
         }
 
         h1 {
-            font-size: 24px;
-            line-height: 1.3;
-            margin-bottom: 8px;
+            font-size: 26px;
+            line-height: 1.35;
+            margin-bottom: 12px;
+            color: #ffffff;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
         }
 
         .greeting-line {
@@ -165,9 +191,9 @@ const emailTemplate = (title, content) => {
         
         p { 
             margin: 0 0 18px 0; 
-            line-height: 1.8; 
-            color: #374151; 
-            font-size: 16px; 
+            line-height: 1.85; 
+            color: #d4d4d8; 
+            font-size: 15px; 
         }
 
         p:last-child {
@@ -175,7 +201,7 @@ const emailTemplate = (title, content) => {
         }
         
         ul { 
-            color: #374151; 
+            color: #d4d4d8; 
             padding-left: 20px; 
             line-height: 1.8; 
             text-align: left;
@@ -184,48 +210,46 @@ const emailTemplate = (title, content) => {
         
         .button-container { 
             text-align: center; 
-            margin: 32px 0; 
+            margin: 35px 0; 
         }
 
         .button {
             display: inline-block;
-            padding: 14px 32px;
-            background-color: #000000;
+            padding: 16px 36px;
+            background-color: #dc2626;
             color: #ffffff !important;
             text-decoration: none;
             font-family: 'Oswald', sans-serif;
             font-weight: 700;
-            font-size: 15px;
+            font-size: 16px;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            border: 2px solid #000000;
-            box-shadow: 4px 4px 0px #dc2626;
-            transition: all 0.15s ease;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(220, 38, 38, 0.45);
+            transition: all 0.2s ease;
         }
 
         .button:hover { 
-            background-color: #dc2626; 
-            border-color: #dc2626;
-            box-shadow: 2px 2px 0px #000000;
-            transform: translate(2px, 2px);
+            background-color: #b91c1c; 
+            box-shadow: 0 6px 25px rgba(220, 38, 38, 0.65);
         }
         
         .info-box {
-            background-color: #f9fafb;
+            background-color: #18181b;
             border-left: 4px solid #dc2626;
             padding: 24px;
             margin: 28px 0;
-            border-radius: 4px;
-            border-top: 1px dashed #e5e7eb;
-            border-right: 1px dashed #e5e7eb;
-            border-bottom: 1px dashed #e5e7eb;
+            border-radius: 8px;
+            border-top: 1px solid #27272a;
+            border-right: 1px solid #27272a;
+            border-bottom: 1px solid #27272a;
             text-align: left;
-            box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
         .info-box h3 { 
-            color: #dc2626; 
-            font-size: 17px; 
+            color: #ef4444; 
+            font-size: 18px; 
             margin-bottom: 12px; 
             margin-top: 0; 
             font-weight: 700;
@@ -234,6 +258,7 @@ const emailTemplate = (title, content) => {
         .info-box p {
             font-size: 15px;
             margin-bottom: 8px;
+            color: #d4d4d8;
         }
 
         .info-box p:last-child {
@@ -241,40 +266,42 @@ const emailTemplate = (title, content) => {
         }
         
         .footer {
-            background-color: #000000;
+            background-color: #09090b;
             padding: 35px 24px;
             text-align: center;
+            border-top: 1px solid #18181b;
         }
 
         .footer p {
-            color: #9ca3af;
+            color: #71717a;
             font-size: 13px;
             margin: 0;
-            line-height: 1.5;
+            line-height: 1.6;
         }
 
         .footer-line {
             width: 50px;
-            height: 1px;
+            height: 2px;
             background-color: #dc2626;
             margin: 16px auto;
+            border-radius: 2px;
         }
 
         .social-links {
-            margin-top: 5px;
+            margin-top: 8px;
         }
 
         .social-links a { 
-            color: #ffffff; 
+            color: #d4d4d8; 
             text-decoration: none; 
-            margin: 0 8px; 
+            margin: 0 10px; 
             font-weight: 600;
             font-size: 13px;
             transition: color 0.15s ease;
         }
 
         .social-links a:hover {
-            color: #dc2626;
+            color: #ef4444;
         }
 
         .bullet-divider {
@@ -283,12 +310,12 @@ const emailTemplate = (title, content) => {
         }
         
         strong { 
-            color: #000000; 
+            color: #ffffff; 
             font-weight: 700; 
         }
 
         .info-box strong {
-            color: #000000;
+            color: #ffffff;
         }
     </style>
 </head>
@@ -297,7 +324,7 @@ const emailTemplate = (title, content) => {
         <table class="main">
             <tr>
                 <td class="header">
-                    <img src="cid:sdslogo" alt="SDS Logo" class="header-logo">
+                    <img src="cid:sdslogo" alt="Select Dance Studio" class="header-logo">
                 </td>
             </tr>
             <tr>
@@ -305,11 +332,7 @@ const emailTemplate = (title, content) => {
             </tr>
             <tr>
                 <td class="claw-divider-container">
-                    <svg width="60" height="24" viewBox="0 0 60 24" style="display: inline-block; vertical-align: middle;" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M16 3 C19 7, 21 13, 23 21" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round"/>
-                        <path d="M26 3 C29 7, 31 13, 33 21" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round"/>
-                        <path d="M36 3 C39 7, 41 13, 43 21" stroke="#dc2626" stroke-width="3.5" stroke-linecap="round"/>
-                    </svg>
+                    <span class="badge-official">SELECT DANCE STUDIO</span>
                 </td>
             </tr>
             <tr>
@@ -319,12 +342,13 @@ const emailTemplate = (title, content) => {
             </tr>
             <tr>
                 <td class="footer">
-                    <p>&copy; ${year} Select Dance Studio. Todos los derechos reservados.</p>
+                    <p>Palermo, Buenos Aires &bull; Select Dance Studio</p>
+                    <p style="margin-top: 4px;">&copy; ${year} Todos los derechos reservados.</p>
                     <div class="footer-line"></div>
                     <div class="social-links">
                         <a href="https://www.instagram.com/selectdance.studio/">Instagram</a>
                         <span class="bullet-divider">•</span> 
-                        <a href="${process.env.FRONTEND_URL || '#'}">Sitio Web</a>
+                        <a href="${process.env.FRONTEND_URL || 'https://selectdancestudio.com'}">Sitio Web</a>
                     </div>
                 </td>
             </tr>
@@ -562,9 +586,10 @@ module.exports = {
     notificarAdminNuevaConsulta,
 
     // Métodos alias para compatibilidad
-    enviarEmailPersonalizado: async (email, nombre, asunto, mensaje) => {
-        const content = `<h1>Hola <strong>${nombre}</strong>, 👋</h1><p>${mensaje}</p>`;
-        return sendEmail({ from: `"Select Dance Studio" <${process.env.SMTP_USER}>`, to: email, subject: asunto, html: emailTemplate(asunto, content) });
+    enviarEmailPersonalizado: async (email, nombre, asunto, mensaje, opts = {}) => {
+        const nameFormatted = capitalizeName(nombre);
+        const content = `<h1>Hola <strong>${nameFormatted}</strong>, 👋</h1><p>${mensaje}</p>`;
+        return sendEmail({ from: `"Select Dance Studio" <${process.env.SMTP_USER}>`, to: email, subject: asunto, html: emailTemplate(asunto, content) }, opts);
     },
     enviarNotificacionEvento: async (email, nombre, nombreEvento, fecha, lugar) => {
         const content = `<h1>¡Evento Próximo! 🎭</h1><div class="info-box"><h3>${nombreEvento}</h3><p><strong>Fecha:</strong> ${new Date(fecha).toLocaleDateString('es-AR')}</p><p><strong>Lugar:</strong> ${lugar || '-'}</p></div>`;
