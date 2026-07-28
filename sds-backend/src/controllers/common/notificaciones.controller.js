@@ -127,8 +127,8 @@ const NotificacionesController = {
                 `, [destinatarioId]);
                 usuariosDestino = users;
             } else if (filtro === 'usuario') {
-                // Single user
-                const [users] = await db.query('SELECT id, email, rol, activo FROM usuarios WHERE id = ?', [destinatarioId]);
+                // Single user (solo si está activo)
+                const [users] = await db.query('SELECT id, email, rol, activo FROM usuarios WHERE id = ? AND activo = 1', [destinatarioId]);
                 usuariosDestino = users;
             }
 
