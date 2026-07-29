@@ -69,14 +69,19 @@ const EquipoModel = {
                 }
             });
 
-            if (fields.length === 0) return true;
+            if (fields.length === 0) {
+                console.warn('[EquipoModel.update] No fields to update for id:', id);
+                return false;
+            }
 
             params.push(id);
             const query = `UPDATE usuarios SET ${fields.join(', ')} WHERE id = ?`;
+            console.log('[EquipoModel.update] Query:', query, params);
 
             const [result] = await db.query(query, params);
             return true;
         } catch (error) {
+            console.error('[EquipoModel.update] Error:', error);
             throw error;
         }
     },

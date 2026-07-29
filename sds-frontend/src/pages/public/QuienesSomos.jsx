@@ -6,9 +6,12 @@ import SchemaBreadcrumb from '../../components/SEO/SchemaBreadcrumb';
 const parseFotoPosicion = (posStr) => {
     if (!posStr) return { x: 50, y: 50, zoom: 1 };
     try {
-        if (typeof posStr === 'string' && posStr.startsWith('{')) {
+        if (typeof posStr === 'object' && posStr !== null) {
+            return { x: Number(posStr.x) ?? 50, y: Number(posStr.y) ?? 50, zoom: Number(posStr.zoom) ?? 1 };
+        }
+        if (typeof posStr === 'string' && posStr.trim().startsWith('{')) {
             const parsed = JSON.parse(posStr);
-            return { x: parsed.x ?? 50, y: parsed.y ?? 50, zoom: parsed.zoom ?? 1 };
+            return { x: Number(parsed.x) ?? 50, y: Number(parsed.y) ?? 50, zoom: Number(parsed.zoom) ?? 1 };
         }
         if (posStr === 'top') return { x: 50, y: 0, zoom: 1 };
         if (posStr === 'bottom') return { x: 50, y: 100, zoom: 1 };

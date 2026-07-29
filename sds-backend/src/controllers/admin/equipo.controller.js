@@ -55,7 +55,15 @@ const EquipoController = {
             const { nombre, cargo, descripcion, foto_posicion, activo } = req.body;
             const foto_url = req.file ? `/uploads/equipo/${req.file.filename}` : undefined;
 
-            await EquipoModel.update(id, { nombre, cargo, descripcion, foto_url, foto_posicion, activo });
+            console.log('[EquipoController.update] Body:', req.body, 'File:', req.file?.filename);
+
+            const success = await EquipoModel.update(id, { nombre, cargo, descripcion, foto_url, foto_posicion, activo });
+            if (!success) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'No se enviaron datos para actualizar o el miembro no existe'
+                });
+            }
 
             const { clearAllCache } = require('../../middlewares/cache.middleware');
             clearAllCache();
