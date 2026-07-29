@@ -67,7 +67,8 @@ const GestionEquipo = () => {
         },
         onError: (error) => {
             console.error(error);
-            toast.error('Error al guardar');
+            const msg = error.response?.data?.message || 'Error al guardar';
+            toast.error(msg);
         }
     });
 
@@ -80,7 +81,8 @@ const GestionEquipo = () => {
         },
         onError: (error) => {
             console.error(error);
-            toast.error('Error al actualizar');
+            const msg = error.response?.data?.message || 'Error al actualizar';
+            toast.error(msg);
         }
     });
 

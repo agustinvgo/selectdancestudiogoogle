@@ -31,6 +31,9 @@ const EquipoController = {
 
             const id = await EquipoModel.create({ nombre, cargo, descripcion, foto_url, foto_posicion });
 
+            const { clearAllCache } = require('../../middlewares/cache.middleware');
+            clearAllCache();
+
             res.json({
                 success: true,
                 data: { id, nombre, cargo, descripcion, foto_url, foto_posicion },
@@ -52,11 +55,10 @@ const EquipoController = {
             const { nombre, cargo, descripcion, foto_posicion, activo } = req.body;
             const foto_url = req.file ? `/uploads/equipo/${req.file.filename}` : undefined;
 
-            const updated = await EquipoModel.update(id, { nombre, cargo, descripcion, foto_url, foto_posicion, activo });
+            await EquipoModel.update(id, { nombre, cargo, descripcion, foto_url, foto_posicion, activo });
 
-            if (!updated) {
-                return res.status(404).json({ success: false, message: 'Miembro no encontrado' });
-            }
+            const { clearAllCache } = require('../../middlewares/cache.middleware');
+            clearAllCache();
 
             res.json({
                 success: true,
@@ -80,6 +82,9 @@ const EquipoController = {
             if (!deleted) {
                 return res.status(404).json({ success: false, message: 'Miembro no encontrado' });
             }
+
+            const { clearAllCache } = require('../../middlewares/cache.middleware');
+            clearAllCache();
 
             res.json({
                 success: true,

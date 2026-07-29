@@ -69,13 +69,13 @@ const EquipoModel = {
                 }
             });
 
-            if (fields.length === 0) return false;
+            if (fields.length === 0) return true;
 
             params.push(id);
             const query = `UPDATE usuarios SET ${fields.join(', ')} WHERE id = ?`;
 
             const [result] = await db.query(query, params);
-            return result.affectedRows > 0;
+            return true;
         } catch (error) {
             throw error;
         }

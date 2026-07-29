@@ -58,7 +58,7 @@ const dbInit = {
             { name: 'orden', type: 'INT DEFAULT 0 AFTER descripcion' },
             { name: 'mostrar_en_web', type: 'TINYINT(1) DEFAULT 0 AFTER orden' },
             { name: 'foto_perfil', type: 'VARCHAR(255) AFTER telefono' },
-            { name: 'foto_posicion', type: "VARCHAR(50) DEFAULT 'center' AFTER foto_perfil" },
+            { name: 'foto_posicion', type: "VARCHAR(255) DEFAULT 'center' AFTER foto_perfil" },
             { name: 'primer_login', type: 'TINYINT(1) DEFAULT 1 AFTER activo' },
             { name: 'nombre', type: 'VARCHAR(100) AFTER primer_login' },
             { name: 'apellido', type: 'VARCHAR(100) AFTER nombre' },
@@ -70,6 +70,13 @@ const dbInit = {
                 console.log(`➕ Añadiendo columna [${col.name}] a usuarios...`);
                 await db.query(`ALTER TABLE usuarios ADD COLUMN ${col.name} ${col.type}`);
             }
+        }
+
+        // Asegurar que foto_posicion sea VARCHAR(255)
+        try {
+            await db.query("ALTER TABLE usuarios MODIFY COLUMN foto_posicion VARCHAR(255) DEFAULT 'center'");
+        } catch (e) {
+            // Ignorar si la tabla recién se creó o no aplica
         }
     },
 
