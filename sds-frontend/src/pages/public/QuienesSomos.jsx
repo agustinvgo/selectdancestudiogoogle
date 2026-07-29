@@ -43,42 +43,65 @@ const QuienesSomos = () => {
                 </p>
             </div>
 
-            {/* Team Grid */}
-            <div className="container mx-auto px-6 pb-24">
+            {/* Team Profiles List */}
+            <div className="container mx-auto px-6 max-w-6xl pb-24">
                 {loading ? (
                     <div className="flex justify-center items-center h-64">
                         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+                    <div className="space-y-12 md:space-y-16">
                         {team.map((member) => (
-                            <div key={member.id} className="group relative">
-                                {/* Image Container */}
-                                <div className="aspect-[3/4] overflow-hidden rounded-sm bg-zinc-900 mb-6 relative">
-                                    <div className="absolute inset-0 bg-white/5 animate-pulse" /> {/* Placeholder */}
-                                    {member.foto_url && (
-                                        <img
-                                            src={`${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${member.foto_url}`}
-                                            alt={member.nombre}
-                                            className="absolute inset-0 w-full h-full object-cover"
-                                            loading="lazy"
-                                        />
-                                    )}
-                                    {/* Overlay Gradient */}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                </div>
-
-                                {/* Text Content */}
-                                <div className="text-center md:text-left">
-                                    <h3 className="text-2xl font-bold uppercase tracking-wide mb-1 group-hover:text-blue-500 transition-colors">
+                            <div 
+                                key={member.id} 
+                                className="bg-zinc-900/40 border border-zinc-800/70 rounded-2xl p-6 md:p-8 lg:p-10 backdrop-blur-sm shadow-xl flex flex-col md:flex-row gap-8 lg:gap-12 items-start group hover:border-zinc-700/80 transition-all duration-300"
+                            >
+                                {/* Left Column: Photo & Name / Cargo */}
+                                <div className="w-full md:w-80 lg:w-96 flex-shrink-0 flex flex-col items-center md:items-start text-center md:text-left">
+                                    <div className="aspect-[3/4] w-full overflow-hidden rounded-xl bg-zinc-950 relative shadow-lg mb-6 border border-zinc-800">
+                                        <div className="absolute inset-0 bg-white/5 animate-pulse" />
+                                        {member.foto_url ? (
+                                            <img
+                                                src={`${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${member.foto_url}`}
+                                                alt={member.nombre}
+                                                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
+                                                style={{ objectPosition: member.foto_posicion || 'center' }}
+                                                loading="lazy"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-zinc-600 font-bold uppercase tracking-wider text-xl">
+                                                {member.nombre?.charAt(0) || 'S'}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <h3 className="text-2xl md:text-3xl font-extrabold uppercase tracking-wide text-white mb-1">
                                         {member.nombre}
                                     </h3>
-                                    <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">
-                                        {member.cargo}
-                                    </p>
-                                    <p className="text-gray-400 font-light leading-relaxed text-sm">
-                                        {member.descripcion}
-                                    </p>
+                                    {member.cargo && (
+                                        <p className="text-xs md:text-sm font-semibold uppercase tracking-widest text-red-500">
+                                            {member.cargo}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Right Column: Profile Text Section ("A un costado") */}
+                                <div className="flex-1 w-full flex flex-col h-full self-stretch justify-start bg-zinc-950/50 p-6 md:p-8 rounded-xl border border-zinc-800/50">
+                                    <div className="flex items-center gap-3 mb-6 pb-4 border-b border-zinc-800/80">
+                                        <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+                                        <h4 className="text-xs md:text-sm font-bold uppercase tracking-widest text-zinc-400">
+                                            Perfil & Trayectoria
+                                        </h4>
+                                    </div>
+
+                                    <div className="text-zinc-300 font-light leading-relaxed text-base md:text-lg whitespace-pre-line flex-1">
+                                        {member.descripcion ? (
+                                            member.descripcion
+                                        ) : (
+                                            <p className="text-zinc-500 italic font-normal text-sm">
+                                                Aún no se ha especificado el perfil o la trayectoria de este integrante.
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ))}

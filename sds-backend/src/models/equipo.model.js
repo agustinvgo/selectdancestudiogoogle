@@ -5,7 +5,7 @@ const EquipoModel = {
     async findAll() {
         try {
             const [rows] = await db.query(`
-                SELECT id, nombre, rol_display as cargo, descripcion, foto_perfil as foto_url, orden, activo, created_at, updated_at 
+                SELECT id, nombre, rol_display as cargo, descripcion, foto_perfil as foto_url, foto_posicion, orden, activo, created_at, updated_at 
                 FROM usuarios 
                 WHERE rol = 'profesor' AND activo = 1 AND mostrar_en_web = 1
                 ORDER BY orden ASC, created_at DESC
@@ -20,7 +20,7 @@ const EquipoModel = {
     async findById(id) {
         try {
             const [rows] = await db.query(`
-                SELECT id, nombre, rol_display as cargo, descripcion, foto_perfil as foto_url, orden, activo, created_at, updated_at 
+                SELECT id, nombre, rol_display as cargo, descripcion, foto_perfil as foto_url, foto_posicion, orden, activo, created_at, updated_at 
                 FROM usuarios 
                 WHERE id = ? AND rol = 'profesor' AND mostrar_en_web = 1
             `, [id]);
@@ -33,11 +33,11 @@ const EquipoModel = {
     // Crear miembro (específicamente destinado a mostrarse en la web)
     async create(data) {
         try {
-            const { nombre, cargo, descripcion, foto_url } = data;
+            const { nombre, cargo, descripcion, foto_url, foto_posicion } = data;
             const [result] = await db.query(
-                `INSERT INTO usuarios (nombre, rol_display, descripcion, foto_perfil, email, password_hash, rol, activo, mostrar_en_web) 
-                 VALUES (?, ?, ?, ?, CONCAT('staff_', UUID(), '@selectdance.com'), 'dummy_hash', 'profesor', 1, 1)`,
-                [nombre, cargo || null, descripcion || null, foto_url || null]
+                `INSERT INTO usuarios (nombre, rol_display, descripcion, foto_perfil, foto_posicion, email, password_hash, rol, activo, mostrar_en_web) 
+                 VALUES (?, ?, ?, ?, ?, CONCAT('staff_', UUID(), '@selectdance.com'), 'dummy_hash', 'profesor', 1, 1)`,
+                [nombre, cargo || null, descripcion || null, foto_url || null, foto_posicion || 'center']
             );
             return result.insertId;
         } catch (error) {
@@ -57,6 +57,7 @@ const EquipoModel = {
                 'cargo': 'rol_display',
                 'descripcion': 'descripcion',
                 'foto_url': 'foto_perfil',
+                'foto_posicion': 'foto_posicion',
                 'activo': 'activo',
                 'orden': 'orden' // si el order existía en el body anterior
             };

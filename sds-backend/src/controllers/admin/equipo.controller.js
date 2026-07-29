@@ -21,7 +21,7 @@ const EquipoController = {
 
     async create(req, res) {
         try {
-            const { nombre, cargo, descripcion } = req.body;
+            const { nombre, cargo, descripcion, foto_posicion } = req.body;
             // Multer saves file info in req.file
             const foto_url = req.file ? `/uploads/equipo/${req.file.filename}` : null;
 
@@ -29,11 +29,11 @@ const EquipoController = {
                 return res.status(400).json({ success: false, message: 'El nombre es requerido' });
             }
 
-            const id = await EquipoModel.create({ nombre, cargo, descripcion, foto_url });
+            const id = await EquipoModel.create({ nombre, cargo, descripcion, foto_url, foto_posicion });
 
             res.json({
                 success: true,
-                data: { id, nombre, cargo, descripcion, foto_url },
+                data: { id, nombre, cargo, descripcion, foto_url, foto_posicion },
                 message: 'Miembro creado correctamente'
             });
         } catch (error) {
@@ -49,10 +49,10 @@ const EquipoController = {
     async update(req, res) {
         try {
             const { id } = req.params;
-            const { nombre, cargo, descripcion, activo } = req.body;
+            const { nombre, cargo, descripcion, foto_posicion, activo } = req.body;
             const foto_url = req.file ? `/uploads/equipo/${req.file.filename}` : undefined;
 
-            const updated = await EquipoModel.update(id, { nombre, cargo, descripcion, foto_url, activo });
+            const updated = await EquipoModel.update(id, { nombre, cargo, descripcion, foto_url, foto_posicion, activo });
 
             if (!updated) {
                 return res.status(404).json({ success: false, message: 'Miembro no encontrado' });
