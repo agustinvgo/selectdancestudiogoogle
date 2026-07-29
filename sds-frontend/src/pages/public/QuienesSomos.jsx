@@ -3,6 +3,27 @@ import { equipoAPI } from '../../services/api';
 import PageSEO from '../../components/SEO/PageSEO';
 import SchemaBreadcrumb from '../../components/SEO/SchemaBreadcrumb';
 
+const parseFotoPosicion = (posStr) => {
+    if (!posStr) return { x: 50, y: 50, zoom: 1 };
+    try {
+        if (typeof posStr === 'string' && posStr.startsWith('{')) {
+            const parsed = JSON.parse(posStr);
+            return { x: parsed.x ?? 50, y: parsed.y ?? 50, zoom: parsed.zoom ?? 1 };
+        }
+        if (posStr === 'top') return { x: 50, y: 0, zoom: 1 };
+        if (posStr === 'bottom') return { x: 50, y: 100, zoom: 1 };
+        if (posStr === 'center') return { x: 50, y: 50, zoom: 1 };
+        const parts = String(posStr).trim().split(/\s+/);
+        let x = 50, y = 50, zoom = 1;
+        if (parts.length >= 1 && parts[0].includes('%')) x = parseInt(parts[0], 10);
+        if (parts.length >= 2 && parts[1].includes('%')) y = parseInt(parts[1], 10);
+        if (parts.length >= 3) zoom = parseFloat(parts[2]) || 1;
+        return { x: isNaN(x) ? 50 : x, y: isNaN(y) ? 50 : y, zoom: isNaN(zoom) ? 1 : zoom };
+    } catch (e) {
+        return { x: 50, y: 50, zoom: 1 };
+    }
+};
+
 const QuienesSomos = () => {
     const [team, setTeam] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -51,24 +72,30 @@ const QuienesSomos = () => {
                     </div>
                 ) : (
                     <div className="space-y-12 md:space-y-16">
-                        {team.map((member) => (
-                            <div 
-                                key={member.id} 
-                                className="bg-zinc-900/40 border border-zinc-800/70 rounded-2xl p-6 md:p-8 lg:p-10 backdrop-blur-sm shadow-xl flex flex-col md:flex-row gap-8 lg:gap-12 items-start group hover:border-zinc-700/80 transition-all duration-300"
-                            >
-                                {/* Left Column: Photo & Name / Cargo */}
-                                <div className="w-full md:w-80 lg:w-96 flex-shrink-0 flex flex-col items-center md:items-start text-center md:text-left">
-                                    <div className="aspect-[3/4] w-full overflow-hidden rounded-xl bg-zinc-950 relative shadow-lg mb-6 border border-zinc-800">
-                                        <div className="absolute inset-0 bg-white/5 animate-pulse" />
-                                        {member.foto_url ? (
-                                            <img
-                                                src={`${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${member.foto_url}`}
-                                                alt={member.nombre}
-                                                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
-                                                style={{ objectPosition: member.foto_posicion || 'center' }}
-                                                loading="lazy"
-                                            />
-                                        ) : (
+                        {team.map((member) => {
+                            const pos = parseFotoPosicion(member.foto_posicion);
+                            return (
+                                <div 
+                                    key={member.id} 
+                                    className="bg-zinc-900/40 border border-zinc-800/70 rounded-2xl p-6 md:p-8 lg:p-10 backdrop-blur-sm shadow-xl flex flex-col md:flex-row gap-8 lg:gap-12 items-start group hover:border-zinc-700/80 transition-all duration-300"
+                                >
+                                    {/* Left Column: Photo & Name / Cargo */}
+                                    <div className="w-full md:w-80 lg:w-96 flex-shrink-0 flex flex-col items-center md:items-start text-center md:text-left">
+                                        <div className="aspect-[3/4] w-full overflow-hidden rounded-xl bg-zinc-950 relative shadow-lg mb-6 border border-zinc-800">
+                                            <div className="absolute inset-0 bg-white/5 animate-pulse" />
+                                            {member.foto_url ? (
+                                                <img
+                                                    src={`${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${member.foto_url}`}
+                                                    alt={member.nombre}
+                                                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-300"
+                                                    style={{
+                                                        objectPosition: `${pos.x}% ${pos.y}%`,
+                                                        transform: `scale(${pos.zoom})`,
+                                                        transformOrigin: `${pos.x}% ${pos.y}%`
+                                                    }}
+                                                    loading="lazy"
+                                                />
+                                            ) : (
                                             <div className="w-full h-full flex items-center justify-center text-zinc-600 font-bold uppercase tracking-wider text-xl">
                                                 {member.nombre?.charAt(0) || 'S'}
                                             </div>
@@ -104,7 +131,8 @@ const QuienesSomos = () => {
                                     </div>
                                 </div>
                             </div>
-                        ))}
+                        );
+                    })}
                     </div>
                 )}
 

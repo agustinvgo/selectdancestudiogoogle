@@ -5,6 +5,27 @@ import { Toaster, toast } from 'react-hot-toast';
 import { PlusIcon, PencilIcon, TrashIcon, XMarkIcon, PhotoIcon } from '@heroicons/react/24/outline';
 import Swal from 'sweetalert2';
 
+const parseFotoPosicion = (posStr) => {
+    if (!posStr) return { x: 50, y: 50, zoom: 1 };
+    try {
+        if (typeof posStr === 'string' && posStr.startsWith('{')) {
+            const parsed = JSON.parse(posStr);
+            return { x: parsed.x ?? 50, y: parsed.y ?? 50, zoom: parsed.zoom ?? 1 };
+        }
+        if (posStr === 'top') return { x: 50, y: 0, zoom: 1 };
+        if (posStr === 'bottom') return { x: 50, y: 100, zoom: 1 };
+        if (posStr === 'center') return { x: 50, y: 50, zoom: 1 };
+        const parts = String(posStr).trim().split(/\s+/);
+        let x = 50, y = 50, zoom = 1;
+        if (parts.length >= 1 && parts[0].includes('%')) x = parseInt(parts[0], 10);
+        if (parts.length >= 2 && parts[1].includes('%')) y = parseInt(parts[1], 10);
+        if (parts.length >= 3) zoom = parseFloat(parts[2]) || 1;
+        return { x: isNaN(x) ? 50 : x, y: isNaN(y) ? 50 : y, zoom: isNaN(zoom) ? 1 : zoom };
+    } catch (e) {
+        return { x: 50, y: 50, zoom: 1 };
+    }
+};
+
 const GestionEquipo = () => {
     const queryClient = useQueryClient();
     const [modalOpen, setModalOpen] = useState(false);
@@ -16,7 +37,9 @@ const GestionEquipo = () => {
     const [nombre, setNombre] = useState('');
     const [cargo, setCargo] = useState('');
     const [descripcion, setDescripcion] = useState('');
-    const [fotoPosicion, setFotoPosicion] = useState('center');
+    const [fotoPosX, setFotoPosX] = useState(50);
+    const [fotoPosY, setFotoPosY] = useState(50);
+    const [fotoZoom, setFotoZoom] = useState(1);
     const [foto, setFoto] = useState(null);
 
     // 1. Fetch Miembros
@@ -89,7 +112,7 @@ const GestionEquipo = () => {
         formData.append('nombre', nombre);
         formData.append('cargo', cargo);
         formData.append('descripcion', descripcion);
-        formData.append('foto_posicion', fotoPosicion);
+        formData.append('foto_posicion', JSON.stringify({ x: fotoPosX, y: fotoPosY, zoom: fotoZoom }));
         if (foto) formData.append('foto', foto);
 
         if (editingId) {
@@ -104,7 +127,10 @@ const GestionEquipo = () => {
         setNombre(miembro.nombre);
         setCargo(miembro.cargo);
         setDescripcion(miembro.descripcion);
-        setFotoPosicion(miembro.foto_posicion || 'center');
+        const pos = parseFotoPosicion(miembro.foto_posicion);
+        setFotoPosX(pos.x);
+        setFotoPosY(pos.y);
+        setFotoZoom(pos.zoom);
         setPreviewUrl(miembro.foto_url ? `${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${miembro.foto_url}` : null);
         setModalOpen(true);
     };
@@ -131,7 +157,9 @@ const GestionEquipo = () => {
         setNombre('');
         setCargo('');
         setDescripcion('');
-        setFotoPosicion('center');
+        setFotoPosX(50);
+        setFotoPosY(50);
+        setFotoZoom(1);
         setFoto(null);
         setPreviewUrl(null);
         setModalOpen(false);
@@ -173,43 +201,50 @@ const GestionEquipo = () => {
                 <div className="text-gray-900">Cargando...</div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {miembros.map((miembro) => (
-                        <div key={miembro.id} className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-lg">
-                            <div className="aspect-square w-full bg-gray-100 relative">
-                                {miembro.foto_url ? (
-                                    <img
-                                        src={`${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${miembro.foto_url}`}
-                                        alt={miembro.nombre}
-                                        className="w-full h-full object-cover"
-                                        style={{ objectPosition: miembro.foto_posicion || 'center' }}
-                                    />
-                                ) : (
-                                    <div className="flex items-center justify-center h-full text-gray-500">
-                                        <PhotoIcon className="w-12 h-12" />
+                    {miembros.map((miembro) => {
+                        const pos = parseFotoPosicion(miembro.foto_posicion);
+                        return (
+                            <div key={miembro.id} className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-lg">
+                                <div className="aspect-square w-full bg-gray-100 relative overflow-hidden">
+                                    {miembro.foto_url ? (
+                                        <img
+                                            src={`${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${miembro.foto_url}`}
+                                            alt={miembro.nombre}
+                                            className="w-full h-full object-cover"
+                                            style={{
+                                                objectPosition: `${pos.x}% ${pos.y}%`,
+                                                transform: `scale(${pos.zoom})`,
+                                                transformOrigin: `${pos.x}% ${pos.y}%`
+                                            }}
+                                        />
+                                    ) : (
+                                        <div className="flex items-center justify-center h-full text-gray-500">
+                                            <PhotoIcon className="w-12 h-12" />
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="p-4">
+                                    <h3 className="text-xl font-bold text-gray-900">{miembro.nombre}</h3>
+                                    <p className="text-blue-400 text-sm font-medium mb-2">{miembro.cargo}</p>
+                                    <p className="text-gray-500 text-sm line-clamp-3 mb-4">{miembro.descripcion}</p>
+                                    <div className="flex justify-end gap-2">
+                                        <button
+                                            onClick={() => handleEdit(miembro)}
+                                            className="p-2 text-gray-500 hover:text-gray-900 hover:bg-blue-50 rounded-lg transition-colors"
+                                        >
+                                            <PencilIcon className="w-5 h-5" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(miembro.id)}
+                                            className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-lg transition-colors"
+                                        >
+                                            <TrashIcon className="w-5 h-5" />
+                                        </button>
                                     </div>
-                                )}
-                            </div>
-                            <div className="p-4">
-                                <h3 className="text-xl font-bold text-gray-900">{miembro.nombre}</h3>
-                                <p className="text-blue-400 text-sm font-medium mb-2">{miembro.cargo}</p>
-                                <p className="text-gray-500 text-sm line-clamp-3 mb-4">{miembro.descripcion}</p>
-                                <div className="flex justify-end gap-2">
-                                    <button
-                                        onClick={() => handleEdit(miembro)}
-                                        className="p-2 text-gray-500 hover:text-gray-900 hover:bg-blue-50 rounded-lg transition-colors"
-                                    >
-                                        <PencilIcon className="w-5 h-5" />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(miembro.id)}
-                                        className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-lg transition-colors"
-                                    >
-                                        <TrashIcon className="w-5 h-5" />
-                                    </button>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
 
@@ -289,71 +324,114 @@ const GestionEquipo = () => {
                                 </div>
 
                                 {/* Image Position Slider & Preset Controls */}
-                                <div className="bg-blue-50/60 border border-blue-200/80 rounded-xl p-4 space-y-3">
-                                    <div className="flex justify-between items-center">
-                                        <label className="text-sm font-semibold text-gray-800">
-                                            🎯 Encuadre y Centrado de la Foto
+                                <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-4 space-y-4">
+                                    <div className="flex justify-between items-center border-b border-blue-200/80 pb-2">
+                                        <label className="text-sm font-bold text-gray-800 flex items-center gap-1.5">
+                                            🎯 Encuadre, Posición y Zoom de la Foto
                                         </label>
-                                        <span className="text-xs font-mono bg-blue-600 text-white px-2 py-0.5 rounded-full font-bold">
-                                            {(() => {
-                                                if (!fotoPosicion || fotoPosicion === 'center') return '50%';
-                                                if (fotoPosicion === 'top') return '0%';
-                                                if (fotoPosicion === 'bottom') return '100%';
-                                                const match = String(fotoPosicion).match(/(\d+)%/);
-                                                return match ? `${match[1]}%` : '50%';
-                                            })()} Vertical
-                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setFotoPosX(50); setFotoPosY(50); setFotoZoom(1); }}
+                                            className="text-[11px] font-medium text-blue-600 hover:text-blue-800 underline"
+                                        >
+                                            Restablecer todo
+                                        </button>
                                     </div>
-                                    <p className="text-xs text-gray-600">
-                                        Mueve la barra o presiona un botón para subir o bajar el rostro en el encuadre:
-                                    </p>
 
-                                    {/* Slider */}
+                                    {/* 1. Zoom Slider */}
                                     <div className="space-y-1">
+                                        <div className="flex justify-between text-xs font-semibold text-gray-700">
+                                            <span>🔍 Zoom / Tamaño de la foto</span>
+                                            <span className="font-mono text-blue-600 font-bold">{Math.round(fotoZoom * 100)}%</span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min="1"
+                                            max="2"
+                                            step="0.05"
+                                            value={fotoZoom}
+                                            onChange={(e) => setFotoZoom(parseFloat(e.target.value))}
+                                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                        />
+                                        <p className="text-[11px] text-gray-500 italic">
+                                            * Incrementa el zoom si tu foto es 3:4 vertical para tener margen de movimiento hacia arriba o abajo.
+                                        </p>
+                                    </div>
+
+                                    {/* 2. Vertical Position Slider (Y) */}
+                                    <div className="space-y-1 pt-1">
+                                        <div className="flex justify-between text-xs font-semibold text-gray-700">
+                                            <span>↕️ Posición Vertical (Arriba / Abajo)</span>
+                                            <span className="font-mono text-blue-600 font-bold">{fotoPosY}%</span>
+                                        </div>
                                         <input
                                             type="range"
                                             min="0"
                                             max="100"
                                             step="1"
-                                            value={(() => {
-                                                if (!fotoPosicion || fotoPosicion === 'center') return 50;
-                                                if (fotoPosicion === 'top') return 0;
-                                                if (fotoPosicion === 'bottom') return 100;
-                                                const match = String(fotoPosicion).match(/(\d+)%/);
-                                                return match ? parseInt(match[1], 10) : 50;
-                                            })()}
-                                            onChange={(e) => setFotoPosicion(`center ${e.target.value}%`)}
+                                            value={fotoPosY}
+                                            onChange={(e) => setFotoPosY(parseInt(e.target.value, 10))}
                                             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                                         />
-                                        <div className="flex justify-between text-[10px] text-gray-500 font-medium">
-                                            <span>⬆️ Rostro arriba (0%)</span>
-                                            <span>🎯 Centro (50%)</span>
-                                            <span>⬇️ Abajo (100%)</span>
+                                        <div className="grid grid-cols-5 gap-1 pt-1">
+                                            {[
+                                                { label: 'Rostro (0%)', y: 0 },
+                                                { label: 'Alto (25%)', y: 25 },
+                                                { label: 'Centro (50%)', y: 50 },
+                                                { label: 'Bajo (75%)', y: 75 },
+                                                { label: 'Abajo (100%)', y: 100 },
+                                            ].map((p) => (
+                                                <button
+                                                    key={p.y}
+                                                    type="button"
+                                                    onClick={() => { setFotoPosY(p.y); if (fotoZoom === 1) setFotoZoom(1.2); }}
+                                                    className={`py-1 rounded text-[10px] font-medium transition-all text-center ${
+                                                        fotoPosY === p.y
+                                                            ? 'bg-blue-600 text-white font-bold'
+                                                            : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'
+                                                    }`}
+                                                >
+                                                    {p.label}
+                                                </button>
+                                            ))}
                                         </div>
                                     </div>
 
-                                    {/* Quick Presets */}
-                                    <div className="grid grid-cols-5 gap-1.5 pt-1">
-                                        {[
-                                            { label: 'Rostro (0%)', val: 'center 0%' },
-                                            { label: 'Alto (25%)', val: 'center 25%' },
-                                            { label: 'Centro (50%)', val: 'center 50%' },
-                                            { label: 'Bajo (75%)', val: 'center 75%' },
-                                            { label: 'Abajo (100%)', val: 'center 100%' },
-                                        ].map((preset) => (
-                                            <button
-                                                key={preset.val}
-                                                type="button"
-                                                onClick={() => setFotoPosicion(preset.val)}
-                                                className={`py-1.5 px-1 rounded-md text-[11px] font-medium transition-all text-center ${
-                                                    fotoPosicion === preset.val || (fotoPosicion === 'top' && preset.val === 'center 0%') || (fotoPosicion === 'center' && preset.val === 'center 50%') || (fotoPosicion === 'bottom' && preset.val === 'center 100%')
-                                                        ? 'bg-blue-600 text-white shadow-sm'
-                                                        : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'
-                                                }`}
-                                            >
-                                                {preset.label}
-                                            </button>
-                                        ))}
+                                    {/* 3. Horizontal Position Slider (X) */}
+                                    <div className="space-y-1 pt-1">
+                                        <div className="flex justify-between text-xs font-semibold text-gray-700">
+                                            <span>↔️ Posición Horizontal (Izquierda / Derecha)</span>
+                                            <span className="font-mono text-blue-600 font-bold">{fotoPosX}%</span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="100"
+                                            step="1"
+                                            value={fotoPosX}
+                                            onChange={(e) => setFotoPosX(parseInt(e.target.value, 10))}
+                                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                        />
+                                        <div className="grid grid-cols-3 gap-1 pt-1">
+                                            {[
+                                                { label: 'Izquierda (0%)', x: 0 },
+                                                { label: 'Centro (50%)', x: 50 },
+                                                { label: 'Derecha (100%)', x: 100 },
+                                            ].map((p) => (
+                                                <button
+                                                    key={p.x}
+                                                    type="button"
+                                                    onClick={() => { setFotoPosX(p.x); if (fotoZoom === 1) setFotoZoom(1.2); }}
+                                                    className={`py-1 rounded text-[10px] font-medium transition-all text-center ${
+                                                        fotoPosX === p.x
+                                                            ? 'bg-blue-600 text-white font-bold'
+                                                            : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'
+                                                    }`}
+                                                >
+                                                    {p.label}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -379,8 +457,12 @@ const GestionEquipo = () => {
                                                 <img
                                                     src={previewUrl}
                                                     alt="Preview"
-                                                    className="w-full h-full object-cover transition-all duration-300"
-                                                    style={{ objectPosition: fotoPosicion }}
+                                                    className="w-full h-full object-cover transition-transform duration-300"
+                                                    style={{
+                                                        objectPosition: `${fotoPosX}% ${fotoPosY}%`,
+                                                        transform: `scale(${fotoZoom})`,
+                                                        transformOrigin: `${fotoPosX}% ${fotoPosY}%`
+                                                    }}
                                                 />
                                             ) : (
                                                 <div className="w-full h-full flex flex-col items-center justify-center text-zinc-600 gap-2">
