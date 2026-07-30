@@ -27,11 +27,18 @@ const Home = () => {
 
             <HeroSection />
             <EssenceMarquee />
-            <FeaturedClasses />
-            <RoomRentalSection />
-            <SocialMediaSection />
-
-            <ContactSection />
+            <div style={{ contentVisibility: 'auto', containIntrinsicSize: '2200px' }}>
+                <FeaturedClasses />
+            </div>
+            <div style={{ contentVisibility: 'auto', containIntrinsicSize: '900px' }}>
+                <RoomRentalSection />
+            </div>
+            <div style={{ contentVisibility: 'auto', containIntrinsicSize: '700px' }}>
+                <SocialMediaSection />
+            </div>
+            <div style={{ contentVisibility: 'auto', containIntrinsicSize: '1200px' }}>
+                <ContactSection />
+            </div>
         </div>
     );
 };

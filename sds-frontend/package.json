@@ -6,7 +6,8 @@
         "dev": "vite --host",
         "build": "vite build",
         "preview": "vite preview",
-        "images:competition": "node scripts/generate-competition-images.mjs"
+        "images:competition": "node scripts/generate-competition-images.mjs",
+        "images:home": "node scripts/generate-home-images.mjs"
     },
     "dependencies": {
         "@headlessui/react": "^2.2.9",

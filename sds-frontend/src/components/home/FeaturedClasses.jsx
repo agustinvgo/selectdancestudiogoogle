@@ -7,50 +7,81 @@ const DISCIPLINES = [
     {
         title: 'BABY',
         img: '/baby-dance-palermo-select-dance-studio.webp',
+        optimized: 'baby',
         desc: '3 - 5 AÑOS',
         details: 'Etapa de iniciación donde se desarrolla la relación con el movimiento, la música y el espacio, favoreciendo la coordinación y la confianza corporal desde edades tempranas.'
     },
     {
         title: 'MINI',
         img: '/mini-danza-palermo-select-dance-studio.webp',
+        optimized: 'mini',
         desc: '6 - 8 AÑOS',
         details: 'Periodo de descubrimiento técnico en el que se incorporan nociones de ritmo, alineación y disciplina, estableciendo bases para la formación posterior.'
     },
     {
         title: 'JUNIOR',
         img: '/clase-junior-danza-palermo.webp',
+        optimized: 'junior',
         desc: '9 - 12 AÑOS',
         details: 'Fase de desarrollo en la que se consolida el control corporal, la musicalidad y la capacidad expresiva, acompañando el crecimiento técnico del estudiante.'
     },
     {
         title: 'TEEN',
         img: '/clase-teen-danza-palermo.webp',
+        optimized: 'teen',
         desc: '13 - 17 AÑOS',
         details: 'Etapa de profundización orientada al perfeccionamiento técnico, la resistencia física y la construcción de identidad escénica.'
     },
     {
         title: 'SENIOR',
         img: '/clase-senior-danza-palermo.webp',
+        optimized: 'senior',
         desc: '+ 18 AÑOS',
         details: 'Instancia de formación continua destinada a jóvenes y adultos que buscan sostener y perfeccionar su práctica con un enfoque técnico y consciente.'
     },
     {
         title: 'RECREATIVE',
         img: '/danza-recreativa-palermo-buenos-aires.webp',
+        optimized: 'recreative',
         desc: 'DESDE LOS 3 AÑOS',
         details: 'Programa diseñado para niñas y niños que desean aprender danza como actividad recreativa, hacer amigos y adquirir habilidades físicas sin la presión de competir. Se trabaja coordinación, ritmo, postura, imaginación y trabajo en grupo mediante actividades lúdicas y progresivas. Es ideal para quienes desean iniciarse en la danza como deporte artístico, disfrutar del proceso y formar parte de la comunidad del estudio en un ambiente relajado y motivador.'
     },
     {
         title: 'COMPETITION',
         img: '/competicion-danza-select-dance-studio-palermo.webp',
+        optimized: 'competition',
         desc: 'ENTRENAMIENTO DE ALTO RENDIMIENTO DESDE LOS 4 AÑOS',
         details: 'Programa selectivo destinado a alumnos con condiciones, potencial y proyección artística...',
         link: '/competition'
     }
 ];
 
+const ResponsiveDisciplineImage = ({ item, sizes }) => {
+    const base = `/optimized/home/${item.optimized}`;
+    const srcSet = (format) => [480, 768, 1280]
+        .map((width) => `${base}-${width}.${format} ${width}w`)
+        .join(', ');
+
+    return (
+        <picture>
+            <source type="image/avif" srcSet={srcSet('avif')} sizes={sizes} />
+            <source type="image/webp" srcSet={srcSet('webp')} sizes={sizes} />
+            <img
+                src={`${base}-768.webp`}
+                alt={item.title}
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 w-full h-full object-cover"
+            />
+        </picture>
+    );
+};
+
 const FlipCard = ({ item, className = "", height = "aspect-[4/5] sm:aspect-[3/4] min-h-[400px]" }) => {
     const [showDetails, setShowDetails] = useState(false);
+    const imageSizes = item.link
+        ? '(min-width: 1024px) 1280px, 100vw'
+        : '(min-width: 1024px) 420px, (min-width: 768px) 50vw, 100vw';
 
     if (item.link) {
         return (
@@ -58,7 +89,7 @@ const FlipCard = ({ item, className = "", height = "aspect-[4/5] sm:aspect-[3/4]
                 to={item.link}
                 className={`relative ${height} w-full block overflow-hidden rounded-2xl shadow-2xl ${className}`}
             >
-                <img src={item.img} alt={item.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+                <ResponsiveDisciplineImage item={item} sizes={imageSizes} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
                 <div className="absolute bottom-0 left-0 w-full p-8 z-10">
                     <div className="h-1 w-12 bg-red-500 mb-4 rounded-full" />
@@ -77,7 +108,7 @@ const FlipCard = ({ item, className = "", height = "aspect-[4/5] sm:aspect-[3/4]
             className={`relative ${height} w-full cursor-pointer overflow-hidden rounded-2xl shadow-2xl ${className}`}
             onClick={() => setShowDetails(!showDetails)}
         >
-            <img src={item.img} alt={item.title} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+            <ResponsiveDisciplineImage item={item} sizes={imageSizes} />
             <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
 
             {!showDetails ? (

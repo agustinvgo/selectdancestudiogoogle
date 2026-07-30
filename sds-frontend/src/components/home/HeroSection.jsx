@@ -1,18 +1,27 @@
 import { Link } from 'react-router-dom';
-import heroBg from '../../assets/hero_bg.jpg';
+
+const heroSources = {
+    avif: '/optimized/home/hero-640.avif 640w, /optimized/home/hero-1024.avif 1024w',
+    webp: '/optimized/home/hero-640.webp 640w, /optimized/home/hero-1024.webp 1024w',
+};
 
 const HeroSection = () => {
     return (
         <section className="relative w-full min-h-[100dvh] flex flex-col justify-center overflow-hidden">
             {/* Background: Ken Burns Effect on High-Res Image */}
             <div className="absolute inset-0 z-0">
-                <img
-                    src={heroBg}
-                    alt="Select Dance Studio Team"
-                    className="w-full h-full object-cover opacity-60 animate-ken-burns"
-                    fetchPriority="high"
-                    loading="eager"
-                />
+                <picture className="absolute inset-0 block">
+                    <source type="image/avif" srcSet={heroSources.avif} sizes="100vw" />
+                    <source type="image/webp" srcSet={heroSources.webp} sizes="100vw" />
+                    <img
+                        src="/optimized/home/hero-1024.webp"
+                        alt="Select Dance Studio Team"
+                        className="w-full h-full object-cover opacity-60 animate-ken-burns"
+                        fetchPriority="high"
+                        loading="eager"
+                        decoding="async"
+                    />
+                </picture>
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/70"></div>
             </div>
 

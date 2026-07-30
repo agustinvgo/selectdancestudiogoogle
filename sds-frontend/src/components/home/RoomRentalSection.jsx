@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
 const FAQS = [
@@ -50,8 +50,28 @@ const FAQItem = ({ q, a, isOpen, onToggle }) => (
 
 const RoomRentalSection = () => {
     const [openIndex, setOpenIndex] = useState(null);
+    const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
+    const videoContainerRef = useRef(null);
 
     const toggle = (i) => setOpenIndex(openIndex === i ? null : i);
+
+    useEffect(() => {
+        const container = videoContainerRef.current;
+        if (!container) return undefined;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setShouldLoadVideo(true);
+                    observer.disconnect();
+                }
+            },
+            { rootMargin: '400px 0px' },
+        );
+
+        observer.observe(container);
+        return () => observer.disconnect();
+    }, []);
 
     const whatsappMsg = encodeURIComponent('Hola! Me interesa consultar sobre el alquiler de salas en Select Dance Studio.');
     const whatsappUrl = `https://wa.me/message/ZNBV2CLWYU36H1?text=${whatsappMsg}`;
@@ -110,14 +130,17 @@ const RoomRentalSection = () => {
                         </div>
 
                         {/* Video de la sala */}
-                        <div className="relative w-full rounded-2xl overflow-hidden border border-zinc-800/60 shadow-2xl group">
+                        <div
+                            ref={videoContainerRef}
+                            className="relative w-full h-56 rounded-2xl overflow-hidden border border-zinc-800/60 shadow-2xl group bg-zinc-950"
+                        >
                             <video
-                                src="/sala.mp4"
-                                poster="/sala-danza.png"
-                                autoPlay
+                                src={shouldLoadVideo ? '/sala.mp4' : undefined}
+                                autoPlay={shouldLoadVideo}
                                 muted
                                 loop
                                 playsInline
+                                preload="none"
                                 className="w-full h-56 object-cover transition-transform duration-700 group-hover:scale-105"
                             />
                             {/* Overlay degradado */}

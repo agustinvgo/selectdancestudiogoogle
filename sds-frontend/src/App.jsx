@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import { Toaster } from 'react-hot-toast';
 import PrivateRoute from './components/PrivateRoute.jsx';
@@ -95,8 +95,11 @@ const ProtectedLayout = ({ children }) => {
 // Componente principal de rutas
 const AppRoutes = () => {
     const { user, loading } = useAuth();
+    const location = useLocation();
+    const publicPaths = ['/', '/cursos', '/competition', '/nosotros'];
+    const isPublicPath = publicPaths.includes(location.pathname);
 
-    if (loading) {
+    if (loading && !isPublicPath) {
         return <Loader />;
     }
 
