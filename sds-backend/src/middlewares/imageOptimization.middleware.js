@@ -23,23 +23,33 @@ const optimizeImage = (targetDir, prefix, width = 1000, height = null) => {
             const filename = `${prefix}-${uniqueSuffix}.webp`;
             const outputPath = path.join(uploadPath, filename);
 
-            let transform = sharp(req.file.buffer);
+            try {
+                let transform = sharp(req.file.buffer);
 
-            if (width || height) {
-                transform = transform.resize(width, height, {
-                    fit: height ? 'cover' : 'inside', // Si hay alto, recortamos. Si no, escalamos proporcional.
-                    withoutEnlargement: true
-                });
+                if (width || height) {
+                    transform = transform.resize(width, height, {
+                        fit: height ? 'cover' : 'inside', // Si hay alto, recortamos. Si no, escalamos proporcional.
+                        withoutEnlargement: true
+                    });
+                }
+
+                await transform
+                    .webp({ quality: 80 })
+                    .toFile(outputPath);
+
+                // Actualizar req.file para que el controlador guarde el nuevo nombre
+                req.file.filename = filename;
+                req.file.path = outputPath;
+                req.file.mimetype = 'image/webp';
+            } catch (sharpError) {
+                console.warn(`[optimizeImage] Sharp failed for ${prefix}, fallback to original:`, sharpError.message);
+                const ext = path.extname(req.file.originalname) || '.jpg';
+                const rawFilename = `${prefix}-${uniqueSuffix}${ext}`;
+                const rawOutputPath = path.join(uploadPath, rawFilename);
+                fs.writeFileSync(rawOutputPath, req.file.buffer);
+                req.file.filename = rawFilename;
+                req.file.path = rawOutputPath;
             }
-
-            await transform
-                .webp({ quality: 80 })
-                .toFile(outputPath);
-
-            // Actualizar req.file para que el controlador guarde el nuevo nombre
-            req.file.filename = filename;
-            req.file.path = outputPath;
-            req.file.mimetype = 'image/webp';
 
             next();
         } catch (error) {
