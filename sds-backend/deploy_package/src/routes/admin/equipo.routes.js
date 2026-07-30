@@ -7,23 +7,35 @@ const EquipoController = require('../../controllers/admin/equipo.controller');
 const { verifyToken, isAdmin } = require('../../middlewares/auth.middleware');
 const { cacheMiddleware, invalidateCache } = require('../../middlewares/cache.middleware');
 
-// Configuracion de Multer: memoria para que Sharp pueda procesar el buffer
-const storage = multer.memoryStorage();
-const upload = multer({
-    storage: storage,
-    limits: { fileSize: 15 * 1024 * 1024 } // 15MB limit
+// Crear directorio si no existe
+const uploadDir = path.join(__dirname, '../../uploads/equipo');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Multer: guardar directamente en disco en uploads/equipo/
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname) || '.jpg';
+        cb(null, `equipo-${uniqueSuffix}${ext}`);
+    }
 });
 
-// Middleware de optimizacion de imagen (Sharp -> WebP)
-const optimizeImage = require('../../middlewares/imageOptimization.middleware');
-const compressEquipmentImage = optimizeImage('../../uploads/equipo', 'equipo', 800, 800);
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 15 * 1024 * 1024 } // 15MB
+});
 
 // Rutas Publicas
 router.get('/', cacheMiddleware('equipo-list', 300), EquipoController.getAll);
 
 // Rutas Protegidas (Solo Admin)
-router.post('/', verifyToken, isAdmin, upload.single('foto'), compressEquipmentImage, invalidateCache('equipo-list'), EquipoController.create);
-router.put('/:id', verifyToken, isAdmin, upload.single('foto'), compressEquipmentImage, invalidateCache('equipo-list'), EquipoController.update);
+router.post('/', verifyToken, isAdmin, upload.single('foto'), invalidateCache('equipo-list'), EquipoController.create);
+router.put('/:id', verifyToken, isAdmin, upload.single('foto'), invalidateCache('equipo-list'), EquipoController.update);
 router.delete('/:id', verifyToken, isAdmin, invalidateCache('equipo-list'), EquipoController.delete);
 
 module.exports = router;

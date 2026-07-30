@@ -164,16 +164,19 @@ const GestionEquipo = () => {
         }
     };
 
+    const cleanStr = (val) => (val && val !== 'null' && val !== 'undefined') ? val : '';
+
     const handleEdit = (miembro) => {
         setEditingId(miembro.id);
-        setNombre(miembro.nombre);
-        setCargo(miembro.cargo);
-        setDescripcion(miembro.descripcion);
+        setNombre(cleanStr(miembro.nombre));
+        setCargo(cleanStr(miembro.cargo));
+        setDescripcion(cleanStr(miembro.descripcion));
         const pos = parseFotoPosicion(miembro.foto_posicion);
         setFotoPosX(pos.x);
         setFotoPosY(pos.y);
         setFotoZoom(pos.zoom);
-        setPreviewUrl(miembro.foto_url ? `${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${miembro.foto_url}` : null);
+        setPreviewUrl(miembro.foto_url && miembro.foto_url !== 'null' ? `${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${miembro.foto_url}` : null);
+        setFoto(null);
         setModalOpen(true);
     };
 
@@ -263,8 +266,12 @@ const GestionEquipo = () => {
                                 </div>
                                 <div className="p-4">
                                     <h3 className="text-xl font-bold text-gray-900">{miembro.nombre}</h3>
-                                    <p className="text-blue-400 text-sm font-medium mb-2">{miembro.cargo}</p>
-                                    <p className="text-gray-500 text-sm line-clamp-3 mb-4">{miembro.descripcion}</p>
+                                    {miembro.cargo && miembro.cargo !== 'null' && (
+                                        <p className="text-blue-400 text-sm font-medium mb-2">{miembro.cargo}</p>
+                                    )}
+                                    {miembro.descripcion && miembro.descripcion !== 'null' && (
+                                        <p className="text-gray-500 text-sm line-clamp-3 mb-4">{miembro.descripcion}</p>
+                                    )}
                                     <div className="flex justify-end gap-2">
                                         <button
                                             onClick={() => handleEdit(miembro)}
