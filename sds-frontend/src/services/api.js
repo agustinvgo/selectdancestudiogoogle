@@ -190,8 +190,12 @@ export const gastosAPI = {
 // ===== EQUIPO (Quienes Somos) =====
 export const equipoAPI = {
     getAll: () => api.get('/equipo'),
-    create: (formData) => api.post('/equipo', formData),
-    update: (id, formData) => api.put(`/equipo/${id}`, formData),
+    create: (data) => api.post('/equipo', data, {
+        headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : undefined
+    }),
+    update: (id, data) => api.put(`/equipo/${id}`, data, {
+        headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : undefined
+    }),
     delete: (id) => api.delete(`/equipo/${id}`),
 };
 

@@ -211,8 +211,7 @@ const GestionEquipo = () => {
     };
 
     return (
-        <div className="space-y-6">
-            <Toaster position="top-right" />
+        <div className="p-4 md:p-8 max-w-7xl mx-auto">
 
             <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <h1 className="text-2xl font-bold text-gray-900">Miembros del Equipo</h1>
