@@ -27,6 +27,16 @@ const parseFotoPosicion = (posStr) => {
     }
 };
 
+const getFotoStyle = (posStr) => {
+    const pos = parseFotoPosicion(posStr);
+    const tx = (pos.x - 50) * 0.5;
+    const ty = (pos.y - 50) * 0.5;
+    return {
+        objectFit: 'cover',
+        transform: `scale(${pos.zoom}) translate(${tx}%, ${ty}%)`
+    };
+};
+
 const QuienesSomos = () => {
     const [team, setTeam] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -91,11 +101,7 @@ const QuienesSomos = () => {
                                                     src={`${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${member.foto_url}`}
                                                     alt={member.nombre}
                                                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-300"
-                                                    style={{
-                                                        objectPosition: `${pos.x}% ${pos.y}%`,
-                                                        transform: `scale(${pos.zoom})`,
-                                                        transformOrigin: `${pos.x}% ${pos.y}%`
-                                                    }}
+                                                    style={getFotoStyle(member.foto_posicion)}
                                                     loading="lazy"
                                                 />
                                             ) : (

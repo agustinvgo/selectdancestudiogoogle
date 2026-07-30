@@ -15,8 +15,8 @@ const parseFotoPosicion = (posStr) => {
             const parsed = JSON.parse(posStr);
             return { x: Number(parsed.x) ?? 50, y: Number(parsed.y) ?? 50, zoom: Number(parsed.zoom) ?? 1 };
         }
-        if (posStr === 'top') return { x: 50, y: 0, zoom: 1 };
-        if (posStr === 'bottom') return { x: 50, y: 100, zoom: 1 };
+        if (posStr === 'top') return { x: 50, y: 75, zoom: 1.2 };
+        if (posStr === 'bottom') return { x: 50, y: 25, zoom: 1.2 };
         if (posStr === 'center') return { x: 50, y: 50, zoom: 1 };
         const parts = String(posStr).trim().split(/\s+/);
         let x = 50, y = 50, zoom = 1;
@@ -27,6 +27,26 @@ const parseFotoPosicion = (posStr) => {
     } catch (e) {
         return { x: 50, y: 50, zoom: 1 };
     }
+};
+
+const getFotoStyle = (posStr) => {
+    const pos = parseFotoPosicion(posStr);
+    const tx = (pos.x - 50) * 0.5;
+    const ty = (pos.y - 50) * 0.5;
+    return {
+        objectFit: 'cover',
+        transform: `scale(${pos.zoom}) translate(${tx}%, ${ty}%)`
+    };
+};
+
+const getLivePreviewStyle = (x, y, zoom) => {
+    const tx = (x - 50) * 0.5;
+    const ty = (y - 50) * 0.5;
+    return {
+        objectFit: 'cover',
+        transform: `scale(${zoom}) translate(${tx}%, ${ty}%)`,
+        transition: 'transform 0.15s ease-out'
+    };
 };
 
 const GestionEquipo = () => {
@@ -216,11 +236,7 @@ const GestionEquipo = () => {
                                             src={`${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${miembro.foto_url}`}
                                             alt={miembro.nombre}
                                             className="w-full h-full object-cover"
-                                            style={{
-                                                objectPosition: `${pos.x}% ${pos.y}%`,
-                                                transform: `scale(${pos.zoom})`,
-                                                transformOrigin: `${pos.x}% ${pos.y}%`
-                                            }}
+                                            style={getFotoStyle(miembro.foto_posicion)}
                                         />
                                     ) : (
                                         <div className="flex items-center justify-center h-full text-gray-500">
@@ -378,19 +394,17 @@ const GestionEquipo = () => {
                                             onChange={(e) => setFotoPosY(parseInt(e.target.value, 10))}
                                             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                                         />
-                                        <div className="grid grid-cols-5 gap-1 pt-1">
+                                        <div className="grid grid-cols-3 gap-1 pt-1">
                                             {[
-                                                { label: 'Rostro (0%)', y: 0 },
-                                                { label: 'Alto (25%)', y: 25 },
-                                                { label: 'Centro (50%)', y: 50 },
-                                                { label: 'Bajo (75%)', y: 75 },
-                                                { label: 'Abajo (100%)', y: 100 },
+                                                { label: '⬇️ Bajar Foto (Centrar Rostro)', y: 75 },
+                                                { label: '🎯 Centro (50%)', y: 50 },
+                                                { label: '⬆️ Subir Foto (Ver Torso)', y: 25 },
                                             ].map((p) => (
                                                 <button
                                                     key={p.y}
                                                     type="button"
-                                                    onClick={() => { setFotoPosY(p.y); if (fotoZoom === 1) setFotoZoom(1.2); }}
-                                                    className={`py-1 rounded text-[10px] font-medium transition-all text-center ${
+                                                    onClick={() => { setFotoPosY(p.y); if (fotoZoom === 1 && p.y !== 50) setFotoZoom(1.25); }}
+                                                    className={`py-1.5 px-1 rounded text-[10px] font-medium transition-all text-center ${
                                                         fotoPosY === p.y
                                                             ? 'bg-blue-600 text-white font-bold'
                                                             : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'
@@ -419,14 +433,14 @@ const GestionEquipo = () => {
                                         />
                                         <div className="grid grid-cols-3 gap-1 pt-1">
                                             {[
-                                                { label: 'Izquierda (0%)', x: 0 },
+                                                { label: 'Izquierda', x: 25 },
                                                 { label: 'Centro (50%)', x: 50 },
-                                                { label: 'Derecha (100%)', x: 100 },
+                                                { label: 'Derecha', x: 75 },
                                             ].map((p) => (
                                                 <button
                                                     key={p.x}
                                                     type="button"
-                                                    onClick={() => { setFotoPosX(p.x); if (fotoZoom === 1) setFotoZoom(1.2); }}
+                                                    onClick={() => { setFotoPosX(p.x); if (fotoZoom === 1 && p.x !== 50) setFotoZoom(1.25); }}
                                                     className={`py-1 rounded text-[10px] font-medium transition-all text-center ${
                                                         fotoPosX === p.x
                                                             ? 'bg-blue-600 text-white font-bold'
@@ -463,11 +477,7 @@ const GestionEquipo = () => {
                                                     src={previewUrl}
                                                     alt="Preview"
                                                     className="w-full h-full object-cover transition-transform duration-300"
-                                                    style={{
-                                                        objectPosition: `${fotoPosX}% ${fotoPosY}%`,
-                                                        transform: `scale(${fotoZoom})`,
-                                                        transformOrigin: `${fotoPosX}% ${fotoPosY}%`
-                                                    }}
+                                                    style={getLivePreviewStyle(fotoPosX, fotoPosY, fotoZoom)}
                                                 />
                                             ) : (
                                                 <div className="w-full h-full flex flex-col items-center justify-center text-zinc-600 gap-2">
