@@ -532,7 +532,8 @@ Select Dance Studio`;
                     u.id as profesor_id,
                     u.telefono as profesor_telefono
                 FROM cursos c
-                LEFT JOIN usuarios u ON c.profesor_id = u.id
+                LEFT JOIN curso_profesores cp ON cp.curso_id = c.id
+                LEFT JOIN usuarios u ON u.id = COALESCE(cp.profesor_id, c.profesor_id)
                 WHERE c.dia_semana = ? AND c.activo = 1
                 ORDER BY c.hora_inicio
             `, [hoy]);

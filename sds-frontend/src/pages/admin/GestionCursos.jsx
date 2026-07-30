@@ -35,7 +35,7 @@ const GestionCursos = () => {
         horario_hora: '18:00',
         duracion_minutos: 60,
         cupo_maximo: 15,
-        profesor_id: '',
+        profesor_ids: [],
         activo: true,
         es_publico: true
     });
@@ -168,7 +168,9 @@ const GestionCursos = () => {
                 horario_hora: curso.horario_hora || '18:00',
                 duracion_minutos: curso.duracion_minutos || 60,
                 cupo_maximo: curso.cupo_maximo || 15,
-                profesor_id: curso.profesor_id || '',
+                profesor_ids: Array.isArray(curso.profesor_ids)
+                    ? curso.profesor_ids
+                    : (curso.profesor_id ? [Number(curso.profesor_id)] : []),
                 activo: curso.activo !== 0,
                 es_publico: curso.es_publico !== undefined ? curso.es_publico !== 0 : true
             });
@@ -184,7 +186,7 @@ const GestionCursos = () => {
                 horario_hora: '18:00',
                 duracion_minutos: 60,
                 cupo_maximo: 15,
-                profesor_id: '',
+                profesor_ids: [],
                 activo: true,
                 es_publico: true
             });

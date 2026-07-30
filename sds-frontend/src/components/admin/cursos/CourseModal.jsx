@@ -122,25 +122,14 @@ const CourseModal = ({
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Profesor</label>
-                        <select
-                            value={formData.profesor_id || ""}
-                            onChange={(e) => {
-                                const selectedId = e.target.value;
-                                setFormData({
-                                    ...formData,
-                                    profesor_id: selectedId ? parseInt(selectedId) : null
-                                });
-                            }}
-                            className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:ring-2 focus:ring-black focus:border-transparent outline-none"
-                        >
-                            <option value="">Seleccionar Profesor</option>
-                            {profesores.map(prof => (
-                                <option key={prof.id} value={prof.id}>
-                                    {prof.nombre} {prof.apellido}
-                                </option>
-                            ))}
-                        </select>
+                        <MultiSelect
+                            label="Profesores"
+                            options={profesores}
+                            selected={formData.profesor_ids}
+                            onChange={(value) => setFormData({ ...formData, profesor_ids: value })}
+                            getOptionValue={(profesor) => profesor.id}
+                            getOptionLabel={(profesor) => `${profesor.nombre || ''} ${profesor.apellido || ''}`.trim()}
+                        />
                     </div>
                 </div>
 

@@ -86,10 +86,10 @@ const MisClases = () => {
                                         </span>
                                     </div>
 
-                                    {curso.profesor && (
+                                    {(curso.profesores || curso.profesor) && (
                                         <div className="pt-3 border-t border-gray-200">
-                                            <p className="text-sm text-gray-500">Profesor</p>
-                                            <p className="text-gray-900 font-medium">{curso.profesor}</p>
+                                            <p className="text-sm text-gray-500">Profesores</p>
+                                            <p className="text-gray-900 font-medium">{curso.profesores || curso.profesor}</p>
                                         </div>
                                     )}
                                 </div>

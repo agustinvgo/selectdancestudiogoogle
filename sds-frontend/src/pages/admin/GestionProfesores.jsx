@@ -47,10 +47,11 @@ const GestionProfesores = () => {
     // --- Mutations ---
     const createProfesorMutation = useMutation({
         mutationFn: (data) => usuariosAPI.createProfesor(data),
-        onSuccess: () => {
-            queryClient.invalidateQueries(['profesores']);
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['profesores'] });
             toast.success('Profesor creado exitosamente');
             setModalOpen(false);
+            setEditando(null);
         },
         onError: (error) => {
             console.error('Error creando profesor:', error);
@@ -61,10 +62,11 @@ const GestionProfesores = () => {
 
     const updateProfesorMutation = useMutation({
         mutationFn: ({ id, data }) => usuariosAPI.updateProfesor(id, data),
-        onSuccess: () => {
-            queryClient.invalidateQueries(['profesores']);
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['profesores'] });
             toast.success('Profesor actualizado correctamente');
             setModalOpen(false);
+            setEditando(null);
         },
         onError: (error) => {
             console.error('Error actualizando profesor:', error);
@@ -75,8 +77,8 @@ const GestionProfesores = () => {
 
     const deleteProfesorMutation = useMutation({
         mutationFn: (id) => usuariosAPI.deleteProfesor(id),
-        onSuccess: () => {
-            queryClient.invalidateQueries(['profesores']);
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['profesores'] });
             toast.success('Profesor eliminado correctamente');
         },
         onError: (error) => {
@@ -110,17 +112,28 @@ const GestionProfesores = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (editando) {
-            // Encolar para no saturar el backend
-            enqueue(() => updateProfesorMutation.mutateAsync({ id: editando.id, data: formData }));
-        } else {
-            if (!formData.password) {
-                toast.error('La contraseña es requerida para nuevos profesores');
-                return;
+
+        const data = {
+            nombre: formData.nombre.trim(),
+            apellido: formData.apellido.trim(),
+            email: formData.email.trim().toLowerCase(),
+            ...(formData.password ? { password: formData.password } : {})
+        };
+
+        try {
+            if (editando) {
+                // Esperar la respuesta evita cerrar el formulario si el backend rechaza el email.
+                await enqueue(() => updateProfesorMutation.mutateAsync({ id: editando.id, data }));
+            } else {
+                if (!formData.password) {
+                    toast.error('La contraseña es requerida para nuevos profesores');
+                    return;
+                }
+                await enqueue(() => createProfesorMutation.mutateAsync(data));
             }
-            enqueue(() => createProfesorMutation.mutateAsync(formData));
+        } catch (_) {
+            // useMutation muestra el mensaje correspondiente y conserva el modal abierto.
         }
-        setModalOpen(false);
     };
 
     const eliminarProfesor = (id) => {
@@ -248,13 +261,12 @@ const GestionProfesores = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-600 mb-1">Apellido</label>
+                            <label className="block text-sm font-medium text-gray-600 mb-1">Apellido (opcional)</label>
                             <input
                                 type="text"
                                 value={formData.apellido}
                                 onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
                                 className="input w-full bg-gray-100 border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-blue-500"
-                                required
                             />
                         </div>
                     </div>

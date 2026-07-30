@@ -108,6 +108,7 @@ const CursosPublicos = () => {
             const term = search.toUpperCase();
             results = results.filter(c =>
                 c.nombre.toUpperCase().includes(term) ||
+                (c.profesores && c.profesores.toUpperCase().includes(term)) ||
                 (c.nombre_profesor && c.nombre_profesor.toUpperCase().includes(term)) ||
                 (c.apellido_profesor && c.apellido_profesor.toUpperCase().includes(term))
             );

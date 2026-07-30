@@ -87,20 +87,35 @@ const UsuariosController = {
         try {
             const { id } = req.params;
             const { nombre, apellido, email, password } = req.body;
+            const profesorId = Number.parseInt(id, 10);
+            const nombreNormalizado = typeof nombre === 'string' ? nombre.trim() : '';
+            const apellidoNormalizado = typeof apellido === 'string' ? apellido.trim() : '';
+            const emailNormalizado = typeof email === 'string' ? email.trim().toLowerCase() : '';
 
             // Fix #9: validar inputs antes de actualizar
-            if (!nombre || nombre.trim() === '') {
+            if (!Number.isInteger(profesorId) || profesorId <= 0) {
+                return res.status(400).json({ success: false, message: 'Profesor inválido' });
+            }
+            if (!nombreNormalizado) {
                 return res.status(400).json({ success: false, message: 'El nombre es requerido' });
             }
-            if (!apellido || apellido.trim() === '') {
-                return res.status(400).json({ success: false, message: 'El apellido es requerido' });
-            }
-            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            if (!emailNormalizado || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNormalizado)) {
                 return res.status(400).json({ success: false, message: 'Email inválido' });
             }
 
+            const [emailExistente] = await db.query(
+                'SELECT id FROM usuarios WHERE email = ? AND id <> ? LIMIT 1',
+                [emailNormalizado, profesorId]
+            );
+            if (emailExistente.length > 0) {
+                return res.status(409).json({
+                    success: false,
+                    message: 'El email ya está registrado por otro usuario'
+                });
+            }
+
             let query = 'UPDATE usuarios SET nombre = ?, apellido = ?, email = ?';
-            let params = [nombre.trim(), apellido.trim(), email.trim()];
+            let params = [nombreNormalizado, apellidoNormalizado, emailNormalizado];
 
             if (password) {
                 const password_hash = await bcrypt.hash(password, 10);
@@ -109,7 +124,7 @@ const UsuariosController = {
             }
 
             query += ' WHERE id = ? AND rol = "profesor"';
-            params.push(id);
+            params.push(profesorId);
 
             // Fix #4: verificar si se actualizó algo
             const [result] = await db.query(query, params);
@@ -123,6 +138,12 @@ const UsuariosController = {
             });
         } catch (error) {
             console.error('Error en updateProfesor:', error);
+            if (error.code === 'ER_DUP_ENTRY') {
+                return res.status(409).json({
+                    success: false,
+                    message: 'El email ya está registrado por otro usuario'
+                });
+            }
             res.status(500).json({
                 success: false,
                 message: 'Error al actualizar profesor',

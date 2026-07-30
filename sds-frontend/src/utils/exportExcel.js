@@ -132,7 +132,7 @@ export const exportCursos = async (cursos) => {
         'Día': curso.horario_dia,
         'Hora': curso.horario_hora,
         'Duración (min)': curso.duracion_minutos,
-        'Profesor': curso.profesor || '-',
+        'Profesores': curso.profesores || curso.profesor || '-',
         'Cupo Máximo': curso.cupo_maximo,
         'Alumnos Inscritos': curso.alumnos_count || curso.inscritos?.length || 0,
         'Activo': curso.activo ? 'Sí' : 'No'

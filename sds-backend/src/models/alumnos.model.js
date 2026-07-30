@@ -134,9 +134,10 @@ const AlumnosModel = {
                 INNER JOIN usuarios u ON a.usuario_id = u.id
                 INNER JOIN inscripciones_curso ic ON a.id = ic.alumno_id
                 INNER JOIN cursos c ON ic.curso_id = c.id
-                WHERE c.profesor_id = ? AND ic.activo = 1
+                LEFT JOIN curso_profesores cp ON cp.curso_id = c.id
+                WHERE (c.profesor_id = ? OR cp.profesor_id = ?) AND ic.activo = 1
                 ORDER BY u.apellido, u.nombre
-            `, [profesorId]);
+            `, [profesorId, profesorId]);
             return rows;
         } catch (error) {
             throw error;

@@ -101,7 +101,7 @@ const CursosController = {
     // Crear curso
     async create(req, res) {
         try {
-            const { nombre, descripcion, nivel, horario_dia, horario_hora, duracion_minutos, cupo_maximo, profesor, profesor_id, activo, url_clase_vivo } = req.body;
+            const { nombre, descripcion, nivel, horario_dia, horario_hora, duracion_minutos, cupo_maximo, profesor, profesor_id, profesor_ids, activo, url_clase_vivo } = req.body;
 
             // Validar campos requeridos
             if (!nombre || !horario_dia || !horario_hora || !duracion_minutos) {
@@ -124,6 +124,7 @@ const CursosController = {
                 descripcion: descripcion || null,
                 profesor: profesor || null,
                 profesor_id: profesor_id || null,
+                profesor_ids: Array.isArray(profesor_ids) ? profesor_ids : (profesor_id ? [profesor_id] : []),
                 nivel: nivel || '1',
                 categoria: req.body.categoria || 'Junior',
                 tipo: req.body.tipo || 'Recreative',
@@ -156,7 +157,7 @@ const CursosController = {
     async update(req, res) {
         try {
             const { id } = req.params;
-            const { nombre, descripcion, nivel, horario_dia, horario_hora, duracion_minutos, cupo_maximo, profesor, profesor_id, activo, categoria, tipo, url_clase_vivo } = req.body;
+            const { nombre, descripcion, nivel, horario_dia, horario_hora, duracion_minutos, cupo_maximo, profesor, profesor_id, profesor_ids, activo, categoria, tipo, url_clase_vivo } = req.body;
 
             // Verificar que el curso existe
             const cursoExistente = await CursosModel.findById(id);
@@ -187,6 +188,7 @@ const CursosController = {
                 descripcion: descripcion || null,
                 profesor: profesor || null,
                 profesor_id: profesor_id || null,
+                profesor_ids: Array.isArray(profesor_ids) ? profesor_ids : (profesor_id ? [profesor_id] : []),
                 nivel: nivel || '1',
                 categoria: categoria || 'Junior',
                 tipo: tipo || 'Recreative',
