@@ -2,37 +2,7 @@ import { useState, useEffect } from 'react';
 import { equipoAPI, getMediaUrl } from '../../services/api';
 import PageSEO from '../../components/SEO/PageSEO';
 import SchemaBreadcrumb from '../../components/SEO/SchemaBreadcrumb';
-
-const parseFotoPosicion = (posStr) => {
-    if (!posStr) return { position: 'center', scale: 1 };
-    try {
-        if (typeof posStr === 'object' && posStr !== null) {
-            return {
-                position: `${posStr.x ?? 50}% ${posStr.y ?? 50}%`,
-                scale: Number(posStr.zoom) || 1
-            };
-        }
-        if (typeof posStr === 'string' && posStr.trim().startsWith('{')) {
-            const parsed = JSON.parse(posStr);
-            return {
-                position: `${parsed.x ?? 50}% ${parsed.y ?? 50}%`,
-                scale: Number(parsed.zoom) || 1
-            };
-        }
-        return { position: String(posStr), scale: 1 };
-    } catch (e) {
-        return { position: 'center', scale: 1 };
-    }
-};
-
-const getFotoStyle = (posStr) => {
-    const { position, scale } = parseFotoPosicion(posStr);
-    return {
-        objectFit: 'cover',
-        objectPosition: position,
-        transform: scale !== 1 ? `scale(${scale})` : undefined
-    };
-};
+import { getPhotoCropStyle } from '../../utils/photoPosition';
 
 const QuienesSomos = () => {
     const [team, setTeam] = useState([]);
@@ -82,9 +52,7 @@ const QuienesSomos = () => {
                     </div>
                 ) : (
                     <div className="space-y-12 md:space-y-16">
-                        {team.map((member) => {
-                            const pos = parseFotoPosicion(member.foto_posicion);
-                            return (
+                        {team.map((member) => (
                                 <div 
                                     key={member.id} 
                                     className="bg-zinc-900/40 border border-zinc-800/70 rounded-2xl p-6 md:p-8 lg:p-10 backdrop-blur-sm shadow-xl flex flex-col md:flex-row gap-8 lg:gap-12 items-start group hover:border-zinc-700/80 transition-all duration-300"
@@ -98,7 +66,7 @@ const QuienesSomos = () => {
                                                     src={getMediaUrl(member.foto_url)}
                                                     alt={member.nombre}
                                                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-300"
-                                                    style={getFotoStyle(member.foto_posicion)}
+                                                    style={getPhotoCropStyle(member.foto_posicion)}
                                                     loading="lazy"
                                                 />
                                             ) : (
@@ -137,8 +105,7 @@ const QuienesSomos = () => {
                                     </div>
                                 </div>
                             </div>
-                        );
-                    })}
+                        ))}
                     </div>
                 )}
 

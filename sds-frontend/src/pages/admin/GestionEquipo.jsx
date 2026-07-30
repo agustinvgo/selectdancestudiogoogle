@@ -4,47 +4,11 @@ import { equipoAPI, getMediaUrl } from '../../services/api';
 import { Toaster, toast } from 'react-hot-toast';
 import { PlusIcon, PencilIcon, TrashIcon, XMarkIcon, PhotoIcon } from '@heroicons/react/24/outline';
 import Swal from 'sweetalert2';
-
-const parseFotoPosicion = (posStr) => {
-    if (!posStr) return { x: 50, y: 50, zoom: 1 };
-    try {
-        if (typeof posStr === 'object' && posStr !== null) {
-            return { x: Number(posStr.x) ?? 50, y: Number(posStr.y) ?? 50, zoom: Number(posStr.zoom) ?? 1 };
-        }
-        if (typeof posStr === 'string' && posStr.trim().startsWith('{')) {
-            const parsed = JSON.parse(posStr);
-            return { x: Number(parsed.x) ?? 50, y: Number(parsed.y) ?? 50, zoom: Number(parsed.zoom) ?? 1 };
-        }
-        if (posStr === 'top') return { x: 50, y: 75, zoom: 1.2 };
-        if (posStr === 'bottom') return { x: 50, y: 25, zoom: 1.2 };
-        if (posStr === 'center') return { x: 50, y: 50, zoom: 1 };
-        const parts = String(posStr).trim().split(/\s+/);
-        let x = 50, y = 50, zoom = 1;
-        if (parts.length >= 1 && parts[0].includes('%')) x = parseInt(parts[0], 10);
-        if (parts.length >= 2 && parts[1].includes('%')) y = parseInt(parts[1], 10);
-        if (parts.length >= 3) zoom = parseFloat(parts[2]) || 1;
-        return { x: isNaN(x) ? 50 : x, y: isNaN(y) ? 50 : y, zoom: isNaN(zoom) ? 1 : zoom };
-    } catch (e) {
-        return { x: 50, y: 50, zoom: 1 };
-    }
-};
-
-const getFotoStyle = (posStr) => {
-    const pos = parseFotoPosicion(posStr);
-    const tx = (pos.x - 50) * 0.5;
-    const ty = (pos.y - 50) * 0.5;
-    return {
-        objectFit: 'cover',
-        transform: `scale(${pos.zoom}) translate(${tx}%, ${ty}%)`
-    };
-};
+import { getPhotoCropStyle, parsePhotoPosition } from '../../utils/photoPosition';
 
 const getLivePreviewStyle = (x, y, zoom) => {
-    const tx = (x - 50) * 0.5;
-    const ty = (y - 50) * 0.5;
     return {
-        objectFit: 'cover',
-        transform: `scale(${zoom}) translate(${tx}%, ${ty}%)`,
+        ...getPhotoCropStyle({ x, y, zoom }),
         transition: 'transform 0.15s ease-out'
     };
 };
@@ -171,7 +135,7 @@ const GestionEquipo = () => {
         setNombre(cleanStr(miembro.nombre));
         setCargo(cleanStr(miembro.cargo));
         setDescripcion(cleanStr(miembro.descripcion));
-        const pos = parseFotoPosicion(miembro.foto_posicion);
+        const pos = parsePhotoPosition(miembro.foto_posicion);
         setFotoPosX(pos.x);
         setFotoPosY(pos.y);
         setFotoZoom(pos.zoom);
@@ -246,7 +210,7 @@ const GestionEquipo = () => {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {miembros.map((miembro) => {
-                        const pos = parseFotoPosicion(miembro.foto_posicion);
+                        const pos = parsePhotoPosition(miembro.foto_posicion);
                         return (
                             <div key={miembro.id} className="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-lg">
                                 <div className="aspect-square w-full bg-gray-100 relative overflow-hidden">
@@ -255,7 +219,7 @@ const GestionEquipo = () => {
                                             src={getMediaUrl(miembro.foto_url)}
                                             alt={miembro.nombre}
                                             className="w-full h-full object-cover"
-                                            style={getFotoStyle(miembro.foto_posicion)}
+                                            style={getPhotoCropStyle(miembro.foto_posicion)}
                                         />
                                     ) : (
                                         <div className="flex items-center justify-center h-full text-gray-500">
