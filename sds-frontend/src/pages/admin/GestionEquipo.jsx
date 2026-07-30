@@ -82,7 +82,7 @@ const GestionEquipo = () => {
 
     // 2. Mutations
     const createMutation = useMutation({
-        mutationFn: (formData) => equipoAPI.create(formData),
+        mutationFn: (data) => equipoAPI.create(data),
         onSuccess: () => {
             queryClient.invalidateQueries(['equipo']);
             toast.success(`${nombre} agregado al equipo`);
@@ -96,10 +96,10 @@ const GestionEquipo = () => {
     });
 
     const updateMutation = useMutation({
-        mutationFn: ({ id, formData }) => equipoAPI.update(id, formData),
+        mutationFn: ({ id, data }) => equipoAPI.update(id, data),
         onSuccess: () => {
             queryClient.invalidateQueries(['equipo']);
-            toast.success(`${nombre} actualizado`);
+            toast.success(`${nombre} actualizado correctamente`);
             resetForm();
         },
         onError: (error) => {
@@ -133,17 +133,34 @@ const GestionEquipo = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const formData = new FormData();
-        formData.append('nombre', nombre);
-        formData.append('cargo', cargo);
-        formData.append('descripcion', descripcion);
-        formData.append('foto_posicion', JSON.stringify({ x: fotoPosX, y: fotoPosY, zoom: fotoZoom }));
-        if (foto) formData.append('foto', foto);
+        const fotoPosicionStr = JSON.stringify({ x: fotoPosX, y: fotoPosY, zoom: fotoZoom });
 
-        if (editingId) {
-            updateMutation.mutate({ id: editingId, formData });
+        if (foto) {
+            const formData = new FormData();
+            formData.append('nombre', nombre);
+            formData.append('cargo', cargo);
+            formData.append('descripcion', descripcion);
+            formData.append('foto_posicion', fotoPosicionStr);
+            formData.append('foto', foto);
+
+            if (editingId) {
+                updateMutation.mutate({ id: editingId, data: formData });
+            } else {
+                createMutation.mutate(formData);
+            }
         } else {
-            createMutation.mutate(formData);
+            const payload = {
+                nombre,
+                cargo,
+                descripcion,
+                foto_posicion: fotoPosicionStr
+            };
+
+            if (editingId) {
+                updateMutation.mutate({ id: editingId, data: payload });
+            } else {
+                createMutation.mutate(payload);
+            }
         }
     };
 

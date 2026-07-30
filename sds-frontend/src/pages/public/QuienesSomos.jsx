@@ -4,36 +4,33 @@ import PageSEO from '../../components/SEO/PageSEO';
 import SchemaBreadcrumb from '../../components/SEO/SchemaBreadcrumb';
 
 const parseFotoPosicion = (posStr) => {
-    if (!posStr) return { x: 50, y: 50, zoom: 1 };
+    if (!posStr) return { position: 'center', scale: 1 };
     try {
         if (typeof posStr === 'object' && posStr !== null) {
-            return { x: Number(posStr.x) ?? 50, y: Number(posStr.y) ?? 50, zoom: Number(posStr.zoom) ?? 1 };
+            return {
+                position: `${posStr.x ?? 50}% ${posStr.y ?? 50}%`,
+                scale: Number(posStr.zoom) || 1
+            };
         }
         if (typeof posStr === 'string' && posStr.trim().startsWith('{')) {
             const parsed = JSON.parse(posStr);
-            return { x: Number(parsed.x) ?? 50, y: Number(parsed.y) ?? 50, zoom: Number(parsed.zoom) ?? 1 };
+            return {
+                position: `${parsed.x ?? 50}% ${parsed.y ?? 50}%`,
+                scale: Number(parsed.zoom) || 1
+            };
         }
-        if (posStr === 'top') return { x: 50, y: 0, zoom: 1 };
-        if (posStr === 'bottom') return { x: 50, y: 100, zoom: 1 };
-        if (posStr === 'center') return { x: 50, y: 50, zoom: 1 };
-        const parts = String(posStr).trim().split(/\s+/);
-        let x = 50, y = 50, zoom = 1;
-        if (parts.length >= 1 && parts[0].includes('%')) x = parseInt(parts[0], 10);
-        if (parts.length >= 2 && parts[1].includes('%')) y = parseInt(parts[1], 10);
-        if (parts.length >= 3) zoom = parseFloat(parts[2]) || 1;
-        return { x: isNaN(x) ? 50 : x, y: isNaN(y) ? 50 : y, zoom: isNaN(zoom) ? 1 : zoom };
+        return { position: String(posStr), scale: 1 };
     } catch (e) {
-        return { x: 50, y: 50, zoom: 1 };
+        return { position: 'center', scale: 1 };
     }
 };
 
 const getFotoStyle = (posStr) => {
-    const pos = parseFotoPosicion(posStr);
-    const tx = (pos.x - 50) * 0.5;
-    const ty = (pos.y - 50) * 0.5;
+    const { position, scale } = parseFotoPosicion(posStr);
     return {
         objectFit: 'cover',
-        transform: `scale(${pos.zoom}) translate(${tx}%, ${ty}%)`
+        objectPosition: position,
+        transform: scale !== 1 ? `scale(${scale})` : undefined
     };
 };
 
