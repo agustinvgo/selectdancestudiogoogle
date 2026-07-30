@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { equipoAPI } from '../../services/api';
+import { equipoAPI, getMediaUrl } from '../../services/api';
 import PageSEO from '../../components/SEO/PageSEO';
 import SchemaBreadcrumb from '../../components/SEO/SchemaBreadcrumb';
 
@@ -95,7 +95,7 @@ const QuienesSomos = () => {
                                             <div className="absolute inset-0 bg-white/5 animate-pulse" />
                                             {member.foto_url ? (
                                                 <img
-                                                    src={`${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${member.foto_url}`}
+                                                    src={getMediaUrl(member.foto_url)}
                                                     alt={member.nombre}
                                                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-300"
                                                     style={getFotoStyle(member.foto_posicion)}

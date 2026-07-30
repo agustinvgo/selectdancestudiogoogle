@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { equipoAPI } from '../../services/api';
+import { equipoAPI, getMediaUrl } from '../../services/api';
 import { Toaster, toast } from 'react-hot-toast';
 import { PlusIcon, PencilIcon, TrashIcon, XMarkIcon, PhotoIcon } from '@heroicons/react/24/outline';
 import Swal from 'sweetalert2';
@@ -175,7 +175,7 @@ const GestionEquipo = () => {
         setFotoPosX(pos.x);
         setFotoPosY(pos.y);
         setFotoZoom(pos.zoom);
-        setPreviewUrl(miembro.foto_url && miembro.foto_url !== 'null' ? `${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${miembro.foto_url}` : null);
+        setPreviewUrl(miembro.foto_url && miembro.foto_url !== 'null' ? getMediaUrl(miembro.foto_url) : null);
         setFoto(null);
         setModalOpen(true);
     };
@@ -252,7 +252,7 @@ const GestionEquipo = () => {
                                 <div className="aspect-square w-full bg-gray-100 relative overflow-hidden">
                                     {miembro.foto_url ? (
                                         <img
-                                            src={`${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${miembro.foto_url}`}
+                                            src={getMediaUrl(miembro.foto_url)}
                                             alt={miembro.nombre}
                                             className="w-full h-full object-cover"
                                             style={getFotoStyle(miembro.foto_posicion)}

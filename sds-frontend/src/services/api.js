@@ -5,6 +5,25 @@ if (!API_URL) {
     console.error('VITE_API_URL is not defined in the environment!');
 }
 
+// Convierte las rutas relativas que devuelve el backend (por ejemplo,
+// /uploads/perfiles/foto.webp) en URLs válidas tanto en desarrollo como
+// en producción. Evita apuntar siempre a localhost desde el navegador.
+export const getMediaUrl = (mediaPath) => {
+    if (!mediaPath || typeof mediaPath !== 'string') return '';
+    if (/^(https?:)?\/\//i.test(mediaPath) || mediaPath.startsWith('blob:') || mediaPath.startsWith('data:')) {
+        return mediaPath;
+    }
+
+    const normalizedPath = mediaPath.startsWith('/') ? mediaPath : `/${mediaPath}`;
+    if (!API_URL || API_URL.startsWith('/')) return normalizedPath;
+
+    try {
+        return `${new URL(API_URL, window.location.origin).origin}${normalizedPath}`;
+    } catch {
+        return normalizedPath;
+    }
+};
+
 // Instancia de Axios
 const api = axios.create({
     baseURL: API_URL,
