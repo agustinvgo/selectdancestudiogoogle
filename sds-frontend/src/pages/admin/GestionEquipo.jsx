@@ -84,7 +84,7 @@ const GestionEquipo = () => {
     const createMutation = useMutation({
         mutationFn: (data) => equipoAPI.create(data),
         onSuccess: () => {
-            queryClient.invalidateQueries(['equipo']);
+            queryClient.invalidateQueries({ queryKey: ['equipo'] });
             toast.success(`${nombre} agregado al equipo`);
             resetForm();
         },
@@ -98,7 +98,7 @@ const GestionEquipo = () => {
     const updateMutation = useMutation({
         mutationFn: ({ id, data }) => equipoAPI.update(id, data),
         onSuccess: () => {
-            queryClient.invalidateQueries(['equipo']);
+            queryClient.invalidateQueries({ queryKey: ['equipo'] });
             toast.success(`${nombre} actualizado correctamente`);
             resetForm();
         },
@@ -112,7 +112,7 @@ const GestionEquipo = () => {
     const deleteMutation = useMutation({
         mutationFn: (id) => equipoAPI.delete(id),
         onSuccess: () => {
-            queryClient.invalidateQueries(['equipo']);
+            queryClient.invalidateQueries({ queryKey: ['equipo'] });
             toast.success('Eliminado correctamente');
         },
         onError: (error) => {

@@ -11,6 +11,10 @@ const helmet = require('helmet');
 const configureSecurityHeaders = (app) => {
     app.use(
         helmet({
+            // Las imágenes subidas se sirven desde el backend. En desarrollo el
+            // frontend usa otro puerto, por lo que deben poder incrustarse entre
+            // orígenes (en producción Nginx las publica bajo el mismo dominio).
+            crossOriginResourcePolicy: { policy: 'cross-origin' },
             contentSecurityPolicy: {
                 directives: {
                     defaultSrc: ["'self'"],
