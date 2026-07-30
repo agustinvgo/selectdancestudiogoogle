@@ -1,0 +1,8 @@
+[Unit]
+Description=Select Dance Studio HLS stream watchdog
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/sds-stream-watchdog
