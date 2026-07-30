@@ -7,6 +7,10 @@ import { motion } from 'framer-motion';
 import TrialModal from '../../components/public/TrialModal';
 import { clasePruebaAPI } from '../../services/api';
 
+const HERO_WIDTHS = [768, 1280, 1920, 2560];
+const heroSrcSet = (format) => HERO_WIDTHS
+    .map((width) => `/optimized/competition/hero-${width}.${format} ${width}w`)
+    .join(', ');
 
 const Competition = () => {
     const [trialModalOpen, setTrialModalOpen] = useState(false);
@@ -28,7 +32,7 @@ const Competition = () => {
                 title="Equipo de Competición de Danza — Palermo Buenos Aires"
                 description="El equipo de competición de Select Dance Studio participa en torneos y festivales de danza a nivel nacional. Conocé nuestro Salón de la Fama."
                 canonical="/competition"
-                ogImage="/competicion-danza-select-dance-studio-palermo.webp"
+                ogImage="/optimized/competition/hero-1280.webp"
             />
             <SchemaBreadcrumb items={[
                 { name: 'Inicio', url: '/' },
@@ -39,10 +43,28 @@ const Competition = () => {
             <div className="relative h-screen w-full overflow-hidden bg-black flex items-center justify-center">
 
                 {/* Imagen de fondo — parallax CSS puro */}
-                <div
-                    className="absolute inset-0 w-full h-[120%] -top-[10%] bg-[url('/competicion-danza-select-dance-studio-palermo.webp')] bg-cover bg-center opacity-40 z-0"
-                    style={{ willChange: 'transform', transform: 'translateZ(0)' }}
-                />
+                <picture className="absolute inset-x-0 h-[120%] -top-[10%] z-0">
+                    <source
+                        type="image/avif"
+                        srcSet={heroSrcSet('avif')}
+                        sizes="100vw"
+                    />
+                    <source
+                        type="image/webp"
+                        srcSet={heroSrcSet('webp')}
+                        sizes="100vw"
+                    />
+                    <img
+                        src="/optimized/competition/hero-1920.webp"
+                        alt=""
+                        aria-hidden="true"
+                        width="1920"
+                        height="1280"
+                        fetchPriority="high"
+                        decoding="async"
+                        className="w-full h-full object-cover object-center opacity-40"
+                    />
+                </picture>
 
                 {/* Gradientes */}
                 <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-black z-10 pointer-events-none" />

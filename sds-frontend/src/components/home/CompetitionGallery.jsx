@@ -6,14 +6,14 @@ const TOURNAMENTS = [
     {
         name: 'FED 2025',
         subtitle: 'Torneo Nacional',
-        photo: '/hof/3.webp',
+        photoId: 3,
         golds: ['1° Baby', '1° Mini', '1° Junior'],
         honors: ['Mejor Coach', 'Mejor Coreografía', 'Mejor Técnica', 'Dúo Destacado'],
     },
     {
         name: 'LID 2025',
         subtitle: 'Córdoba',
-        photo: '/hof/5.webp',
+        photoId: 5,
         highlight: 'Pase al Mundial de Danzas',
         golds: ['1° Baby', '1° Mini', '1° Junior'],
         honors: ['Mejor Coach', 'Mejor Coreografía', 'Dúo Destacado'],
@@ -21,21 +21,50 @@ const TOURNAMENTS = [
     {
         name: 'Martín Fierro',
         subtitle: 'Danzas Académicas',
-        photo: '/hof/7.webp',
+        photoId: 7,
         golds: [],
         honors: ['Baile Grupal Infantil', 'Dúo Infantil'],
     },
 ];
 
 const BENTO_IMAGES = [
-    { id: 1, src: "/hof/1.jpg",  alt: "Competencia 1", span: "md:col-span-2 md:row-span-2" },
-    { id: 2, src: "/hof/2.webp", alt: "Competencia 2", span: "md:col-span-1 md:row-span-1" },
-    { id: 3, src: "/hof/3.webp", alt: "Competencia 3", span: "md:col-span-1 md:row-span-1" },
-    { id: 4, src: "/hof/4.webp", alt: "Competencia 4", span: "md:col-span-1 md:row-span-1" },
-    { id: 5, src: "/hof/5.webp", alt: "Competencia 5", span: "md:col-span-1 md:row-span-1" },
-    { id: 6, src: "/hof/6.webp", alt: "Competencia 6", span: "md:col-span-2 md:row-span-1" },
-    { id: 7, src: "/hof/7.webp", alt: "Competencia 7", span: "md:col-span-2 md:row-span-1" },
+    { id: 1, alt: "Competencia 1", span: "md:col-span-2 md:row-span-2", sizes: "(min-width: 1400px) 680px, (min-width: 768px) 50vw, 100vw" },
+    { id: 2, alt: "Competencia 2", span: "md:col-span-1 md:row-span-1", sizes: "(min-width: 1400px) 340px, (min-width: 768px) 25vw, 50vw" },
+    { id: 3, alt: "Competencia 3", span: "md:col-span-1 md:row-span-1", sizes: "(min-width: 1400px) 340px, (min-width: 768px) 25vw, 50vw" },
+    { id: 4, alt: "Competencia 4", span: "md:col-span-1 md:row-span-1", sizes: "(min-width: 1400px) 340px, (min-width: 768px) 25vw, 50vw" },
+    { id: 5, alt: "Competencia 5", span: "md:col-span-1 md:row-span-1", sizes: "(min-width: 1400px) 340px, (min-width: 768px) 25vw, 50vw" },
+    { id: 6, alt: "Competencia 6", span: "md:col-span-2 md:row-span-1", sizes: "(min-width: 1400px) 680px, (min-width: 768px) 50vw, 100vw" },
+    { id: 7, alt: "Competencia 7", span: "md:col-span-2 md:row-span-1", sizes: "(min-width: 1400px) 680px, (min-width: 768px) 50vw, 100vw" },
 ];
+
+const IMAGE_WIDTHS = [640, 960, 1280, 1920];
+const imageSrcSet = (id, format) => IMAGE_WIDTHS
+    .map((width) => `/optimized/competition/hof-${id}-${width}.${format} ${width}w`)
+    .join(', ');
+
+const ResponsiveCompetitionImage = ({
+    id,
+    alt,
+    sizes,
+    className,
+    loading = 'lazy',
+    ariaHidden,
+}) => (
+    <picture className="contents">
+        <source type="image/avif" srcSet={imageSrcSet(id, 'avif')} sizes={sizes} />
+        <source type="image/webp" srcSet={imageSrcSet(id, 'webp')} sizes={sizes} />
+        <img
+            src={`/optimized/competition/hof-${id}-1280.webp`}
+            alt={alt}
+            aria-hidden={ariaHidden}
+            width="1920"
+            height="1280"
+            loading={loading}
+            decoding="async"
+            className={className}
+        />
+    </picture>
+);
 
 const CompetitionGallery = ({ onJoinClick }) => {
     const [upcomingEvents, setUpcomingEvents] = useState([]);
@@ -60,7 +89,10 @@ const CompetitionGallery = ({ onJoinClick }) => {
             <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
 
                 {/* ── GALERÍA BENTO ── */}
-                <div className="mb-32">
+                <div
+                    className="mb-32"
+                    style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 900px' }}
+                >
                     <div className="mb-12">
                         <p className="text-red-500 text-xs font-bold uppercase tracking-[0.4em] mb-3">Hall of Fame</p>
                         <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase">
@@ -81,13 +113,11 @@ const CompetitionGallery = ({ onJoinClick }) => {
                                 {/* Oscurecimiento de las no-activas */}
                                 <div className={`absolute inset-0 bg-black transition-opacity duration-300 z-10 pointer-events-none hidden md:block ${hoveredImage !== null && hoveredImage !== img.id ? 'opacity-60' : 'opacity-0'}`} />
 
-                                <img
-                                    src={img.src}
+                                <ResponsiveCompetitionImage
+                                    id={img.id}
                                     alt={img.alt}
-                                    loading="lazy"
-                                    decoding="async"
+                                    sizes={img.sizes}
                                     className="w-full h-full object-cover"
-                                    onError={(e) => { e.target.style.display = 'none'; }}
                                 />
 
                                 {!isTouchDevice && hoveredImage === img.id && (
@@ -99,7 +129,7 @@ const CompetitionGallery = ({ onJoinClick }) => {
                 </div>
 
                 {/* ── LOGROS POR TORNEO — foto real de cada momento ── */}
-                <div>
+                <div style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 800px' }}>
                     {/* Encabezado */}
                     <div className="mb-10">
                         <p className="text-red-500 text-xs font-bold uppercase tracking-[0.4em] mb-3">Palmarés 2025</p>
@@ -121,13 +151,11 @@ const CompetitionGallery = ({ onJoinClick }) => {
                                 className="group relative rounded-2xl overflow-hidden min-h-[420px] md:min-h-[500px] flex flex-col justify-end border border-white/10"
                             >
                                 {/* Foto de fondo */}
-                                <img
-                                    src={t.photo}
+                                <ResponsiveCompetitionImage
+                                    id={t.photoId}
                                     alt={`Equipo de Select Dance Studio en ${t.name}`}
-                                    loading="lazy"
-                                    decoding="async"
+                                    sizes="(min-width: 1400px) 450px, (min-width: 768px) 33vw, 100vw"
                                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                                    onError={(e) => { e.target.style.opacity = 0; }}
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/85 to-black/20" />
 
@@ -181,20 +209,19 @@ const CompetitionGallery = ({ onJoinClick }) => {
                 {/* ── CTA — Gran cuadrado con borde animado ── */}
                 <div
                     className="mt-24 flex flex-col items-center"
+                    style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 600px' }}
                 >
                     <p className="text-zinc-500 text-xs uppercase tracking-[0.4em] mb-10">¿Quieres ser parte?</p>
 
                     <div className="relative rounded-3xl border-2 border-red-600/40 w-full max-w-[520px] overflow-hidden" style={{ boxShadow: '0 0 40px -10px rgba(220,38,38,0.3)' }}>
                         <div className="bg-black relative p-12 overflow-hidden">
                             {/* Foto de fondo */}
-                            <img
-                                src="/hof/9.webp"
+                            <ResponsiveCompetitionImage
+                                id={9}
                                 alt=""
-                                aria-hidden="true"
-                                loading="lazy"
-                                decoding="async"
+                                ariaHidden="true"
+                                sizes="(min-width: 640px) 520px, 100vw"
                                 className="absolute inset-0 w-full h-full object-cover opacity-35"
-                                onError={(e) => { e.target.style.display = 'none'; }}
                             />
                             <div className="absolute inset-0 bg-gradient-to-br from-black/85 via-black/75 to-red-950/40 rounded-[calc(1.25rem-2px)] pointer-events-none" />
                             <div className="relative z-10 flex flex-col items-center text-center gap-6">
