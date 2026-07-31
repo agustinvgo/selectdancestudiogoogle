@@ -1,12 +1,29 @@
 const db = require('../../config/db');
 const bcrypt = require('bcryptjs');
 const UsuariosModel = require('../../models/usuarios.model');
+const { normalizeEmailAddress } = require('../../middlewares/validate.middleware');
+
+const hasPlaceholderPassword = (passwordHash) => (
+    !passwordHash
+    || passwordHash === 'dummy_hash'
+    || passwordHash === '$2b$10$X7.X.X.X.X.X.X.X.X.X.X'
+);
 
 const UsuariosController = {
     // Obtener todos los profesores
     async getProfesores(req, res) {
         try {
-            const [rows] = await db.query("SELECT id, email, nombre, apellido, activo FROM usuarios WHERE rol = 'profesor' AND activo = 1");
+            const [rows] = await db.query(`
+                SELECT id, email, nombre, apellido, activo,
+                    CASE
+                        WHEN password_hash IS NULL
+                          OR password_hash = 'dummy_hash'
+                          OR password_hash = '$2b$10$X7.X.X.X.X.X.X.X.X.X.X'
+                        THEN 1 ELSE 0
+                    END AS requiere_configurar_acceso
+                FROM usuarios
+                WHERE rol = 'profesor' AND activo = 1
+            `);
             res.json({
                 success: true,
                 data: rows,
@@ -25,9 +42,12 @@ const UsuariosController = {
     // Crear profesor
     async createProfesor(req, res) {
         try {
-            const { nombre, apellido, email, password } = req.body;
+            const { nombre, apellido, password } = req.body;
+            const nombreNormalizado = typeof nombre === 'string' ? nombre.trim() : '';
+            const apellidoNormalizado = typeof apellido === 'string' ? apellido.trim() : '';
+            const email = normalizeEmailAddress(req.body.email);
 
-            if (!email || !password || !nombre) {
+            if (!email || !password || !nombreNormalizado) {
                 return res.status(400).json({
                     success: false,
                     message: 'Faltan campos requeridos'
@@ -48,7 +68,7 @@ const UsuariosController = {
                     const password_hash = await bcrypt.hash(password, 10);
                     await db.query(
                         'UPDATE usuarios SET password_hash = ?, nombre = ?, apellido = ?, rol = ?, activo = 1 WHERE id = ?',
-                        [password_hash, nombre, apellido, 'profesor', existingUser.id]
+                        [password_hash, nombreNormalizado, apellidoNormalizado, 'profesor', existingUser.id]
                     );
 
                     return res.status(201).json({
@@ -64,7 +84,7 @@ const UsuariosController = {
             // Insertar usuario
             const [result] = await db.query(
                 'INSERT INTO usuarios (email, password_hash, nombre, apellido, rol, activo, primer_login) VALUES (?, ?, ?, ?, ?, 1, 1)',
-                [email, password_hash, nombre, apellido, 'profesor']
+                [email, password_hash, nombreNormalizado, apellidoNormalizado, 'profesor']
             );
 
             res.status(201).json({
@@ -90,7 +110,7 @@ const UsuariosController = {
             const profesorId = Number.parseInt(id, 10);
             const nombreNormalizado = typeof nombre === 'string' ? nombre.trim() : '';
             const apellidoNormalizado = typeof apellido === 'string' ? apellido.trim() : '';
-            const emailNormalizado = typeof email === 'string' ? email.trim().toLowerCase() : '';
+            const emailNormalizado = normalizeEmailAddress(email) || '';
 
             // Fix #9: validar inputs antes de actualizar
             if (!Number.isInteger(profesorId) || profesorId <= 0) {
@@ -101,6 +121,20 @@ const UsuariosController = {
             }
             if (!emailNormalizado || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNormalizado)) {
                 return res.status(400).json({ success: false, message: 'Email inválido' });
+            }
+
+            const [profesores] = await db.query(
+                'SELECT password_hash FROM usuarios WHERE id = ? AND rol = "profesor" LIMIT 1',
+                [profesorId]
+            );
+            if (profesores.length === 0) {
+                return res.status(404).json({ success: false, message: 'Profesor no encontrado' });
+            }
+            if (hasPlaceholderPassword(profesores[0].password_hash) && !password) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Esta cuenta aún no tiene acceso. Debes definir una contraseña.'
+                });
             }
 
             const [emailExistente] = await db.query(

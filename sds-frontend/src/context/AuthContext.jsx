@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password) => {
         try {
-            const response = await authAPI.login(email, password);
+            const response = await authAPI.login(email.trim().toLowerCase(), password);
             const { user } = response.data.data;
             // El JWT ya fue guardado en cookie HttpOnly por el servidor
             // Solo guardamos el objeto usuario (sin token) para UI/roles

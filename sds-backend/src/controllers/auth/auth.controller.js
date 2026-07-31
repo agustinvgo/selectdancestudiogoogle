@@ -4,6 +4,7 @@ const UsuariosModel = require('../../models/usuarios.model');
 const AlumnosModel = require('../../models/alumnos.model');
 const emailService = require('../../services/email.service');
 const db = require('../../config/db');
+const { normalizeEmailAddress } = require('../../middlewares/validate.middleware');
 
 const AuthController = {
     // Helper para validar contraseña
@@ -21,7 +22,7 @@ const AuthController = {
     // Login
     async login(req, res) {
         try {
-            const email = req.body.email ? req.body.email.trim() : null;
+            const email = req.body.email ? normalizeEmailAddress(req.body.email) : null;
             const password = req.body.password || null;
 
             // Validar datos
@@ -229,7 +230,7 @@ const AuthController = {
     // Solicitar recuperación de contraseña
     async forgotPassword(req, res) {
         try {
-            const { email } = req.body;
+            const email = normalizeEmailAddress(req.body.email);
 
             if (!email) {
                 return res.status(400).json({
@@ -255,7 +256,7 @@ const AuthController = {
             const { token } = await PasswordResetModel.create(email);
 
             // Enviar email con token
-            let nombreUsuario = '';
+            let nombreUsuario = [usuario.nombre, usuario.apellido].filter(Boolean).join(' ');
             if (usuario.rol === 'alumno') {
                 const alumno = await AlumnosModel.findByUsuarioId(usuario.id);
                 if (alumno) {

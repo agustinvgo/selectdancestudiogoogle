@@ -25,7 +25,7 @@ const Login = () => {
                 navigate('/cambiar-password');
             } else {
                 // Redirigir según el rol
-                if (result.user.rol === 'admin') {
+                if (result.user.rol === 'admin' || result.user.rol === 'profesor') {
                     navigate('/admin');
                 } else {
                     navigate('/alumno');

@@ -71,3 +71,12 @@ describe('Env Validator', () => {
         expect(() => validateEnv()).not.toThrow();
     });
 });
+
+describe('Normalización de email para autenticación', () => {
+    const { normalizeEmailAddress } = require('../src/middlewares/validate.middleware');
+
+    test('conserva puntos y alias para buscar la cuenta exacta', () => {
+        expect(normalizeEmailAddress('  Antonella.M+Clases@gmail.com  '))
+            .toBe('antonella.m+clases@gmail.com');
+    });
+});

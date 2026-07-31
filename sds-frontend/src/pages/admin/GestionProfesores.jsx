@@ -223,9 +223,12 @@ const GestionProfesores = () => {
 
                         <div className="pt-4 border-t border-gray-50 flex justify-between items-center text-xs">
                             <span className="text-gray-400 font-medium">Estado</span>
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20">
-                                <span className="w-1.5 h-1.5 bg-green-600 rounded-full mr-1.5"></span>
-                                Activo
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ring-1 ring-inset ${profesor.requiere_configurar_acceso
+                                ? 'bg-amber-50 text-amber-700 ring-amber-600/20'
+                                : 'bg-green-50 text-green-700 ring-green-600/20'
+                            }`}>
+                                <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${profesor.requiere_configurar_acceso ? 'bg-amber-600' : 'bg-green-600'}`}></span>
+                                {profesor.requiere_configurar_acceso ? 'Configurar acceso' : 'Activo'}
                             </span>
                         </div>
                     </div>
@@ -284,18 +287,24 @@ const GestionProfesores = () => {
 
                     <div>
                         <label className="block text-sm font-medium text-gray-600 mb-1">
-                            {editando ? 'Nueva Contraseña (opcional)' : 'Contraseña'}
+                            {editando?.requiere_configurar_acceso
+                                ? 'Contraseña de acceso'
+                                : (editando ? 'Nueva Contraseña (opcional)' : 'Contraseña')}
                         </label>
                         <input
                             type="password"
                             value={formData.password}
                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                             className="input w-full bg-gray-100 border-gray-300 text-gray-900 focus:border-blue-500"
-                            placeholder={editando ? 'Dejar en blanco para mantener actual' : 'Contraseña segura'}
-                            required={!editando}
+                            placeholder={editando && !editando.requiere_configurar_acceso ? 'Dejar en blanco para mantener actual' : 'Contraseña segura'}
+                            required={!editando || Boolean(editando.requiere_configurar_acceso)}
                             minLength={6}
                         />
-                        {editando && (
+                        {editando?.requiere_configurar_acceso ? (
+                            <p className="text-xs text-amber-700 mt-1">
+                                Este docente aún no tiene credenciales. Define una contraseña para habilitar su acceso.
+                            </p>
+                        ) : editando && (
                             <p className="text-xs text-gray-500 mt-1">
                                 Solo ingresa una contraseña si deseas cambiarla.
                             </p>
