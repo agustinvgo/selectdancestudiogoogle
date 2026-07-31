@@ -6,6 +6,7 @@ const CourseCard = ({
     onToggle,
     participantes,
     loadingParticipantes,
+    errorParticipantes,
     alumnos,
     isProfesor,
     onEdit,
@@ -179,6 +180,10 @@ const CourseCard = ({
                             <div className="flex justify-center py-4">
                                 <div className="h-4 w-4 rounded-full border-2 border-zinc-300 border-t-zinc-900 animate-spin"></div>
                             </div>
+                        ) : errorParticipantes ? (
+                            <p className="text-red-600 text-xs text-center py-2 border border-red-200 bg-red-50 rounded-lg">
+                                No se pudieron cargar los alumnos. Intenta nuevamente.
+                            </p>
                         ) : (
                             <div className="space-y-4">
                                 {/* Lista de Inscritos */}

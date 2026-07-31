@@ -256,6 +256,20 @@ const CursosController = {
     async getParticipantes(req, res) {
         try {
             const { id } = req.params;
+
+            // Un profesor solo puede consultar los alumnos de sus propios cursos.
+            if (req.user.rol === 'profesor') {
+                const curso = await CursosModel.findById(id);
+                const profesorIds = curso?.profesor_ids || (curso?.profesor_id ? [Number(curso.profesor_id)] : []);
+
+                if (!curso || !profesorIds.includes(Number(req.user.id))) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'No tienes permisos para ver los alumnos de este curso'
+                    });
+                }
+            }
+
             const participantes = await CursosModel.getAlumnosCurso(id);
 
             res.json({

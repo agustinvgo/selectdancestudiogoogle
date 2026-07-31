@@ -30,12 +30,12 @@ const ClasePruebaModel = {
 
     async create(data) {
         try {
-            const { nombre, apellido, email, telefono, interes, horario } = data;
+            const { nombre, apellido, email, telefono, interes, horario, disponibilidad_id = null } = data;
             const token = require('crypto').randomBytes(32).toString('hex');
 
             const [result] = await db.query(
-                'INSERT INTO clases_prueba (nombre, apellido, email, telefono, interes, horario, token_cancelacion) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                [nombre, apellido, email, telefono, interes, horario, token]
+                'INSERT INTO clases_prueba (nombre, apellido, email, telefono, interes, horario, disponibilidad_id, token_cancelacion) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                [nombre, apellido, email, telefono, interes, horario, disponibilidad_id, token]
             );
             return { id: result.insertId, token };
         } catch (error) {

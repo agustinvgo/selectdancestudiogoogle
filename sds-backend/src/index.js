@@ -205,6 +205,8 @@ app.use('/api/auth', authRoutes);
 // 🛡️ Admin — panel interno, mucho espacio para trabajar rápido
 app.use('/api/alumnos',      adminLimiter, alumnosRoutes);
 app.use('/api/asistencias',  adminLimiter, asistenciasRoutes);
+app.use('/api/agenda',       adminLimiter, require('./routes/admin/agenda.routes'));
+app.use('/api/push',         adminLimiter, require('./routes/admin/push.routes'));
 app.use('/api/pagos',        adminLimiter, pagosRoutes);
 app.use('/api/eventos',      adminLimiter, eventosRoutes);
 app.use('/api/cursos',       adminLimiter, cursosRoutes);

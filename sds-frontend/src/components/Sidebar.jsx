@@ -63,6 +63,7 @@ const Sidebar = ({ isOpen, onClose, onToggle }) => {
                 { to: '/admin/cursos', icon: AcademicCapIcon, label: 'Cursos' },
                 { to: '/admin/transmisiones', icon: VideoCameraIcon, label: 'Transmisiones' },
                 { to: '/admin/alumnos', icon: UserGroupIcon, label: 'Alumnos' },
+                { to: '/admin/agenda', icon: CalendarDaysIcon, label: 'Agenda Semanal' },
                 { to: '/admin/profesores', icon: AcademicCapIcon, label: 'Profesores' },
                 { to: '/admin/asistencias', icon: ClipboardDocumentCheckIcon, label: 'Asistencias' },
                 { to: '/admin/prueba', icon: SparklesIcon, label: 'Clases Prueba' },
@@ -108,6 +109,7 @@ const Sidebar = ({ isOpen, onClose, onToggle }) => {
     const profesorLinks = [
         { to: '/admin', icon: HomeIcon, label: 'Dashboard' },
         { to: '/admin/cursos', icon: AcademicCapIcon, label: 'Mis Cursos' },
+        { to: '/admin/agenda', icon: CalendarDaysIcon, label: 'Agenda Semanal' },
         { to: '/admin/asistencias', icon: ClipboardDocumentCheckIcon, label: 'Tomar Lista' },
     ];
 

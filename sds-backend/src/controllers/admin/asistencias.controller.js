@@ -1,6 +1,53 @@
 const AsistenciasModel = require('../../models/asistencias.model');
 const AlumnosModel = require('../../models/alumnos.model');
 
+const createHttpError = (message, statusCode) => {
+    const error = new Error(message);
+    error.statusCode = statusCode;
+    return error;
+};
+
+const isValidIsoDate = (value) => {
+    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const [year, month, day] = value.split('-').map(Number);
+    const parsed = new Date(Date.UTC(year, month - 1, day));
+    return parsed.getUTCFullYear() === year
+        && parsed.getUTCMonth() === month - 1
+        && parsed.getUTCDate() === day;
+};
+
+const normalizeAttendance = (raw = {}) => {
+    const alumnoId = Number(raw.alumno_id);
+    const cursoId = Number(raw.curso_id);
+    const presenteValido = raw.presente === true || raw.presente === false
+        || raw.presente === 1 || raw.presente === 0;
+
+    if (!Number.isInteger(alumnoId) || alumnoId <= 0
+        || !Number.isInteger(cursoId) || cursoId <= 0
+        || !isValidIsoDate(raw.fecha) || !presenteValido) {
+        throw createHttpError('Datos de asistencia inválidos', 400);
+    }
+
+    return {
+        alumno_id: alumnoId,
+        curso_id: cursoId,
+        fecha: raw.fecha,
+        presente: raw.presente === true || raw.presente === 1 ? 1 : 0,
+        observaciones: typeof raw.observaciones === 'string'
+            ? raw.observaciones.trim().slice(0, 2000) || null
+            : null
+    };
+};
+
+const sendError = (res, error, fallbackMessage) => {
+    console.error(`[Asistencias] ${fallbackMessage}:`, error);
+    res.status(error.statusCode || 500).json({
+        success: false,
+        message: error.statusCode ? error.message : fallbackMessage,
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+};
+
 const AsistenciasController = {
     // Obtener asistencias de un alumno
     async getByAlumno(req, res) {
@@ -92,14 +139,14 @@ const AsistenciasController = {
     // Obtener lista de asistencia de un curso en una fecha
     async getByCurso(req, res) {
         try {
-            const { id } = req.params;
+            const id = Number(req.params.id);
             const { fecha } = req.query;
 
-            if (!fecha) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'La fecha es requerida'
-                });
+            if (!Number.isInteger(id) || id <= 0 || !isValidIsoDate(fecha)) {
+                throw createHttpError('Curso o fecha inválidos', 400);
+            }
+            if (!(await AsistenciasModel.canManageCourse(req.user, id))) {
+                throw createHttpError('No tienes permisos para consultar este curso', 403);
             }
 
             const asistencias = await AsistenciasModel.findByCurso(id, fecha);
@@ -109,34 +156,15 @@ const AsistenciasController = {
                 data: asistencias
             });
         } catch (error) {
-            console.error('Error obteniendo asistencias del curso:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Error en el servidor',
-                error: process.env.NODE_ENV === 'development' ? error.message : undefined
-            });
+            sendError(res, error, 'Error al obtener las asistencias del curso');
         }
     },
 
     // Marcar asistencia individual
     async marcarAsistencia(req, res) {
         try {
-            const { alumno_id, curso_id, fecha, presente, observaciones } = req.body;
-
-            if (!alumno_id || !curso_id || !fecha || presente === undefined) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'alumno_id, curso_id, fecha y presente son requeridos'
-                });
-            }
-
-            const id = await AsistenciasModel.marcarAsistencia({
-                alumno_id,
-                curso_id,
-                fecha,
-                presente,
-                observaciones
-            });
+            const asistencia = normalizeAttendance(req.body);
+            const id = await AsistenciasModel.marcarAsistencia(asistencia, req.user);
 
             res.json({
                 success: true,
@@ -144,12 +172,7 @@ const AsistenciasController = {
                 data: { id }
             });
         } catch (error) {
-            console.error('Error marcando asistencia:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Error en el servidor',
-                error: process.env.NODE_ENV === 'development' ? error.message : undefined
-            });
+            sendError(res, error, 'Error al registrar la asistencia');
         }
     },
 
@@ -158,26 +181,19 @@ const AsistenciasController = {
         try {
             const { asistencias } = req.body;
 
-            if (!asistencias || !Array.isArray(asistencias)) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Se requiere un array de asistencias'
-                });
+            if (!Array.isArray(asistencias) || asistencias.length === 0 || asistencias.length > 1000) {
+                throw createHttpError('Se requiere entre 1 y 1000 asistencias', 400);
             }
+            const normalizedAttendances = asistencias.map(normalizeAttendance);
 
-            await AsistenciasModel.marcarAsistenciasMasivas(asistencias);
+            await AsistenciasModel.marcarAsistenciasMasivas(normalizedAttendances, req.user);
 
             res.json({
                 success: true,
                 message: 'Asistencias registradas exitosamente'
             });
         } catch (error) {
-            console.error('Error marcando asistencias masivas:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Error en el servidor',
-                error: process.env.NODE_ENV === 'development' ? error.message : undefined
-            });
+            sendError(res, error, 'Error al registrar las asistencias');
         }
     }
 };

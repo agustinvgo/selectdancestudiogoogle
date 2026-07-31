@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const AuthController = require('../../controllers/auth/auth.controller');
-const { verifyToken } = require('../../middlewares/auth.middleware');
+const { verifyToken, isAdmin } = require('../../middlewares/auth.middleware');
 const { authLimiter } = require('../../middlewares/rateLimiters');
 const { commonValidations, handleValidationErrors } = require('../../middlewares/validate.middleware');
 
@@ -19,6 +19,7 @@ router.post('/login',
 
 router.post('/register',
     verifyToken,
+    isAdmin,
     [
         commonValidations.sanitizeText('nombre'),
         commonValidations.sanitizeText('apellido'),

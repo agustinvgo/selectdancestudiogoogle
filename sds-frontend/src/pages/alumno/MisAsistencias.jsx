@@ -200,7 +200,10 @@ const MisAsistencias = () => {
                                 <tbody>
                                     {asistencias.map((asist, index) => {
                                         const key = asist.id || `asist-${index}`;
-                                        const fecha = asist.fecha ? new Date(asist.fecha).toLocaleDateString('es-AR') : '-';
+                                        const fechaIso = asist.fecha ? String(asist.fecha).slice(0, 10) : '';
+                                        const fecha = fechaIso
+                                            ? new Date(`${fechaIso}T12:00:00`).toLocaleDateString('es-AR')
+                                            : '-';
                                         const curso = asist.curso_nombre || 'Sin nombre';
                                         const presente = asist.presente === 1 || asist.presente === true;
                                         const obs = asist.observaciones || '-';

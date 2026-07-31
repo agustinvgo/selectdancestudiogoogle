@@ -18,9 +18,11 @@ import AttendanceWeekChart from '../../components/Dashboard/AttendanceWeekChart.
 import PopularCourses from '../../components/Dashboard/PopularCourses.jsx';
 import SEO from '../../components/SEO';
 import NotificationFeed from '../../components/common/NotificationFeed';
+import WeeklyAgendaWidget from '../../components/Dashboard/WeeklyAgendaWidget';
+import AdminPushNotifications from '../../components/Dashboard/AdminPushNotifications';
 
 const AdminDashboard = () => {
-    const { isProfesor } = useAuth();
+    const { isAdmin, isProfesor } = useAuth();
 
     // --- PROFESSOR QUERIES ---
     const { data: myCoursesData, isLoading: loadingMyCourses } = useQuery({
@@ -220,6 +222,9 @@ const AdminDashboard = () => {
                 </div>
             </div>
 
+            <WeeklyAgendaWidget />
+
+            {isAdmin && <AdminPushNotifications />}
 
             {isProfesor && (
                 <div className="space-y-6">

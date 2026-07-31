@@ -69,7 +69,11 @@ const GestionCursos = () => {
         }
     });
 
-    const { data: participantesData, isLoading: loadingParticipantes } = useQuery({
+    const {
+        data: participantesData,
+        isLoading: loadingParticipantes,
+        error: errorParticipantes
+    } = useQuery({
         queryKey: ['participantes', expandedCursoId],
         queryFn: async () => {
             const res = await cursosAPI.getParticipantes(expandedCursoId);
@@ -302,6 +306,7 @@ const GestionCursos = () => {
                 toggleParticipantes={toggleParticipantes}
                 participantes={participantes}
                 loadingParticipantes={loadingParticipantes}
+                errorParticipantes={errorParticipantes}
                 alumnos={alumnos}
                 isProfesor={isProfesor}
                 onEdit={abrirModal}

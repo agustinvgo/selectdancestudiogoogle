@@ -1,6 +1,7 @@
 const PagosCron = require('./cron/pagos.cron');
 const AlumnosCron = require('./cron/alumnos.cron');
 const ProfesoresCron = require('./cron/profesores.cron');
+const ClasesCron = require('./cron/clases.cron');
 
 const CronService = {
     init() {
@@ -9,6 +10,7 @@ const CronService = {
         PagosCron.init();
         AlumnosCron.init();
         ProfesoresCron.init();
+        ClasesCron.init();
 
         console.log('✅ Cron Service Activo: Módulos de Pagos, Alumnos y Profesores conectados.');
     },

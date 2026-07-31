@@ -4,6 +4,15 @@ import { cursosAPI } from '../../services/api';
 import { CalendarIcon, ClockIcon, AcademicCapIcon } from '@heroicons/react/24/outline';
 import Loader from '../../components/Loader';
 
+const DIAS_SEMANA = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+const normalizarDia = (dia = '') => dia
+    .toString()
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
 const MisClases = () => {
     const { user } = useAuth();
     const alumnoId = user?.alumno?.id;
@@ -22,21 +31,15 @@ const MisClases = () => {
 
     const cursos = cursosData || [];
 
-    const diasOrden = {
-        'Lunes': 1,
-        'Martes': 2,
-        'Miércoles': 3,
-        'Jueves': 4,
-        'Viernes': 5,
-        'Sábado': 6,
-        'Domingo': 7
-    };
+    const diasOrden = Object.fromEntries(
+        DIAS_SEMANA.map((dia, index) => [normalizarDia(dia), index + 1])
+    );
 
     const cursosOrdenados = [...cursos].sort((a, b) => {
-        const diaA = diasOrden[a.dia_semana] || 8;
-        const diaB = diasOrden[b.dia_semana] || 8;
+        const diaA = diasOrden[normalizarDia(a.dia_semana)] || 8;
+        const diaB = diasOrden[normalizarDia(b.dia_semana)] || 8;
         if (diaA !== diaB) return diaA - diaB;
-        return a.hora_inicio.localeCompare(b.hora_inicio);
+        return String(a.hora_inicio || '').localeCompare(String(b.hora_inicio || ''));
     });
 
     return (
@@ -107,8 +110,11 @@ const MisClases = () => {
                     </div>
                     <div className="card-body">
                         <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
-                            {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map((dia) => {
-                                const clasesDelDia = cursos.filter(c => c.dia_semana === dia);
+                            {DIAS_SEMANA.map((dia) => {
+                                const diaNormalizado = normalizarDia(dia);
+                                const clasesDelDia = cursosOrdenados.filter(
+                                    (curso) => normalizarDia(curso.dia_semana) === diaNormalizado
+                                );
                                 return (
                                     <div key={dia} className="space-y-2">
                                         <h4 className="font-semibold text-gray-900 text-sm border-b border-gray-200 pb-2">

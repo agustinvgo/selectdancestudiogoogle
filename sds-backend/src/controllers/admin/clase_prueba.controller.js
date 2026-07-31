@@ -40,7 +40,15 @@ const ClasePruebaController = {
                 }
             }
 
-            const { id, token } = await ClasePruebaModel.create({ nombre, apellido, email, telefono, interes, horario });
+            const { id, token } = await ClasePruebaModel.create({
+                nombre,
+                apellido,
+                email,
+                telefono,
+                interes,
+                horario,
+                disponibilidad_id: disponibilidadId
+            });
 
             // Decrementar cupo si corresponde
             if (disponibilidadId) {

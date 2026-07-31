@@ -11,6 +11,8 @@ const dbInit = {
             await this.repairUsuarios();
             await this.repairCursos();
             await this.ensureCursoProfesores();
+            await this.ensureAgendaConfirmaciones();
+            await this.ensurePushNotifications();
             await this.repairPagos();
             await this.ensureTableDisponibles();
             await this.ensureTableEsperas();
@@ -35,7 +37,10 @@ const dbInit = {
             { name: 'nombre', type: 'VARCHAR(100) AFTER id' },
             { name: 'apellido', type: 'VARCHAR(100) AFTER nombre' },
             { name: 'interes', type: 'VARCHAR(100) AFTER telefono' },
-            { name: 'horario', type: 'VARCHAR(100) AFTER interes' }
+            { name: 'horario', type: 'VARCHAR(100) AFTER interes' },
+            { name: 'asistio', type: 'TINYINT(1) DEFAULT 0 AFTER token_cancelacion' },
+            { name: 'asistencia_estado', type: "ENUM('presente', 'ausente') DEFAULT NULL AFTER asistio" },
+            { name: 'disponibilidad_id', type: 'INT DEFAULT NULL AFTER asistencia_estado' }
         ];
 
         for (const col of required) {
@@ -43,6 +48,13 @@ const dbInit = {
                 console.log(`➕ Añadiendo columna [${col.name}] a clases_prueba...`);
                 await db.query(`ALTER TABLE clases_prueba ADD COLUMN ${col.name} ${col.type}`);
             }
+        }
+
+        const [availabilityIndexes] = await db.query(`
+            SHOW INDEX FROM clases_prueba WHERE Column_name = 'disponibilidad_id'
+        `);
+        if (availabilityIndexes.length === 0) {
+            await db.query('ALTER TABLE clases_prueba ADD INDEX idx_clases_prueba_disponibilidad (disponibilidad_id)');
         }
     },
 
@@ -131,6 +143,85 @@ const dbInit = {
             SELECT id, profesor_id, 0
             FROM cursos
             WHERE profesor_id IS NOT NULL
+        `);
+    },
+
+    /**
+     * Guarda únicamente confirmaciones o avisos de ausencia para una clase semanal.
+     * El estado programado se deriva de la inscripción y no necesita duplicarse.
+     */
+    async ensureAgendaConfirmaciones() {
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS agenda_confirmaciones (
+                alumno_id INT NOT NULL,
+                curso_id INT NOT NULL,
+                fecha DATE NOT NULL,
+                estado ENUM('confirmado', 'no_asistira') NOT NULL,
+                observaciones VARCHAR(500) DEFAULT NULL,
+                updated_by INT DEFAULT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (alumno_id, curso_id, fecha),
+                KEY idx_agenda_confirmaciones_fecha (fecha),
+                KEY idx_agenda_confirmaciones_curso_fecha (curso_id, fecha),
+                CONSTRAINT fk_agenda_confirmaciones_alumno
+                    FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE,
+                CONSTRAINT fk_agenda_confirmaciones_curso
+                    FOREIGN KEY (curso_id) REFERENCES cursos(id) ON DELETE CASCADE,
+                CONSTRAINT fk_agenda_confirmaciones_usuario
+                    FOREIGN KEY (updated_by) REFERENCES usuarios(id) ON DELETE SET NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        `);
+    },
+
+    /**
+     * Suscripciones Web Push, claves VAPID persistentes y control anti-duplicados.
+     */
+    async ensurePushNotifications() {
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS push_config (
+                id TINYINT NOT NULL DEFAULT 1,
+                public_key VARCHAR(255) NOT NULL,
+                private_key VARCHAR(255) NOT NULL,
+                subject VARCHAR(255) NOT NULL,
+                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        `);
+
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS push_subscriptions (
+                id BIGINT NOT NULL AUTO_INCREMENT,
+                usuario_id INT NOT NULL,
+                endpoint_hash CHAR(64) NOT NULL,
+                endpoint TEXT NOT NULL,
+                p256dh VARCHAR(255) NOT NULL,
+                auth VARCHAR(255) NOT NULL,
+                user_agent VARCHAR(500) DEFAULT NULL,
+                activo TINYINT(1) NOT NULL DEFAULT 1,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                UNIQUE KEY uq_push_endpoint_hash (endpoint_hash),
+                KEY idx_push_usuario_activo (usuario_id, activo),
+                CONSTRAINT fk_push_subscription_usuario
+                    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        `);
+
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS push_notification_log (
+                event_key VARCHAR(191) NOT NULL,
+                event_type ENUM('curso', 'clase_prueba') NOT NULL,
+                event_id INT NOT NULL,
+                scheduled_at DATETIME NOT NULL,
+                recipients INT NOT NULL DEFAULT 0,
+                success_count INT NOT NULL DEFAULT 0,
+                failed_count INT NOT NULL DEFAULT 0,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (event_key),
+                KEY idx_push_log_scheduled (scheduled_at)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
         `);
     },
 

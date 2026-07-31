@@ -94,6 +94,22 @@ export const asistenciasAPI = {
     marcarAsistenciasMasivas: (data) => api.post('/asistencias/masivas', data),
 };
 
+// ===== AGENDA SEMANAL =====
+export const agendaAPI = {
+    getWeek: (fecha) => api.get('/agenda', { params: { fecha } }),
+    setStatus: (data) => api.put('/agenda/estado', data),
+    setAttendance: (data) => api.put('/agenda/asistencia', data),
+};
+
+// ===== AVISOS PUSH PARA ADMINISTRADORES =====
+export const pushAPI = {
+    getPublicKey: () => api.get('/push/public-key'),
+    getStatus: (endpoint = null) => api.post('/push/status', endpoint ? { endpoint } : {}),
+    subscribe: (subscription) => api.post('/push/subscribe', { subscription }),
+    unsubscribe: (endpoint) => api.post('/push/unsubscribe', { endpoint }),
+    test: () => api.post('/push/test'),
+};
+
 // ===== PAGOS =====
 export const pagosAPI = {
     getAll: (params) => {

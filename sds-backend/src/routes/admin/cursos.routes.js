@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const CursosController = require('../../controllers/admin/cursos.controller');
-const { verifyToken, isAdmin, isAlumnoOwnerOrAdmin } = require('../../middlewares/auth.middleware');
+const { verifyToken, isAdmin, isProfesor, isAlumnoOwnerOrAdmin } = require('../../middlewares/auth.middleware');
 const { cacheMiddleware, invalidateCache } = require('../../middlewares/cache.middleware');
 
 // Proteger todas las rutas
@@ -12,7 +12,7 @@ router.use(verifyToken);
 router.get('/', cacheMiddleware('cursos-list', 120), CursosController.getAll);
 router.get('/mis-cursos', CursosController.getMyCourses);
 router.get('/alumno/:id', isAlumnoOwnerOrAdmin, CursosController.getByAlumno);      // Antes de /:id
-router.get('/:id/participantes', isAdmin, CursosController.getParticipantes); // Antes de /:id
+router.get('/:id/participantes', isProfesor, CursosController.getParticipantes); // Admin o profesor asignado
 router.get('/:id', CursosController.getById);
 
 router.post('/', isAdmin, invalidateCache('cursos-list'), CursosController.create);

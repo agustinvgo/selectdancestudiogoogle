@@ -1,11 +1,88 @@
 const db = require('../config/db');
 
+const createHttpError = (message, statusCode) => {
+    const error = new Error(message);
+    error.statusCode = statusCode;
+    return error;
+};
+
 const AsistenciasModel = {
+    async canManageCourse(user, cursoId, executor = db) {
+        if (user?.rol === 'admin') return true;
+        if (user?.rol !== 'profesor') return false;
+
+        const [rows] = await executor.query(`
+            SELECT c.id
+            FROM cursos c
+            WHERE c.id = ?
+              AND (
+                c.profesor_id = ?
+                OR EXISTS (
+                    SELECT 1
+                    FROM curso_profesores cp
+                    WHERE cp.curso_id = c.id AND cp.profesor_id = ?
+                )
+              )
+            LIMIT 1
+        `, [cursoId, user.id, user.id]);
+        return rows.length > 0;
+    },
+
+    async validateAttendanceScope(user, asistencias, executor = db) {
+        if (!Array.isArray(asistencias) || asistencias.length === 0) return true;
+
+        const courseIds = [...new Set(asistencias.map((item) => Number(item.curso_id)))];
+        const studentIds = [...new Set(asistencias.map((item) => Number(item.alumno_id)))];
+
+        if (user?.rol !== 'admin') {
+            if (user?.rol !== 'profesor') {
+                throw createHttpError('No tienes permisos para registrar asistencias', 403);
+            }
+            const [allowedCourses] = await executor.query(`
+                SELECT c.id
+                FROM cursos c
+                WHERE c.id IN (?)
+                  AND (
+                    c.profesor_id = ?
+                    OR EXISTS (
+                        SELECT 1
+                        FROM curso_profesores cp
+                        WHERE cp.curso_id = c.id AND cp.profesor_id = ?
+                    )
+                  )
+            `, [courseIds, user.id, user.id]);
+            const allowedIds = new Set(allowedCourses.map((course) => Number(course.id)));
+            if (courseIds.some((courseId) => !allowedIds.has(courseId))) {
+                throw createHttpError('No tienes permisos para modificar uno de estos cursos', 403);
+            }
+        }
+
+        const [enrollments] = await executor.query(`
+            SELECT alumno_id, curso_id
+            FROM inscripciones_curso
+            WHERE activo = 1
+              AND alumno_id IN (?)
+              AND curso_id IN (?)
+        `, [studentIds, courseIds]);
+        const activePairs = new Set(enrollments.map((row) => `${row.alumno_id}:${row.curso_id}`));
+        const invalidEnrollment = asistencias.some((item) =>
+            !activePairs.has(`${Number(item.alumno_id)}:${Number(item.curso_id)}`)
+        );
+        if (invalidEnrollment) {
+            throw createHttpError('Uno de los alumnos no tiene una inscripción activa en el curso indicado', 400);
+        }
+
+        return true;
+    },
+
     // Asistencias de un alumno con filtros
     async findByAlumno(alumnoId, mes = null, anio = null) {
         try {
             let query = `
-        SELECT a.*, c.nombre as curso_nombre
+        SELECT a.id, a.alumno_id, a.curso_id,
+               DATE_FORMAT(a.fecha, '%Y-%m-%d') AS fecha,
+               a.presente, a.observaciones, a.created_at,
+               c.nombre as curso_nombre
         FROM asistencias a
         INNER JOIN cursos c ON a.curso_id = c.id
         WHERE a.alumno_id = ?
@@ -48,31 +125,20 @@ const AsistenciasModel = {
     },
 
     // Marcar asistencia
-    async marcarAsistencia(asistenciaData) {
+    async marcarAsistencia(asistenciaData, user = null) {
         try {
             const { alumno_id, curso_id, fecha, presente, observaciones } = asistenciaData;
+            if (user) await this.validateAttendanceScope(user, [asistenciaData]);
 
-            // Verificar si ya existe un registro para esta fecha
-            const [existe] = await db.query(
-                'SELECT id FROM asistencias WHERE alumno_id = ? AND curso_id = ? AND fecha = ?',
-                [alumno_id, curso_id, fecha]
-            );
-
-            if (existe.length > 0) {
-                // Actualizar
-                const [result] = await db.query(
-                    'UPDATE asistencias SET presente = ?, observaciones = ? WHERE id = ?',
-                    [presente, observaciones, existe[0].id]
-                );
-                return existe[0].id;
-            } else {
-                // Insertar
-                const [result] = await db.query(
-                    'INSERT INTO asistencias (alumno_id, curso_id, fecha, presente, observaciones) VALUES (?, ?, ?, ?, ?)',
-                    [alumno_id, curso_id, fecha, presente, observaciones]
-                );
-                return result.insertId;
-            }
+            const [result] = await db.query(`
+                INSERT INTO asistencias (alumno_id, curso_id, fecha, presente, observaciones)
+                VALUES (?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    id = LAST_INSERT_ID(id),
+                    presente = VALUES(presente),
+                    observaciones = VALUES(observaciones)
+            `, [alumno_id, curso_id, fecha, presente, observaciones || null]);
+            return result.insertId;
         } catch (error) {
             throw error;
         }
@@ -80,13 +146,14 @@ const AsistenciasModel = {
 
     // Marcar asistencias masivas
     // Bug #3 fix: envuelto en transacción para garantizar atomicidad (rollback si falla a mitad)
-    async marcarAsistenciasMasivas(asistencias) {
+    async marcarAsistenciasMasivas(asistencias, user = null) {
         if (!asistencias || asistencias.length === 0) return true;
 
         let connection;
         try {
             connection = await db.getConnection();
             await connection.beginTransaction();
+            if (user) await this.validateAttendanceScope(user, asistencias, connection);
 
             // Preparar valores para Bulk Insert
             const values = asistencias.map(a => [

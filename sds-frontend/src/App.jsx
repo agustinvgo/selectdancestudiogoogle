@@ -24,6 +24,7 @@ const GestionAlumnos = lazy(() => import('./pages/admin/GestionAlumnos.jsx'));
 const DetalleAlumno = lazy(() => import('./pages/admin/DetalleAlumno.jsx'));
 const GestionCursos = lazy(() => import('./pages/admin/GestionCursos.jsx'));
 const GestionAsistencias = lazy(() => import('./pages/admin/GestionAsistencias.jsx'));
+const AgendaSemanal = lazy(() => import('./pages/admin/AgendaSemanal.jsx'));
 const GestionPagos = lazy(() => import('./pages/admin/GestionPagos.jsx'));
 const GestionEventos = lazy(() => import('./pages/admin/GestionEventos.jsx'));
 const GestionEquipo = lazy(() => import('./pages/admin/GestionEquipo.jsx'));
@@ -180,6 +181,16 @@ const AppRoutes = () => {
                         <PrivateRoute allowedRoles={['admin']}>
                             <ProtectedLayout>
                                 <Transmisiones />
+                            </ProtectedLayout>
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/admin/agenda"
+                    element={
+                        <PrivateRoute allowedRoles={['admin', 'profesor']}>
+                            <ProtectedLayout>
+                                <AgendaSemanal />
                             </ProtectedLayout>
                         </PrivateRoute>
                     }

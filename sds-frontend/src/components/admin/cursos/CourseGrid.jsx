@@ -6,6 +6,7 @@ const CourseGrid = ({
     toggleParticipantes,
     participantes,
     loadingParticipantes,
+    errorParticipantes,
     alumnos,
     isProfesor,
     onEdit,
@@ -23,6 +24,7 @@ const CourseGrid = ({
                     onToggle={() => toggleParticipantes(curso.id)}
                     participantes={participantes}
                     loadingParticipantes={loadingParticipantes}
+                    errorParticipantes={errorParticipantes}
                     alumnos={alumnos}
                     isProfesor={isProfesor}
                     onEdit={onEdit}

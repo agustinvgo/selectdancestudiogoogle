@@ -7,11 +7,20 @@ import { exportAsistencias } from '../../utils/exportExcel';
 import useToast from '../../hooks/useToast';
 import useRequestQueue from '../../hooks/useRequestQueue';
 import Button from '../../components/Button';
+import { useAuth } from '../../context/AuthContext';
+
+const normalizarDia = (dia = '') => dia
+    .toString()
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
 
 const GestionAsistencias = () => {
     const queryClient = useQueryClient();
     const toast = useToast();
     const { enqueue } = useRequestQueue();
+    const { user } = useAuth();
 
     // Estado local para filtros y edición
     const [cursoSeleccionado, setCursoSeleccionado] = useState('');
@@ -29,11 +38,14 @@ const GestionAsistencias = () => {
 
     // 1. Obtener Cursos
     const { data: cursosData, isLoading: loadingCursos } = useQuery({
-        queryKey: ['cursos'],
+        queryKey: ['cursos', 'asistencias', user?.rol, user?.id],
         queryFn: async () => {
-            const response = await cursosAPI.getAll();
+            const response = user?.rol === 'profesor'
+                ? await cursosAPI.getMyCourses()
+                : await cursosAPI.getAll();
             return response.data.data || [];
-        }
+        },
+        enabled: user?.rol === 'admin' || user?.rol === 'profesor'
     });
 
     const cursos = cursosData || [];
@@ -63,14 +75,17 @@ const GestionAsistencias = () => {
     const guardarMutation = useMutation({
         mutationFn: (asistenciasPayload) => asistenciasAPI.marcarAsistenciasMasivas({ asistencias: asistenciasPayload }),
         onSuccess: () => {
-            queryClient.invalidateQueries(['asistencias', cursoSeleccionado, fechaSeleccionada]);
+            queryClient.invalidateQueries({ queryKey: ['asistencias', cursoSeleccionado, fechaSeleccionada] });
             // También invalidamos estadísticas de asistencia dashboard si quisiéramos ser muy estrictos
-            queryClient.invalidateQueries(['attendance_week']);
+            queryClient.invalidateQueries({ queryKey: ['attendance_week'] });
+            queryClient.invalidateQueries({ queryKey: ['attendance_avg'] });
+            queryClient.invalidateQueries({ queryKey: ['top_attendance'] });
+            queryClient.invalidateQueries({ queryKey: ['agenda-semanal'] });
             toast.success(`Asistencias del ${new Date(fechaSeleccionada + 'T00:00:00').toLocaleDateString('es-AR')} guardadas exitosamente`);
         },
         onError: (error) => {
             console.error('Error guardando asistencias:', error);
-            toast.error('Error al guardar asistencias');
+            toast.error(error.response?.data?.message || 'Error al guardar asistencias');
         }
     });
 
@@ -84,8 +99,8 @@ const GestionAsistencias = () => {
 
     // Cursos filtrados por el día de la fecha seleccionada
     const cursosFiltrados = cursos.filter(curso => {
-        const diaCurso = (curso.horario_dia || '').toLowerCase().trim();
-        const diaFecha = (getDiaSemana(fechaSeleccionada) || '').toLowerCase().trim();
+        const diaCurso = normalizarDia(curso.horario_dia || curso.dia_semana);
+        const diaFecha = normalizarDia(getDiaSemana(fechaSeleccionada));
         return diaCurso === diaFecha;
     });
 

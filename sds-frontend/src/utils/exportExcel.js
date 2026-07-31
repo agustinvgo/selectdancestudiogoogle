@@ -52,6 +52,47 @@ export const exportAsistencias = async (asistencias, titulo = 'asistencias') => 
     await exportToExcel(data, titulo);
 };
 
+// Exportar agenda semanal (una fila por visita programada)
+export const exportAgendaSemanal = async (dias, semanaInicio) => {
+    const estados = {
+        programado: 'Programado',
+        confirmado: 'Confirmado',
+        no_asistira: 'No asistirá',
+        presente: 'Presente',
+        ausente: 'Ausente'
+    };
+    const data = dias.flatMap((dia) => dia.clases.flatMap((clase) => {
+        if (clase.alumnos.length === 0) {
+            return [{
+                'Fecha': dia.fecha,
+                'Día': dia.dia,
+                'Horario': String(clase.hora_inicio || '').slice(0, 5),
+                'Curso': clase.nombre,
+                'Tipo': clase.tipo === 'prueba' ? 'Clase de prueba' : 'Regular',
+                'Profesores': clase.profesores,
+                'Alumno': 'Sin alumnos programados',
+                'Estado': '-',
+                'Teléfono': '-',
+                'Email': '-'
+            }];
+        }
+        return clase.alumnos.map((alumno) => ({
+            'Fecha': dia.fecha,
+            'Día': dia.dia,
+            'Horario': String(clase.hora_inicio || '').slice(0, 5),
+            'Curso': clase.nombre,
+            'Tipo': clase.tipo === 'prueba' ? 'Clase de prueba' : 'Regular',
+            'Profesores': clase.profesores,
+            'Alumno': `${alumno.nombre || ''} ${alumno.apellido || ''}`.trim(),
+            'Estado': estados[alumno.estado] || alumno.estado,
+            'Teléfono': alumno.telefono || '-',
+            'Email': alumno.email || '-'
+        }));
+    }));
+
+    await exportToExcel(data, `agenda_semanal_${semanaInicio}`);
+};
+
 // Exportar pagos enriquecidos
 export const exportPagos = async (pagos, alumnos = []) => {
     const XLSX = await import('xlsx');
