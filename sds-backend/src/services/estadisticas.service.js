@@ -7,18 +7,24 @@ class EstadisticasService {
         const currentMonth = mes || new Date().getMonth() + 1;
         const currentYear = anio || new Date().getFullYear();
 
-        const [viewResult] = await db.query(`
-            SELECT ingresos_pagos, ingresos_tienda, total_gastos, balance_neto 
-            FROM vw_balance_financiero 
-            WHERE mes = ? AND anio = ?
-        `, [currentMonth, currentYear]);
+        const [[ingresosResult], [gastosResult]] = await Promise.all([
+            db.query(`
+                SELECT COALESCE(SUM(monto), 0) AS total
+                FROM pagos
+                WHERE estado = 'pagado'
+                AND COALESCE(impacto_financiero, 'ingreso') = 'ingreso'
+                AND MONTH(fecha_pago) = ? AND YEAR(fecha_pago) = ?
+            `, [currentMonth, currentYear]),
+            db.query(`
+                SELECT COALESCE(SUM(monto), 0) AS total
+                FROM gastos
+                WHERE MONTH(fecha) = ? AND YEAR(fecha) = ?
+            `, [currentMonth, currentYear])
+        ]);
 
-        let totalIngresos = 0, totalGastos = 0, balanceNeto = 0;
-        if (viewResult.length > 0) {
-            totalIngresos = (parseFloat(viewResult[0].ingresos_pagos) || 0) + (parseFloat(viewResult[0].ingresos_tienda) || 0);
-            totalGastos = parseFloat(viewResult[0].total_gastos) || 0;
-            balanceNeto = parseFloat(viewResult[0].balance_neto) || 0;
-        }
+        const totalIngresos = parseFloat(ingresosResult[0]?.total) || 0;
+        const totalGastos = parseFloat(gastosResult[0]?.total) || 0;
+        const balanceNeto = totalIngresos - totalGastos;
 
         return { ingresos: totalIngresos, gastos: totalGastos, balance: balanceNeto, mes: currentMonth, anio: currentYear };
     }

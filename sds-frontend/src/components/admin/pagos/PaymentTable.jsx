@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { EyeIcon, ArrowDownTrayIcon, XCircleIcon, CheckCircleIcon, CurrencyDollarIcon, DocumentTextIcon, ChatBubbleLeftRightIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline';
+import { EyeIcon, ArrowDownTrayIcon, XCircleIcon, CheckCircleIcon, CurrencyDollarIcon, DocumentTextIcon, ChatBubbleLeftRightIcon, ArrowUpTrayIcon, TagIcon } from '@heroicons/react/24/outline';
 import StatusBadge from '../../StatusBadge';
 import SortableTableHeader from '../../SortableTableHeader';
 import useTableSort from '../../../hooks/useTableSort';
@@ -12,6 +12,8 @@ const PaymentTable = ({
     rechazarComprobante,
     abrirModalMetodoPago,
     abrirModalAjuste,
+    abrirModalNota,
+    abrirModalImpacto,
     calcularRecargoHandler,
     subirComprobante
 }) => {
@@ -36,6 +38,13 @@ const PaymentTable = ({
         'fecha_vencimiento',
         'desc'
     );
+
+    const ImpactBadge = ({ pago }) => {
+        const impacto = pago.impacto_financiero || 'ingreso';
+        if (impacto === 'ingreso') return <span className="inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700">Ingreso</span>;
+        if (impacto === 'ajuste') return <span className="inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">Ajuste · no computable</span>;
+        return <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-600">Informativo</span>;
+    };
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -69,6 +78,7 @@ const PaymentTable = ({
                                             {pago.alumno_nombre} {pago.alumno_apellido}
                                         </h3>
                                         <p className="text-xs text-gray-500 mt-0.5">{pago.concepto}</p>
+                                        <div className="mt-1"><ImpactBadge pago={pago} /></div>
                                         {pago.notas_pago && (
                                             <p className="mt-1 max-w-[220px] truncate text-xs text-indigo-600" title={pago.notas_pago}>
                                                 Nota: {pago.notas_pago}
@@ -94,6 +104,20 @@ const PaymentTable = ({
                                 </div>
 
                                 <div className="flex justify-end gap-1 border-t border-gray-100 pt-3">
+                                    <button
+                                        onClick={() => abrirModalNota(pago)}
+                                        className={`rounded-lg p-2 ${pago.notas_pago ? 'bg-indigo-50 text-indigo-600' : 'text-gray-400 hover:bg-gray-100'}`}
+                                        title={pago.notas_pago ? 'Editar Nota' : 'Agregar Nota'}
+                                    >
+                                        <DocumentTextIcon className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                        onClick={() => abrirModalImpacto(pago)}
+                                        className={`rounded-lg p-2 ${(pago.impacto_financiero || 'ingreso') !== 'ingreso' ? 'bg-amber-50 text-amber-700' : 'text-gray-400 hover:bg-gray-100'}`}
+                                        title="Clasificar impacto"
+                                    >
+                                        <TagIcon className="h-4 w-4" />
+                                    </button>
                                     {pago.comprobante_url && (
                                         <button
                                             onClick={() => verComprobante(pago.id)}
@@ -104,7 +128,7 @@ const PaymentTable = ({
                                         </button>
                                     )}
 
-                                    {pago.estado === 'pagado' && (
+                                    {pago.estado === 'pagado' && (pago.impacto_financiero || 'ingreso') === 'ingreso' && (
                                         <button
                                             onClick={() => descargarComprobante(pago.id)}
                                             className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg"
@@ -114,7 +138,7 @@ const PaymentTable = ({
                                         </button>
                                     )}
 
-                                    {pago.estado !== 'pagado' && (
+                                    {pago.estado !== 'pagado' && (pago.impacto_financiero || 'ingreso') === 'ingreso' && (
                                         <>
                                             {subirComprobante && (
                                                 <button
@@ -134,7 +158,7 @@ const PaymentTable = ({
                                                 <CheckCircleIcon className="h-4 w-4" />
                                             </button>
                                             <button
-                                                onClick={() => abrirModalAjuste(pago.id)}
+                                                onClick={() => abrirModalAjuste(pago)}
                                                 className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg"
                                                 title="Ajustar Monto"
                                             >
@@ -205,6 +229,10 @@ const PaymentTable = ({
                                     </td>
                                     <td className="px-4 py-4 text-sm text-gray-600">
                                         <p className="whitespace-nowrap">{pago.concepto}</p>
+                                        <div className="mt-1"><ImpactBadge pago={pago} /></div>
+                                        {pago.categoria_movimiento && (
+                                            <p className="mt-1 text-[11px] font-medium text-amber-700">Categoría: {pago.categoria_movimiento.replaceAll('_', ' ')}</p>
+                                        )}
                                         {pago.notas_pago && (
                                             <p className="mt-1 max-w-[260px] truncate text-xs text-indigo-600" title={pago.notas_pago}>
                                                 Nota: {pago.notas_pago}
@@ -236,7 +264,7 @@ const PaymentTable = ({
                                                 </button>
                                             )}
 
-                                            {pago.estado === 'pagado' && (
+                                            {pago.estado === 'pagado' && (pago.impacto_financiero || 'ingreso') === 'ingreso' && (
                                                 <button
                                                     onClick={() => descargarComprobante(pago.id)}
                                                     className="p-1.5 text-gray-400 hover:text-zinc-900 hover:bg-gray-100 rounded-lg transition-colors"
@@ -245,7 +273,7 @@ const PaymentTable = ({
                                                     <ArrowDownTrayIcon className="h-5 w-5" />
                                                 </button>
                                             )}
-                                            {pago.estado !== 'pagado' && (
+                                            {pago.estado !== 'pagado' && (pago.impacto_financiero || 'ingreso') === 'ingreso' && (
                                                 <>
                                                     {pago.estado === 'revision' && (
                                                         <button
@@ -274,7 +302,7 @@ const PaymentTable = ({
                                                         <CheckCircleIcon className="h-5 w-5" />
                                                     </button>
                                                     <button
-                                                        onClick={() => abrirModalAjuste(pago.id)}
+                                                        onClick={() => abrirModalAjuste(pago)}
                                                         className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                                                         title="Ajustar Monto"
                                                     >
@@ -291,7 +319,7 @@ const PaymentTable = ({
                                                     )}
                                                 </>
                                             )}
-                                            {pago.estado !== 'pagado' && pago.alumno_telefono && (
+                                            {pago.estado !== 'pagado' && (pago.impacto_financiero || 'ingreso') === 'ingreso' && pago.alumno_telefono && (
                                                 <a
                                                     href={`https://wa.me/${pago.alumno_telefono.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hola ${pago.alumno_nombre}, te recordamos que tienes un pago pendiente de $${pago.monto} correspondiente a ${pago.concepto}. Fecha vto: ${new Date(pago.fecha_vencimiento).toLocaleDateString('es-AR')}.`)}`}
                                                     target="_blank"
@@ -302,14 +330,20 @@ const PaymentTable = ({
                                                     <ChatBubbleLeftRightIcon className="h-5 w-5" />
                                                 </a>
                                             )}
-                                            {pago.notas_pago && (
-                                                <div
-                                                    className="p-1.5 text-gray-300 hover:text-gray-600 cursor-help transition-colors"
-                                                    title={pago.notas_pago}
-                                                >
-                                                    <DocumentTextIcon className="h-5 w-5" />
-                                                </div>
-                                            )}
+                                            <button
+                                                onClick={() => abrirModalNota(pago)}
+                                                className={`rounded-lg p-1.5 transition-colors ${pago.notas_pago ? 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-700'}`}
+                                                title={pago.notas_pago ? 'Editar Nota' : 'Agregar Nota'}
+                                            >
+                                                <DocumentTextIcon className="h-5 w-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => abrirModalImpacto(pago)}
+                                                className={`rounded-lg p-1.5 transition-colors ${(pago.impacto_financiero || 'ingreso') !== 'ingreso' ? 'bg-amber-50 text-amber-700 hover:bg-amber-100' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-700'}`}
+                                                title="Clasificar impacto"
+                                            >
+                                                <TagIcon className="h-5 w-5" />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>

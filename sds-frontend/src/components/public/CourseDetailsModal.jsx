@@ -2,7 +2,7 @@ import React from 'react';
 import Modal from '../Modal';
 import { CalendarIcon, ClockIcon, UserIcon } from '@heroicons/react/24/outline';
 
-const CourseDetailsModal = ({ isOpen, onClose, course, onRequestTrial }) => {
+const CourseDetailsModal = ({ isOpen, onClose, course, onContact }) => {
     if (!course) return null;
 
     // Data Processing Helpers
@@ -124,10 +124,10 @@ const CourseDetailsModal = ({ isOpen, onClose, course, onRequestTrial }) => {
                         Cerrar
                     </button>
                     <button
-                        onClick={() => onRequestTrial(course)}
+                        onClick={() => onContact(course)}
                         className="px-6 py-3 bg-black hover:bg-gray-800 text-white font-bold uppercase tracking-widest text-xs rounded-lg shadow-lg transition-all transform hover:-translate-y-0.5"
                     >
-                        Solicitar Clase de Prueba
+                        Consultar por WhatsApp
                     </button>
                 </div>
             </div>

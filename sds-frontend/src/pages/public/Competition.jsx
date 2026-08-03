@@ -1,11 +1,8 @@
-import { useState, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import CompetitionGallery from '../../components/home/CompetitionGallery';
 import PageSEO from '../../components/SEO/PageSEO';
 import SchemaBreadcrumb from '../../components/SEO/SchemaBreadcrumb';
 import { motion } from 'framer-motion';
-import TrialModal from '../../components/public/TrialModal';
-import { clasePruebaAPI } from '../../services/api';
+import { buildWhatsAppUrl, trackWhatsAppClick } from '../../utils/whatsapp.js';
 
 const HERO_WIDTHS = [768, 1280, 1920, 2560];
 const heroSrcSet = (format) => HERO_WIDTHS
@@ -13,25 +10,21 @@ const heroSrcSet = (format) => HERO_WIDTHS
     .join(', ');
 
 const Competition = () => {
-    const [trialModalOpen, setTrialModalOpen] = useState(false);
-
-    const { data: courses = [] } = useQuery({
-        queryKey: ['trial-slots-competition'],
-        queryFn: async () => {
-            const response = await clasePruebaAPI.getDisponibles();
-            const slots = response.data.data || [];
-            const uniqueNames = [...new Set(slots.map(s => s.titulo || s.curso_nombre))].filter(Boolean);
-            return uniqueNames.map(name => ({ id: name, nombre: name, activo: 1 }));
-        },
-        staleTime: 5 * 60 * 1000,
-    });
+    const handleCompetitionContact = () => {
+        trackWhatsAppClick({ source: '/competencia-danza-palermo', service: 'equipo_competencia' });
+        window.open(
+            buildWhatsAppUrl('Hola, vi el equipo de competencia de Select Dance Studio. Quisiera consultar por requisitos, edades, evaluaciones, horarios y vacantes.'),
+            '_blank',
+            'noopener,noreferrer'
+        );
+    };
 
     return (
         <div className="bg-black text-white min-h-screen">
             <PageSEO
                 title="Equipo de Competición de Danza — Palermo Buenos Aires"
                 description="El equipo de competición de Select Dance Studio participa en torneos y festivales de danza a nivel nacional. Conocé nuestro Salón de la Fama."
-                canonical="/competition"
+                canonical="/competencia-danza-palermo"
                 ogImage="/optimized/competition/hero-1280.webp"
                 ogImageWidth={1280}
                 ogImageHeight={853}
@@ -39,7 +32,7 @@ const Competition = () => {
             />
             <SchemaBreadcrumb items={[
                 { name: 'Inicio', url: '/' },
-                { name: 'Equipo de Competición', url: '/competition' },
+                { name: 'Equipo de Competición', url: '/competencia-danza-palermo' },
             ]} />
 
             {/* Hero — parallax solo CSS, sin JS scroll listeners */}
@@ -96,15 +89,8 @@ const Competition = () => {
             </div>
 
             <div className="bg-black relative z-30">
-                <CompetitionGallery onJoinClick={() => setTrialModalOpen(true)} />
+                <CompetitionGallery onJoinClick={handleCompetitionContact} />
             </div>
-
-            <TrialModal
-                isOpen={trialModalOpen}
-                onClose={() => setTrialModalOpen(false)}
-                courses={courses}
-                selectedCourse="Competición"
-            />
         </div>
     );
 };

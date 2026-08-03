@@ -1,6 +1,20 @@
 import Modal from '../../Modal';
 
 const EventoFormModal = ({ isOpen, onClose, onSubmit, editando, formData, setFormData }) => {
+    const totalCentavos = Math.max(0, Math.round((Number(formData.costo) || 0) * 100));
+    const cantidadCuotas = Math.max(2, Number.parseInt(formData.cantidad_cuotas, 10) || 2);
+    const cuotaBase = Math.floor(totalCentavos / cantidadCuotas);
+    const ultimaCuota = totalCentavos - (cuotaBase * (cantidadCuotas - 1));
+    const formatCurrency = (centavos) => {
+        const usaDecimales = centavos % 100 !== 0;
+        return new Intl.NumberFormat('es-CL', {
+            style: 'currency',
+            currency: 'CLP',
+            minimumFractionDigits: usaDecimales ? 2 : 0,
+            maximumFractionDigits: usaDecimales ? 2 : 0
+        }).format(centavos / 100);
+    };
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={editando ? 'Editar Evento' : 'Nuevo Evento'}>
             <form onSubmit={onSubmit} className="space-y-4">
@@ -80,7 +94,14 @@ const EventoFormModal = ({ isOpen, onClose, onSubmit, editando, formData, setFor
                         <input
                             type="number"
                             value={formData.costo}
-                            onChange={(e) => setFormData({ ...formData, costo: e.target.value })}
+                            onChange={(e) => {
+                                const costo = e.target.value;
+                                setFormData({
+                                    ...formData,
+                                    costo,
+                                    ...(Number(costo) > 0 ? {} : { modalidad_pago: 'unico', fecha_primera_cuota: '' })
+                                });
+                            }}
                             className="input w-full"
                             min="0"
                             step="0.01"
@@ -98,6 +119,72 @@ const EventoFormModal = ({ isOpen, onClose, onSubmit, editando, formData, setFor
                         />
                     </div>
                 </div>
+
+                {totalCentavos > 0 && (
+                    <div className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                        <div>
+                            <h3 className="text-sm font-semibold text-gray-900">Forma de pago del evento</h3>
+                            <p className="mt-1 text-xs text-gray-500">
+                                Se aplicará al costo principal cuando inscribas a cada alumno.
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-2 rounded-lg border border-gray-300 bg-white p-1">
+                            <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, modalidad_pago: 'unico' })}
+                                className={`rounded-md px-3 py-2 text-sm font-medium transition ${formData.modalidad_pago !== 'cuotas' ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                            >
+                                Pago único
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, modalidad_pago: 'cuotas' })}
+                                className={`rounded-md px-3 py-2 text-sm font-medium transition ${formData.modalidad_pago === 'cuotas' ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                            >
+                                Pago en cuotas
+                            </button>
+                        </div>
+
+                        {formData.modalidad_pago === 'cuotas' && (
+                            <>
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label className="mb-2 block text-sm font-medium text-gray-600">Número de cuotas</label>
+                                        <input
+                                            type="number"
+                                            min="2"
+                                            max="24"
+                                            value={formData.cantidad_cuotas}
+                                            onChange={(e) => setFormData({ ...formData, cantidad_cuotas: e.target.value })}
+                                            className="input w-full"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="mb-2 block text-sm font-medium text-gray-600">Fecha primera cuota</label>
+                                        <input
+                                            type="date"
+                                            value={formData.fecha_primera_cuota}
+                                            onChange={(e) => setFormData({ ...formData, fecha_primera_cuota: e.target.value })}
+                                            className="input w-full"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+                                    {cantidadCuotas} cuotas: {cantidadCuotas > 1 && `${cantidadCuotas - 1} de ${formatCurrency(cuotaBase)} y `}
+                                    la última de {formatCurrency(ultimaCuota)}.
+                                </div>
+                            </>
+                        )}
+
+                        <p className="text-xs leading-5 text-gray-500">
+                            Vestuario, maquillaje y peinado se mantendrán como cobros separados. Si editas esta opción, solo afectará a futuras inscripciones.
+                        </p>
+                    </div>
+                )}
 
                 <div className="space-y-4 p-4 bg-white border border-gray-100 rounded-lg border border-gray-200">
                     <h3 className="text-sm font-medium text-gray-600">Requisitos Adicionales (Opcional)</h3>

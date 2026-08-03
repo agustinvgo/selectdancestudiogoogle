@@ -58,21 +58,28 @@ const MisPagos = () => {
         uploadMutation.mutate({ id: pagoId, formData });
     };
 
+    const esIngreso = (pago) => (pago.impacto_financiero || 'ingreso') === 'ingreso';
+    const pagosIngreso = pagos.filter(esIngreso);
+    const ajustesAplicados = pagos
+        .filter((pago) => pago.impacto_financiero === 'ajuste' && pago.estado === 'pagado')
+        .reduce((sum, pago) => sum + (parseFloat(pago.monto) || 0), 0);
+
     const pagosFiltrados = pagos.filter(pago => {
-        if (filtro === 'pendientes') return pago.estado !== 'pagado';
-        if (filtro === 'pagados') return pago.estado === 'pagado';
+        if (filtro === 'pendientes') return esIngreso(pago) && pago.estado !== 'pagado' && pago.estado !== 'anulado';
+        if (filtro === 'pagados') return esIngreso(pago) && pago.estado === 'pagado';
         return true;
     });
 
-    const totalPendiente = pagos
-        .filter(p => p.estado !== 'pagado')
+    const totalPendienteBruto = pagosIngreso
+        .filter(p => p.estado !== 'pagado' && p.estado !== 'anulado')
         .reduce((sum, p) => sum + parseFloat(p.monto), 0);
+    const totalPendiente = Math.max(0, totalPendienteBruto - ajustesAplicados);
 
-    const totalPagado = pagos
+    const totalPagado = pagosIngreso
         .filter(p => p.estado === 'pagado')
         .reduce((sum, p) => sum + parseFloat(p.monto), 0);
 
-    const cantidadPendientes = pagos.filter(p => p.estado !== 'pagado').length;
+    const cantidadPendientes = pagosIngreso.filter(p => p.estado !== 'pagado' && p.estado !== 'anulado').length;
 
     return (
         <div className="space-y-6">
@@ -109,7 +116,7 @@ const MisPagos = () => {
                                     ${totalPagado.toLocaleString()}
                                 </p>
                                 <p className="text-xs text-gray-500 mt-1">
-                                    {pagos.filter(p => p.estado === 'pagado').length} pagos
+                                    {pagosIngreso.filter(p => p.estado === 'pagado').length} pagos reales
                                 </p>
                             </div>
                             <CheckCircleIcon className="h-12 w-12 text-green-500" />
@@ -125,7 +132,7 @@ const MisPagos = () => {
                                 <p className="text-3xl font-bold text-gray-900 mt-2">
                                     ${(totalPendiente + totalPagado).toLocaleString()}
                                 </p>
-                                <p className="text-xs text-gray-500 mt-1">{pagos.length} pagos</p>
+                                <p className="text-xs text-gray-500 mt-1">{pagosIngreso.length} cobros computables</p>
                             </div>
                             <ClockIcon className="h-12 w-12 text-gray-500" />
                         </div>
@@ -154,7 +161,7 @@ const MisPagos = () => {
                             onClick={() => setFiltro('pagados')}
                             className={`btn btn-sm ${filtro === 'pagados' ? 'btn-primary' : 'btn-secondary'}`}
                         >
-                            Pagados ({pagos.filter(p => p.estado === 'pagado').length})
+                            Pagados ({pagosIngreso.filter(p => p.estado === 'pagado').length})
                         </button>
                     </div>
                 </div>
@@ -173,7 +180,9 @@ const MisPagos = () => {
                     ) : (
                         <div className="space-y-4">
                             {pagosFiltrados.map((pago) => {
-                                const vencido = pago.estado !== 'pagado' && new Date(pago.fecha_vencimiento) < new Date();
+                                const impacto = pago.impacto_financiero || 'ingreso';
+                                const movimientoInterno = impacto !== 'ingreso';
+                                const vencido = !movimientoInterno && pago.estado !== 'pagado' && new Date(pago.fecha_vencimiento) < new Date();
                                 return (
                                     <div
                                         key={pago.id}
@@ -197,6 +206,11 @@ const MisPagos = () => {
                                                     </div>
                                                 )}
                                                 <h4 className="font-semibold text-gray-900 text-lg">{pago.concepto}</h4>
+                                                {movimientoInterno && (
+                                                    <span className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${impacto === 'ajuste' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'}`}>
+                                                        {impacto === 'ajuste' ? 'Ajuste / bonificación · no es ingreso' : 'Registro informativo'}
+                                                    </span>
+                                                )}
                                                 <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mt-3 text-sm">
                                                     <div>
                                                         <p className="text-gray-500">Monto</p>
@@ -252,6 +266,12 @@ const MisPagos = () => {
                                                         <p className="text-gray-600 text-sm">{pago.observaciones}</p>
                                                     </div>
                                                 )}
+                                                {pago.notas_pago && (
+                                                    <div className="mt-3 rounded-lg bg-gray-50 p-3">
+                                                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Descripción</p>
+                                                        <p className="mt-1 text-sm text-gray-700">{pago.notas_pago}</p>
+                                                    </div>
+                                                )}
                                                 {pago.metodo_pago && (
                                                     <div className="mt-2">
                                                         <span className="text-xs text-gray-500">
@@ -261,7 +281,11 @@ const MisPagos = () => {
                                                 )}
                                             </div>
                                             <div>
-                                                {pago.estado === 'pagado' ? (
+                                                {movimientoInterno ? (
+                                                    <span className={`badge flex items-center ${impacto === 'ajuste' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'}`}>
+                                                        {impacto === 'ajuste' ? 'Ajuste aplicado' : 'Informativo'}
+                                                    </span>
+                                                ) : pago.estado === 'pagado' ? (
                                                     <span className="badge badge-success flex items-center">
                                                         <CheckCircleIcon className="h-4 w-4 mr-1" />
                                                         Pagado
@@ -279,7 +303,7 @@ const MisPagos = () => {
                                                             <span className="badge badge-warning">Pendiente</span>
                                                         )}
 
-                                                        {!pago.comprobante_url && (
+                                                        {!pago.comprobante_url && !movimientoInterno && (
                                                             <label className="btn btn-sm btn-outline btn-info flex items-center gap-2 cursor-pointer">
                                                                 <ArrowUpTrayIcon className="h-4 w-4" />
                                                                 Informar Pago

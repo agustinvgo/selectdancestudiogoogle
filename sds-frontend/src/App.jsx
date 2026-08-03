@@ -62,9 +62,9 @@ const Home = lazy(() => import('./pages/public/Home.jsx'));
 const CursosPublicos = lazy(() => import('./pages/public/CursosPublicos.jsx'));
 const Competition = lazy(() => import('./pages/public/Competition.jsx'));
 const QuienesSomos = lazy(() => import('./pages/public/QuienesSomos.jsx'));
-const ClasePrueba = lazy(() => import('./pages/public/ClasePrueba.jsx'));
 const FAQ = lazy(() => import('./pages/public/FAQ.jsx'));
 const Contacto = lazy(() => import('./pages/public/Contacto.jsx'));
+const ServiceLandingPage = lazy(() => import('./pages/public/ServiceLandingPage.jsx'));
 const NotFound = lazy(() => import('./pages/public/NotFound.jsx'));
 // const Highlights = lazy(() => import('./pages/public/Highlights')); // Removed during cleanup
 // const TubelightDemo = lazy(() => import('./pages/public/TubelightDemo')); // Removed during cleanup
@@ -105,7 +105,11 @@ const ProtectedLayout = ({ children }) => {
 const AppRoutes = () => {
     const { user, loading } = useAuth();
     const location = useLocation();
-    const publicPaths = ['/', '/cursos', '/competition', '/nosotros', '/clase-de-prueba', '/faq', '/contacto'];
+    const publicPaths = [
+        '/', '/cursos', '/competencia-danza-palermo', '/nosotros', '/faq', '/contacto',
+        '/danza-infantil-palermo', '/acro-dance-palermo', '/gimnasia-artistica-palermo',
+        '/ballet-jazz-palermo', '/alquiler-sala-danza-palermo', '/competition', '/clase-de-prueba'
+    ];
     const isPublicPath = publicPaths.includes(location.pathname);
 
     if (loading && !isPublicPath) {
@@ -119,11 +123,17 @@ const AppRoutes = () => {
                 <Route element={<PublicLayout />}>
                     <Route path="/" element={<Home />} />
                     <Route path="/cursos" element={<CursosPublicos />} />
-                    <Route path="/competition" element={<Competition />} />
+                    <Route path="/competencia-danza-palermo" element={<Competition />} />
+                    <Route path="/danza-infantil-palermo" element={<ServiceLandingPage serviceKey="danzaInfantil" />} />
+                    <Route path="/acro-dance-palermo" element={<ServiceLandingPage serviceKey="acroDance" />} />
+                    <Route path="/gimnasia-artistica-palermo" element={<ServiceLandingPage serviceKey="gimnasiaArtistica" />} />
+                    <Route path="/ballet-jazz-palermo" element={<ServiceLandingPage serviceKey="balletJazz" />} />
+                    <Route path="/alquiler-sala-danza-palermo" element={<ServiceLandingPage serviceKey="alquilerSala" />} />
                     <Route path="/nosotros" element={<QuienesSomos />} />
-                    <Route path="/clase-de-prueba" element={<ClasePrueba />} />
                     <Route path="/faq" element={<FAQ />} />
                     <Route path="/contacto" element={<Contacto />} />
+                    <Route path="/competition" element={<Navigate to="/competencia-danza-palermo" replace />} />
+                    <Route path="/clase-de-prueba" element={<Navigate to="/contacto" replace />} />
                     {/* <Route path="/tubelight" element={<TubelightDemo />} /> Removed during cleanup */}
                 </Route>
 

@@ -54,17 +54,29 @@ const PaymentSummary = ({ user }) => {
         );
     }
 
+    const adjustmentCredit = payments
+        .filter((payment) => payment.impacto_financiero === 'ajuste' && payment.estado === 'pagado')
+        .reduce((total, payment) => total + (Number.parseFloat(payment.monto) || 0), 0);
+
+    let remainingCredit = adjustmentCredit;
     const pendingPayments = payments
-        .filter((payment) => !['pagado', 'anulado'].includes(payment.estado))
+        .filter((payment) => (payment.impacto_financiero || 'ingreso') === 'ingreso' && !['pagado', 'anulado'].includes(payment.estado))
         .sort((a, b) => {
             const dateA = parseLocalDate(a.fecha_vencimiento)?.getTime() ?? Number.MAX_SAFE_INTEGER;
             const dateB = parseLocalDate(b.fecha_vencimiento)?.getTime() ?? Number.MAX_SAFE_INTEGER;
             return dateA - dateB;
-        });
+        })
+        .map((payment) => {
+            const originalAmount = Number.parseFloat(payment.monto) || 0;
+            const appliedCredit = Math.min(remainingCredit, originalAmount);
+            remainingCredit -= appliedCredit;
+            return { ...payment, saldo_ajustado: originalAmount - appliedCredit };
+        })
+        .filter((payment) => payment.saldo_ajustado > 0);
 
     const nextPayment = pendingPayments[0];
     const pendingBalance = pendingPayments.reduce(
-        (total, payment) => total + (Number.parseFloat(payment.monto) || 0),
+        (total, payment) => total + payment.saldo_ajustado,
         0
     );
     const dueDate = parseLocalDate(nextPayment?.fecha_vencimiento);
@@ -98,7 +110,7 @@ const PaymentSummary = ({ user }) => {
                                 {isOverdue ? 'Monto vencido' : 'Monto a pagar'}
                             </p>
                             <p className="mt-2 text-3xl font-black tracking-tight text-gray-950">
-                                {nextPayment ? currencyFormatter.format(Number(nextPayment.monto) || 0) : currencyFormatter.format(0)}
+                                {nextPayment ? currencyFormatter.format(nextPayment.saldo_ajustado) : currencyFormatter.format(0)}
                             </p>
                         </div>
                         <div className={`rounded-xl p-3 ${isOverdue ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'}`}>

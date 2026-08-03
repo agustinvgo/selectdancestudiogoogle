@@ -1,9 +1,13 @@
 User-agent: *
 Allow: /
 Allow: /cursos
-Allow: /competition
+Allow: /competencia-danza-palermo
+Allow: /danza-infantil-palermo
+Allow: /acro-dance-palermo
+Allow: /gimnasia-artistica-palermo
+Allow: /ballet-jazz-palermo
+Allow: /alquiler-sala-danza-palermo
 Allow: /nosotros
-Allow: /clase-de-prueba
 Allow: /faq
 Allow: /contacto
 

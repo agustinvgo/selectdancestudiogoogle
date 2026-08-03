@@ -1,10 +1,10 @@
-import { CheckCircleIcon, XCircleIcon, CurrencyDollarIcon, FunnelIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, XCircleIcon, CurrencyDollarIcon, FunnelIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
 
 const PaymentStats = ({ resumenFinanciero }) => {
     if (!resumenFinanciero) return null;
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 animate-fade-in-up">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6 animate-fade-in-up">
             <div className="card bg-emerald-50 border border-emerald-100">
                 <div className="card-body">
                     <div className="flex items-center justify-between">
@@ -64,6 +64,22 @@ const PaymentStats = ({ resumenFinanciero }) => {
                         </div>
                         <div className="p-3 bg-violet-100 rounded-full">
                             <FunnelIcon className="h-8 w-8 text-violet-600" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="card bg-amber-50 border border-amber-100">
+                <div className="card-body">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium text-amber-700 mb-1">Ajustes no computables</p>
+                            <p className="text-3xl font-bold text-amber-900">
+                                ${resumenFinanciero.ajustes_aplicados?.toLocaleString('es-AR', { maximumFractionDigits: 0 }) || '0'}
+                            </p>
+                        </div>
+                        <div className="p-3 bg-amber-100 rounded-full">
+                            <AdjustmentsHorizontalIcon className="h-8 w-8 text-amber-700" />
                         </div>
                     </div>
                 </div>

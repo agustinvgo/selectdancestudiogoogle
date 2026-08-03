@@ -35,14 +35,10 @@ const SchemaLocalBusiness = () => {
             url: SITE.whatsapp,
             availableLanguage: 'Spanish',
         },
-        hasMap: 'https://maps.google.com/?q=Select+Dance+Studio+Honduras+5550',
+        hasMap: SITE.maps,
         areaServed: {
-            '@type': 'GeoCircle',
-            geoMidpoint: {
-                '@type': 'GeoCoordinates',
-                ...SITE.geo,
-            },
-            geoRadius: '5000',
+            '@type': 'AdministrativeArea',
+            name: 'Palermo y Ciudad Autónoma de Buenos Aires',
         },
     };
 

@@ -6,7 +6,11 @@ import { useState, useEffect } from 'react';
 const PublicLayout = () => {
     const location = useLocation();
     const isHome = location.pathname === '/';
-    const darkPages = ['/', '/competition', '/cursos', '/nosotros', '/clase-de-prueba', '/faq', '/contacto'];
+    const darkPages = [
+        '/', '/cursos', '/competencia-danza-palermo', '/nosotros', '/faq', '/contacto',
+        '/danza-infantil-palermo', '/acro-dance-palermo', '/gimnasia-artistica-palermo',
+        '/ballet-jazz-palermo', '/alquiler-sala-danza-palermo'
+    ];
     const isDarkPage = darkPages.includes(location.pathname);
     const [isScrolled, setIsScrolled] = useState(false);
 
@@ -36,7 +40,7 @@ const PublicLayout = () => {
     const navItems = [
         { name: 'Inicio', url: '/', icon: Home },
         { name: 'Cursos', url: '/cursos', icon: BookOpen },
-        { name: 'Competition', url: '/competition', icon: Star },
+        { name: 'Competencia', url: '/competencia-danza-palermo', icon: Star },
         { name: 'Nosotros', url: '/nosotros', icon: Users },
         { name: 'Login', url: '/login', icon: LogIn }
     ];
@@ -78,8 +82,8 @@ const PublicLayout = () => {
                                 Select Dance Studio
                             </h3>
                             <address className={`not-italic text-sm space-y-2 ${isDarkPage ? 'text-gray-400' : 'text-gray-600'}`}>
-                                <p>Honduras 5550, Palermo</p>
-                                <p>CABA, C1425, Argentina</p>
+                                <p>Honduras 5550, Oficina 105</p>
+                                <p>Palermo, CABA, C1414BND</p>
                                 <a
                                     href="https://wa.me/message/ZNBV2CLWYU36H1"
                                     target="_blank"
@@ -97,9 +101,9 @@ const PublicLayout = () => {
                             <ul className={`text-sm space-y-2 ${isDarkPage ? 'text-gray-400' : 'text-gray-600'}`}>
                                 <li><Link to="/" className="hover:text-red-500 transition-colors">Inicio</Link></li>
                                 <li><Link to="/cursos" className="hover:text-red-500 transition-colors">Cursos & Horarios</Link></li>
-                                <li><Link to="/competition" className="hover:text-red-500 transition-colors">Elite Competition</Link></li>
+                                <li><Link to="/competencia-danza-palermo" className="hover:text-red-500 transition-colors">Equipo de Competencia</Link></li>
                                 <li><Link to="/nosotros" className="hover:text-red-500 transition-colors">Quiénes Somos</Link></li>
-                                <li><Link to="/clase-de-prueba" className="hover:text-red-500 transition-colors">Clase de Prueba</Link></li>
+                                <li><Link to="/contacto" className="hover:text-red-500 transition-colors">Consultar por WhatsApp</Link></li>
                             </ul>
                         </div>
 
@@ -107,10 +111,11 @@ const PublicLayout = () => {
                         <div>
                             <h4 className={`text-xs font-bold uppercase tracking-widest mb-4 ${isDarkPage ? 'text-gray-500' : 'text-gray-400'}`}>Formación</h4>
                             <ul className={`text-sm space-y-2 ${isDarkPage ? 'text-gray-400' : 'text-gray-600'}`}>
-                                <li><span className="opacity-50">Baby Dance (3-5)</span></li>
-                                <li><span className="opacity-50">Junior & Teens</span></li>
-                                <li><span className="opacity-50">Senior (+18)</span></li>
-                                <li><span className="opacity-50">Alto Rendimiento</span></li>
+                                <li><Link to="/danza-infantil-palermo" className="hover:text-red-500 transition-colors">Danza infantil</Link></li>
+                                <li><Link to="/ballet-jazz-palermo" className="hover:text-red-500 transition-colors">Ballet, jazz y contemporáneo</Link></li>
+                                <li><Link to="/acro-dance-palermo" className="hover:text-red-500 transition-colors">Acro Dance</Link></li>
+                                <li><Link to="/gimnasia-artistica-palermo" className="hover:text-red-500 transition-colors">Gimnasia artística</Link></li>
+                                <li><Link to="/alquiler-sala-danza-palermo" className="hover:text-red-500 transition-colors">Alquiler de sala</Link></li>
                             </ul>
                         </div>
 

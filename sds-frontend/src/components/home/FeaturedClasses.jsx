@@ -52,7 +52,7 @@ const DISCIPLINES = [
         optimized: 'competition',
         desc: 'ENTRENAMIENTO DE ALTO RENDIMIENTO DESDE LOS 4 AÑOS',
         details: 'Programa selectivo destinado a alumnos con condiciones, potencial y proyección artística...',
-        link: '/competition'
+        link: '/competencia-danza-palermo'
     }
 ];
 

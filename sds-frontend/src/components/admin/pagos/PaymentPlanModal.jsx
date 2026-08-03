@@ -36,6 +36,7 @@ const PaymentPlanModal = ({
                         className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:ring-2 focus:ring-black focus:border-transparent outline-none"
                     >
                         <option>Matrícula</option>
+                        <option>Mensualidad</option>
                         <option>Evento</option>
                         <option>Uniforme</option>
                         <option>Otro</option>
@@ -68,7 +69,7 @@ const PaymentPlanModal = ({
                             value={planCuotasData.monto_total}
                             onChange={(e) => setPlanCuotasData({ ...planCuotasData, monto_total: e.target.value })}
                             className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:ring-2 focus:ring-black focus:border-transparent outline-none"
-                            min="0"
+                            min="0.01"
                             step="100"
                             placeholder="Monto total a dividir"
                         />
@@ -82,7 +83,7 @@ const PaymentPlanModal = ({
                             onChange={(e) => setPlanCuotasData({ ...planCuotasData, cuotas: parseInt(e.target.value) })}
                             className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:ring-2 focus:ring-black focus:border-transparent outline-none"
                             min="2"
-                            max="12"
+                            max="24"
                         />
                     </div>
                 </div>

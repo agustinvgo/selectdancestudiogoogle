@@ -28,6 +28,7 @@ const PagosModel = {
                 INNER JOIN usuarios u ON a.usuario_id = u.id
                 LEFT JOIN cursos c ON p.curso_id = c.id
         WHERE p.estado IN ('pendiente', 'parcial', 'revision')
+        AND COALESCE(p.impacto_financiero, 'ingreso') = 'ingreso'
         ORDER BY p.fecha_vencimiento ASC
       `);
             return rows;
@@ -47,6 +48,7 @@ const PagosModel = {
                 INNER JOIN usuarios u ON a.usuario_id = u.id
                 LEFT JOIN cursos c ON p.curso_id = c.id
         WHERE p.estado IN ('pendiente', 'parcial', 'revision')
+        AND COALESCE(p.impacto_financiero, 'ingreso') = 'ingreso'
         AND MONTH(p.fecha_vencimiento) = ?
         AND YEAR(p.fecha_vencimiento) = ?
         ORDER BY p.fecha_vencimiento ASC
@@ -60,7 +62,7 @@ const PagosModel = {
     // Todos los pagos con filtros y paginación
     async findAll(params = {}) {
         try {
-            const { page, limit, estado, mes, anio, alumno_id, search } = params;
+            const { page, limit, estado, mes, anio, alumno_id, search, impacto } = params;
 
             // Base query joins
             const baseQuery = `
@@ -94,10 +96,17 @@ const PagosModel = {
                 queryParams.push(alumno_id);
             }
 
+            if (impacto === 'no_computable') {
+                whereClauses.push("COALESCE(p.impacto_financiero, 'ingreso') IN ('ajuste', 'informativo')");
+            } else if (['ingreso', 'ajuste', 'informativo'].includes(impacto)) {
+                whereClauses.push("COALESCE(p.impacto_financiero, 'ingreso') = ?");
+                queryParams.push(impacto);
+            }
+
             if (search) {
-                whereClauses.push('(u.nombre LIKE ? OR u.apellido LIKE ? OR p.concepto LIKE ?)');
+                whereClauses.push('(u.nombre LIKE ? OR u.apellido LIKE ? OR p.concepto LIKE ? OR p.notas_pago LIKE ? OR p.categoria_movimiento LIKE ?)');
                 const term = `%${search}%`;
-                queryParams.push(term, term, term);
+                queryParams.push(term, term, term, term, term);
             }
 
             const whereSql = whereClauses.length > 0 ? ' WHERE ' + whereClauses.join(' AND ') : '';
@@ -157,7 +166,7 @@ const PagosModel = {
     async findPendientesByAlumno(alumnoId) {
         try {
             const [rows] = await db.query(
-                'SELECT * FROM pagos WHERE alumno_id = ? AND estado IN ("pendiente", "parcial", "revision")',
+                'SELECT * FROM pagos WHERE alumno_id = ? AND estado IN ("pendiente", "parcial", "revision") AND COALESCE(impacto_financiero, "ingreso") = "ingreso"',
                 [alumnoId]
             );
             return rows;
@@ -169,14 +178,15 @@ const PagosModel = {
     // Obtener estadísticas de pagos (conteo por estado)
     async getStats(params = {}) {
         try {
-            const { mes, anio, alumno_id, search } = params;
+            const { mes, anio, alumno_id, search, impacto } = params;
 
             let query = `
                 SELECT 
                     COUNT(*) as total,
                     SUM(CASE WHEN p.estado = 'pendiente' THEN 1 ELSE 0 END) as pendientes,
                     SUM(CASE WHEN p.estado = 'pagado' THEN 1 ELSE 0 END) as pagados,
-                    SUM(CASE WHEN p.estado = 'revision' THEN 1 ELSE 0 END) as revision
+                    SUM(CASE WHEN p.estado = 'revision' THEN 1 ELSE 0 END) as revision,
+                    SUM(CASE WHEN COALESCE(p.impacto_financiero, 'ingreso') != 'ingreso' THEN 1 ELSE 0 END) as no_computables
                 FROM pagos p
                 INNER JOIN alumnos a ON p.alumno_id = a.id
                 INNER JOIN usuarios u ON a.usuario_id = u.id
@@ -200,10 +210,17 @@ const PagosModel = {
                 queryParams.push(alumno_id);
             }
 
+            if (impacto === 'no_computable') {
+                whereClauses.push("COALESCE(p.impacto_financiero, 'ingreso') IN ('ajuste', 'informativo')");
+            } else if (['ingreso', 'ajuste', 'informativo'].includes(impacto)) {
+                whereClauses.push("COALESCE(p.impacto_financiero, 'ingreso') = ?");
+                queryParams.push(impacto);
+            }
+
             if (search) {
-                whereClauses.push('(u.nombre LIKE ? OR u.apellido LIKE ? OR p.concepto LIKE ?)');
+                whereClauses.push('(u.nombre LIKE ? OR u.apellido LIKE ? OR p.concepto LIKE ? OR p.notas_pago LIKE ? OR p.categoria_movimiento LIKE ?)');
                 const term = `%${search}%`;
-                queryParams.push(term, term, term);
+                queryParams.push(term, term, term, term, term);
             }
 
             if (whereClauses.length > 0) {
@@ -231,7 +248,8 @@ const PagosModel = {
                 'comprobante_url', 'observaciones', 'monto_original', 'recargo_aplicado',
                 'descuento_aplicado', 'comprobante_numero', 'plan_cuotas', 'cuota_numero',
                 'plan_pago_id', 'referencia_externa', 'tipo_descuento', 'notas_pago',
-                'metodo_pago_realizado', 'es_mensual', 'codigo_unico'
+                'metodo_pago_realizado', 'es_mensual', 'codigo_unico',
+                'impacto_financiero', 'categoria_movimiento'
             ];
 
             allowedFields.forEach(field => {
@@ -269,7 +287,7 @@ const PagosModel = {
                 'comprobante_numero', 'plan_cuotas', 'cuota_numero',
                 'plan_pago_id', 'referencia_externa', 'tipo_descuento',
                 'notas_pago', 'metodo_pago_realizado', 'es_mensual',
-                'analisis_comprobante'
+                'analisis_comprobante', 'impacto_financiero', 'categoria_movimiento'
             ];
 
             allowedFields.forEach(field => {
@@ -305,6 +323,7 @@ const PagosModel = {
                 FROM pagos
                 WHERE MONTH(fecha_vencimiento) = ?
                 AND YEAR(fecha_vencimiento) = ?
+                AND COALESCE(impacto_financiero, 'ingreso') = 'ingreso'
             `, [mesConsulta, anioConsulta]);
 
             // Total cobrado este mes (basado en fecha_vencimiento, no fecha_pago)
@@ -313,17 +332,22 @@ const PagosModel = {
                 SELECT COALESCE(SUM(monto), 0) as total
                 FROM pagos
                 WHERE estado = 'pagado'
+                AND COALESCE(impacto_financiero, 'ingreso') = 'ingreso'
                 AND MONTH(fecha_vencimiento) = ?
                 AND YEAR(fecha_vencimiento) = ?
             `, [mesConsulta, anioConsulta]);
 
             // Pendientes de este mes
             const [pendientes] = await db.query(`
-                SELECT COALESCE(SUM(monto), 0) as total
-                FROM pagos
-                WHERE estado IN ('pendiente', 'parcial', 'revision')
-                AND MONTH(fecha_vencimiento) = ?
-                AND YEAR(fecha_vencimiento) = ?
+                SELECT COALESCE(SUM(GREATEST(resumen.deuda - resumen.ajustes, 0)), 0) as total
+                FROM (
+                    SELECT alumno_id,
+                        SUM(CASE WHEN estado IN ('pendiente', 'parcial', 'revision') AND COALESCE(impacto_financiero, 'ingreso') = 'ingreso' THEN monto ELSE 0 END) as deuda,
+                        SUM(CASE WHEN estado = 'pagado' AND COALESCE(impacto_financiero, 'ingreso') = 'ajuste' THEN monto ELSE 0 END) as ajustes
+                    FROM pagos
+                    WHERE MONTH(fecha_vencimiento) = ? AND YEAR(fecha_vencimiento) = ?
+                    GROUP BY alumno_id
+                ) resumen
             `, [mesConsulta, anioConsulta]);
 
             // Ingresos por mes (últimos 6 meses)
@@ -333,19 +357,32 @@ const PagosModel = {
                     SUM(monto) as total
                 FROM pagos
                 WHERE estado = 'pagado'
+                AND COALESCE(impacto_financiero, 'ingreso') = 'ingreso'
                 AND fecha_pago >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
                 GROUP BY DATE_FORMAT(fecha_pago, '%Y-%m')
                 ORDER BY mes ASC
             `);
 
-            // Vencidos de este mes
-            const [vencidos] = await db.query(`
+            const [ajustesMes] = await db.query(`
                 SELECT COALESCE(SUM(monto), 0) as total
                 FROM pagos
-                WHERE estado IN ('pendiente', 'parcial', 'revision')
-                AND fecha_vencimiento < CURDATE()
+                WHERE COALESCE(impacto_financiero, 'ingreso') = 'ajuste'
+                AND estado = 'pagado'
                 AND MONTH(fecha_vencimiento) = ?
                 AND YEAR(fecha_vencimiento) = ?
+            `, [mesConsulta, anioConsulta]);
+
+            // Vencidos de este mes
+            const [vencidos] = await db.query(`
+                SELECT COALESCE(SUM(GREATEST(resumen.deuda - resumen.ajustes, 0)), 0) as total
+                FROM (
+                    SELECT alumno_id,
+                        SUM(CASE WHEN estado IN ('pendiente', 'parcial', 'revision') AND COALESCE(impacto_financiero, 'ingreso') = 'ingreso' AND fecha_vencimiento < CURDATE() THEN monto ELSE 0 END) as deuda,
+                        SUM(CASE WHEN estado = 'pagado' AND COALESCE(impacto_financiero, 'ingreso') = 'ajuste' THEN monto ELSE 0 END) as ajustes
+                    FROM pagos
+                    WHERE MONTH(fecha_vencimiento) = ? AND YEAR(fecha_vencimiento) = ?
+                    GROUP BY alumno_id
+                ) resumen
             `, [mesConsulta, anioConsulta]);
 
             return {
@@ -353,6 +390,7 @@ const PagosModel = {
                 cobradoMes: cobradoMes[0].total,
                 pendientes: pendientes[0].total,
                 vencidos: vencidos[0].total,
+                ajustesMes: ajustesMes[0].total,
                 ingresosMensuales
             };
         } catch (error) {
@@ -367,7 +405,8 @@ const PagosModel = {
             // El filtrado de "último por concepto" lo haremos en JS o Controller para mayor seguridad SQL
             const [rows] = await db.query(`
                 SELECT * FROM pagos 
-                WHERE alumno_id = ? AND es_mensual = 1 
+                WHERE alumno_id = ? AND es_mensual = 1
+                AND COALESCE(impacto_financiero, 'ingreso') = 'ingreso'
                 ORDER BY id DESC
             `, [alumnoId]);
             return rows;
@@ -382,6 +421,7 @@ const PagosModel = {
             const [rows] = await db.query(`
                 SELECT * FROM pagos 
                 WHERE alumno_id = ? AND es_mensual = 1
+                AND COALESCE(impacto_financiero, 'ingreso') = 'ingreso'
                 ORDER BY created_at DESC
                 LIMIT 1
             `, [alumnoId]);
@@ -391,6 +431,7 @@ const PagosModel = {
                 const [oldRows] = await db.query(`
                     SELECT * FROM pagos 
                     WHERE alumno_id = ? AND concepto LIKE '%Mensualidad%'
+                    AND COALESCE(impacto_financiero, 'ingreso') = 'ingreso'
                     ORDER BY created_at DESC
                     LIMIT 1
                 `, [alumnoId]);
@@ -413,7 +454,7 @@ const PagosModel = {
                 AND (LOWER(concepto) LIKE '%mensualidad%' OR es_mensual = 1)
                 AND MONTH(fecha_vencimiento) = ?
                 AND YEAR(fecha_vencimiento) = ?
-                AND estado != 'pagado'
+                AND COALESCE(impacto_financiero, 'ingreso') = 'ingreso'
             `, [alumnoId, mes, anio]);
             return rows.length > 0;
         } catch (error) {
@@ -432,6 +473,7 @@ const PagosModel = {
                     SUM(monto) as total
                 FROM pagos
                 WHERE estado = 'pagado'
+                    AND COALESCE(impacto_financiero, 'ingreso') = 'ingreso'
                     AND fecha_vencimiento >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
                 GROUP BY DATE_FORMAT(fecha_vencimiento, '%Y-%m'), MONTHNAME(fecha_vencimiento)
                 ORDER BY mes ASC
@@ -445,6 +487,7 @@ const PagosModel = {
                     SUM(monto) as total
                 FROM pagos
                 WHERE estado = 'pagado'
+                    AND COALESCE(impacto_financiero, 'ingreso') = 'ingreso'
                     AND fecha_pago >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
                 GROUP BY metodo_pago_realizado
                 ORDER BY total DESC
@@ -458,6 +501,7 @@ const PagosModel = {
                     SUM(monto) as monto_vencido
                 FROM pagos
                 WHERE estado IN ('pendiente', 'parcial')
+                    AND COALESCE(impacto_financiero, 'ingreso') = 'ingreso'
                     AND fecha_vencimiento < CURDATE()
                     AND fecha_vencimiento >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
                 GROUP BY DATE_FORMAT(fecha_vencimiento, '%Y-%m')
@@ -475,6 +519,7 @@ const PagosModel = {
                 INNER JOIN usuarios u ON a.usuario_id = u.id
                 INNER JOIN pagos p ON a.id = p.alumno_id
                 WHERE p.estado = 'pagado'
+                    AND COALESCE(p.impacto_financiero, 'ingreso') = 'ingreso'
                     AND p.fecha_pago >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
                 GROUP BY a.id, u.nombre, u.apellido
                 ORDER BY total_pagado DESC
@@ -492,6 +537,7 @@ const PagosModel = {
                 INNER JOIN usuarios u ON a.usuario_id = u.id
                 INNER JOIN pagos p ON a.id = p.alumno_id
                 WHERE p.estado IN ('pendiente', 'parcial')
+                    AND COALESCE(p.impacto_financiero, 'ingreso') = 'ingreso'
                     AND p.fecha_vencimiento < CURDATE()
                 GROUP BY a.id, u.nombre, u.apellido
                 ORDER BY deuda_total DESC
@@ -507,6 +553,7 @@ const PagosModel = {
                     COUNT(DISTINCT CASE WHEN descuento_aplicado > 0 THEN id END) as pagos_con_descuento
                 FROM pagos
                 WHERE fecha_vencimiento >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+                AND COALESCE(impacto_financiero, 'ingreso') = 'ingreso'
             `);
 
             return {
@@ -531,6 +578,7 @@ const PagosModel = {
                 AND concepto = ? 
                 AND MONTH(fecha_vencimiento) = ? 
                 AND YEAR(fecha_vencimiento) = ?
+                AND COALESCE(impacto_financiero, 'ingreso') = 'ingreso'
             `, [alumnoId, concepto, mes, anio]);
             return rows.length > 0;
         } catch (error) {
@@ -551,6 +599,7 @@ const PagosModel = {
                 INNER JOIN alumnos a ON p.alumno_id = a.id
                 INNER JOIN usuarios u ON a.usuario_id = u.id
                 WHERE p.estado = 'pendiente' 
+                AND COALESCE(p.impacto_financiero, 'ingreso') = 'ingreso'
                 AND p.fecha_vencimiento = ?
                 AND u.telefono IS NOT NULL
                 AND u.activo = 1
@@ -575,6 +624,7 @@ const PagosModel = {
                 INNER JOIN alumnos a ON p.alumno_id = a.id
                 INNER JOIN usuarios u ON a.usuario_id = u.id
                 WHERE p.estado = 'pendiente' 
+                AND COALESCE(p.impacto_financiero, 'ingreso') = 'ingreso'
                 AND p.fecha_vencimiento = ?
                 AND u.telefono IS NOT NULL
                 AND u.activo = 1

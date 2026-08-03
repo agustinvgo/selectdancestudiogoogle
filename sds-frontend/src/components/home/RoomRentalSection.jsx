@@ -3,8 +3,8 @@ import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
 const FAQS = [
     {
-        q: '¿Puedo tomar una clase de prueba antes de inscribirme?',
-        a: 'Sí. Ofrecemos clases de prueba con un costo que se descuenta de la matrícula al momento de inscribirte. Podés conocer el ambiente, las profes y el nivel antes de comprometerte. Consultanos disponibilidad por WhatsApp o desde el formulario de contacto.',
+        q: '¿Cómo sé qué clase y nivel me convienen?',
+        a: 'Escribinos por WhatsApp con la edad, experiencia previa y disponibilidad. El equipo te recomendará el grupo más adecuado y te informará horarios, vacantes y aranceles.',
     },
     {
         q: '¿Desde qué edad pueden empezar?',
@@ -16,7 +16,7 @@ const FAQS = [
     },
     {
         q: '¿Cómo se accede al equipo de competición?',
-        a: 'El equipo de competición es selectivo. Las alumnas son evaluadas por sus docentes según nivel técnico, compromiso y proyección artística. Si te interesa saber más, visitá la sección Competition de nuestra web.',
+        a: 'El equipo de competición es selectivo. Las alumnas son evaluadas por sus docentes según nivel técnico, compromiso y proyección artística. Si te interesa saber más, visitá la sección Competencia de nuestra web.',
     },
     {
         q: '¿Se puede alquilar una sala para clases o ensayos?',

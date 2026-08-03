@@ -5,6 +5,7 @@
     "scripts": {
         "dev": "vite --host",
         "build": "vite build",
+        "postbuild": "node scripts/prerender-seo.mjs",
         "preview": "vite preview",
         "images:competition": "node scripts/generate-competition-images.mjs",
         "images:home": "node scripts/generate-home-images.mjs"

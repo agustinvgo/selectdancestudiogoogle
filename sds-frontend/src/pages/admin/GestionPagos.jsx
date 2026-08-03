@@ -13,6 +13,8 @@ import PaymentModal from '../../components/admin/pagos/PaymentModal';
 import AdjustmentModal from '../../components/admin/pagos/AdjustmentModal';
 import PaymentPlanModal from '../../components/admin/pagos/PaymentPlanModal';
 import PaymentMethodModal from '../../components/admin/pagos/PaymentMethodModal';
+import PaymentNoteModal from '../../components/admin/pagos/PaymentNoteModal';
+import PaymentImpactModal from '../../components/admin/pagos/PaymentImpactModal';
 import PaymentTableSkeleton from '../../components/admin/pagos/PaymentTableSkeleton';
 
 const GestionPagos = () => {
@@ -22,6 +24,7 @@ const GestionPagos = () => {
     const [filtroMes, setFiltroMes] = useState(0);
     const [filtroAnio, setFiltroAnio] = useState(0);
     const [filtroAlumno, setFiltroAlumno] = useState('');
+    const [filtroImpacto, setFiltroImpacto] = useState('todos');
 
     // Bug #2 fix: helper que devuelve la fecha local en YYYY-MM-DD sin desfase UTC
     // new Date().toISOString() en Argentina después de las 21h devuelve el día siguiente
@@ -31,6 +34,8 @@ const GestionPagos = () => {
     const [modalMetodoPagoOpen, setModalMetodoPagoOpen] = useState(false);
     const [modalAjusteOpen, setModalAjusteOpen] = useState(false);
     const [modalPlanOpen, setModalPlanOpen] = useState(false);
+    const [modalNotaOpen, setModalNotaOpen] = useState(false);
+    const [modalImpactoOpen, setModalImpactoOpen] = useState(false);
 
     const [formData, setFormData] = useState({});
     const [tipoPagoActivo, setTipoPagoActivo] = useState('unico');
@@ -38,8 +43,13 @@ const GestionPagos = () => {
     const [metodoPagoSeleccionado, setMetodoPagoSeleccionado] = useState('efectivo');
     const [metodoOtroTexto, setMetodoOtroTexto] = useState('');
     const [fechaPago, setFechaPago] = useState(localToday());
-    const [ajusteData, setAjusteData] = useState({ pagoId: null, tipo: 'descuento', porcentaje: '', motivo: '' });
+    const [ajusteData, setAjusteData] = useState({ pago: null, nuevoMonto: '', motivo: '' });
+    const [guardandoAjuste, setGuardandoAjuste] = useState(false);
     const [exporting, setExporting] = useState(false);
+    const [guardandoNota, setGuardandoNota] = useState(false);
+    const [notaPago, setNotaPago] = useState({ pago: null, texto: '' });
+    const [guardandoImpacto, setGuardandoImpacto] = useState(false);
+    const [impactoData, setImpactoData] = useState({ pago: null, impacto_financiero: 'ingreso', categoria_movimiento: '', notas_pago: '' });
     
     const [planCuotasData, setPlanCuotasData] = useState({
         alumno_id: '', concepto: 'Matrícula', descripcion: '', monto_total: '', cuotas: 3, fecha_primera_cuota: ''
@@ -51,7 +61,7 @@ const GestionPagos = () => {
         registrando, setRegistrando, generando, isOpen, confirmConfig, closeConfirm,
         toast, calcularRecargoHandler, verComprobante, rechazarComprobante,
         handleSubirComprobante, descargarComprobante, generarPagosMensuales, queryClient
-    } = usePagos({ page, pageSize, filtroEstado, filtroMes, filtroAnio, filtroAlumno });
+    } = usePagos({ page, pageSize, filtroEstado, filtroMes, filtroAnio, filtroAlumno, filtroImpacto });
 
     const alumnosOrdenados = useMemo(() => [...(alumnos || [])].sort((a, b) => {
         const nombreA = `${a.nombre || ''} ${a.apellido || ''}`.trim();
@@ -59,21 +69,51 @@ const GestionPagos = () => {
         return nombreA.localeCompare(nombreB, 'es', { sensitivity: 'base' });
     }), [alumnos]);
 
-    useEffect(() => { setPage(1); }, [filtroEstado, filtroMes, filtroAnio, filtroAlumno]);
+    useEffect(() => { setPage(1); }, [filtroEstado, filtroMes, filtroAnio, filtroAlumno, filtroImpacto]);
 
     const abrirModal = () => {
         setFormData({
             alumno_id: '', curso_id: '', concepto: 'Mensualidad', monto: '',
             fecha_vencimiento: '', fecha_limite_sin_recargo: '', metodo_pago: '', estado: 'pendiente',
-            observaciones: '', notas_pago: ''
+            observaciones: '', notas_pago: '', impacto_financiero: 'ingreso', categoria_movimiento: '',
+            modalidad_pago: 'unico', cuotas: 3
         });
+        setTipoPagoActivo('mensualidad');
         setModalOpen(true);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setRegistrando(true);
-        createPagoMutation.mutate(formData, { onSettled: () => { setRegistrando(false); setModalOpen(false); } });
+        if (formData.modalidad_pago === 'cuotas') {
+            try {
+                const response = await pagosAPI.crearPlanCuotas({
+                    alumno_id: formData.alumno_id,
+                    curso_id: formData.curso_id || null,
+                    concepto: formData.concepto,
+                    monto_total: Number(formData.monto),
+                    cuotas: Number.parseInt(formData.cuotas, 10),
+                    fecha_primera_cuota: formData.fecha_vencimiento,
+                    metodo_pago: formData.metodo_pago || null,
+                    descripcion: formData.notas_pago || '',
+                    impacto_financiero: formData.impacto_financiero || 'ingreso'
+                });
+                queryClient.invalidateQueries(['pagos']);
+                queryClient.invalidateQueries(['finanzas']);
+                setModalOpen(false);
+                toast.success(response.data?.message || 'Plan de cuotas creado exitosamente');
+            } catch (error) {
+                toast.error(error.response?.data?.message || 'Error al crear el plan de cuotas');
+            } finally {
+                setRegistrando(false);
+            }
+            return;
+        }
+
+        createPagoMutation.mutate(formData, {
+            onSuccess: () => setModalOpen(false),
+            onSettled: () => setRegistrando(false)
+        });
     };
 
     const abrirModalMetodoPago = (pagoId) => {
@@ -97,29 +137,97 @@ const GestionPagos = () => {
         setModalMetodoPagoOpen(false);
     };
 
-    const aplicarAjusteManual = async () => {
-        if (!ajusteData.pagoId || !ajusteData.porcentaje) return toast.warning('Debes seleccionar un pago y especificar un porcentaje');
-        // Bug #6 fix: guard contra pagos undefined si la query aún está cargando
-        const pago = (pagos || []).find(p => p.id === ajusteData.pagoId);
-        if (!pago) return;
+    const abrirModalNota = (pago) => {
+        setNotaPago({ pago, texto: pago.notas_pago || '' });
+        setModalNotaOpen(true);
+    };
 
-        const montoBase = pago.monto_original || pago.monto;
-        const porcentaje = parseFloat(ajusteData.porcentaje);
-        const montoAjuste = Math.round((montoBase * porcentaje / 100) * 100) / 100;
-        let updateData = {};
+    const guardarNotaPago = () => {
+        if (!notaPago.pago?.id || guardandoNota) return;
+        setGuardandoNota(true);
+        updatePagoMutation.mutate({
+            id: notaPago.pago.id,
+            data: { notas_pago: notaPago.texto.trim().slice(0, 500) || null }
+        }, {
+            onSuccess: () => {
+                setModalNotaOpen(false);
+                setNotaPago({ pago: null, texto: '' });
+            },
+            onSettled: () => setGuardandoNota(false)
+        });
+    };
 
-        if (ajusteData.tipo === 'descuento') {
-            updateData = { descuento_aplicado: (pago.descuento_aplicado || 0) + montoAjuste, monto: montoBase - montoAjuste, tipo_descuento: ajusteData.motivo, notas_pago: `Descuento manual ${porcentaje}%: ${ajusteData.motivo}` };
-        } else {
-            updateData = { recargo_aplicado: (pago.recargo_aplicado || 0) + montoAjuste, monto: montoBase + montoAjuste, notas_pago: `Recargo manual ${porcentaje}%: ${ajusteData.motivo}` };
+    const abrirModalImpacto = (pago) => {
+        setImpactoData({
+            pago,
+            impacto_financiero: pago.impacto_financiero || 'ingreso',
+            categoria_movimiento: pago.categoria_movimiento || '',
+            notas_pago: pago.notas_pago || ''
+        });
+        setModalImpactoOpen(true);
+    };
+
+    const guardarImpacto = () => {
+        if (!impactoData.pago?.id || guardandoImpacto) return;
+        if (impactoData.impacto_financiero !== 'ingreso' && (!impactoData.categoria_movimiento || !impactoData.notas_pago.trim())) {
+            return toast.warning('La categoría y la descripción son obligatorias');
         }
+        setGuardandoImpacto(true);
+        updatePagoMutation.mutate({
+            id: impactoData.pago.id,
+            data: {
+                impacto_financiero: impactoData.impacto_financiero,
+                categoria_movimiento: impactoData.impacto_financiero === 'ingreso' ? null : impactoData.categoria_movimiento,
+                notas_pago: impactoData.notas_pago.trim().slice(0, 500) || null
+            }
+        }, {
+            onSuccess: () => setModalImpactoOpen(false),
+            onSettled: () => setGuardandoImpacto(false)
+        });
+    };
 
-        updatePagoMutation.mutate({ id: ajusteData.pagoId, data: updateData }, {
+    const abrirModalAjuste = (pago) => {
+        setAjusteData({ pago, nuevoMonto: String(Number(pago.monto) || ''), motivo: '' });
+        setModalAjusteOpen(true);
+    };
+
+    const aplicarAjusteManual = () => {
+        const pago = ajusteData.pago;
+        const montoActual = Number(pago?.monto);
+        const montoOriginal = Number(pago?.monto_original) || montoActual;
+        const nuevoMonto = Number(ajusteData.nuevoMonto);
+        const motivo = ajusteData.motivo.trim();
+
+        if (!pago?.id) return toast.warning('No se encontró el pago seleccionado');
+        if (!Number.isFinite(nuevoMonto) || nuevoMonto <= 0) return toast.warning('Ingresa un monto válido mayor a cero');
+        if (nuevoMonto === montoActual) return toast.warning('El nuevo monto debe ser distinto al actual');
+        if (!motivo) return toast.warning('Escribe el motivo del ajuste');
+
+        const descuentoAplicado = nuevoMonto < montoOriginal ? montoOriginal - nuevoMonto : 0;
+        const recargoAplicado = nuevoMonto > montoOriginal ? nuevoMonto - montoOriginal : 0;
+        const tipo = nuevoMonto < montoActual ? 'Descuento' : 'Recargo';
+        const notaAjuste = `${tipo}: monto modificado de $${montoActual.toLocaleString('es-AR')} a $${nuevoMonto.toLocaleString('es-AR')}. Motivo: ${motivo}`;
+        const notasPrevias = String(pago.notas_pago || '').trim();
+        const notasPago = [notasPrevias, notaAjuste].filter(Boolean).join('\n').slice(-500);
+
+        setGuardandoAjuste(true);
+        updatePagoMutation.mutate({
+            id: pago.id,
+            data: {
+                monto_original: montoOriginal,
+                monto: nuevoMonto,
+                descuento_aplicado: descuentoAplicado,
+                recargo_aplicado: recargoAplicado,
+                tipo_descuento: descuentoAplicado > 0 ? motivo : null,
+                notas_pago: notasPago
+            }
+        }, {
             onSuccess: () => {
                 setModalAjusteOpen(false);
-                setAjusteData({ pagoId: null, tipo: 'descuento', porcentaje: '', motivo: '' });
-                toast.success(`${ajusteData.tipo === 'descuento' ? 'Descuento' : 'Recargo'} de ${porcentaje}% aplicado`);
-            }
+                setAjusteData({ pago: null, nuevoMonto: '', motivo: '' });
+                toast.success(`Monto actualizado a $${nuevoMonto.toLocaleString('es-AR')}`);
+            },
+            onSettled: () => setGuardandoAjuste(false)
         });
     };
 
@@ -138,7 +246,7 @@ const GestionPagos = () => {
     const handleExport = async () => {
         try {
             setExporting(true);
-            const res = await pagosAPI.getAll({ page: 1, limit: 10000, estado: filtroEstado, mes: filtroMes, anio: filtroAnio, alumno_id: filtroAlumno });
+            const res = await pagosAPI.getAll({ page: 1, limit: 10000, estado: filtroEstado, mes: filtroMes, anio: filtroAnio, alumno_id: filtroAlumno, impacto: filtroImpacto });
             await exportPagos(res.data.data || [], alumnos);
             toast.success('Pagos exportados exitosamente');
         } catch (error) { toast.error('Error al exportar datos'); }
@@ -188,23 +296,28 @@ const GestionPagos = () => {
                 alumnos={alumnosOrdenados} filtroAlumno={filtroAlumno} setFiltroAlumno={setFiltroAlumno}
                 filtroEstado={filtroEstado} setFiltroEstado={setFiltroEstado}
                 filtroMes={filtroMes} setFiltroMes={setFiltroMes} filtroAnio={filtroAnio} setFiltroAnio={setFiltroAnio}
-                limpiarFiltros={() => { setFiltroEstado('todos'); setFiltroMes(0); setFiltroAlumno(''); }}
+                filtroImpacto={filtroImpacto} setFiltroImpacto={setFiltroImpacto}
+                limpiarFiltros={() => { setFiltroEstado('todos'); setFiltroMes(0); setFiltroAlumno(''); setFiltroImpacto('todos'); }}
                 totalResults={stats.total || 0} filteredResults={totalItems || 0}
             />
 
             <PaymentTable
                 pagos={pagos} verComprobante={verComprobante} descargarComprobante={descargarComprobante}
                 rechazarComprobante={rechazarComprobante} abrirModalMetodoPago={abrirModalMetodoPago}
-                abrirModalAjuste={(id) => { setAjusteData({ ...ajusteData, pagoId: id }); setModalAjusteOpen(true); }}
-                calcularRecargoHandler={calcularRecargoHandler} subirComprobante={handleSubirComprobante}
+                abrirModalAjuste={abrirModalAjuste}
+                abrirModalNota={abrirModalNota} calcularRecargoHandler={calcularRecargoHandler}
+                abrirModalImpacto={abrirModalImpacto}
+                subirComprobante={handleSubirComprobante}
             />
 
             {totalItems > 0 && <Pagination currentPage={page} totalItems={totalItems} pageSize={pageSize} onPageChange={setPage} />}
 
             <PaymentModal isOpen={modalOpen} onClose={() => setModalOpen(false)} formData={formData} setFormData={setFormData} handleSubmit={handleSubmit} tipoPagoActivo={tipoPagoActivo} setTipoPagoActivo={setTipoPagoActivo} alumnos={alumnosOrdenados} cursos={cursos} registrando={registrando} />
-            <AdjustmentModal isOpen={modalAjusteOpen} onClose={() => setModalAjusteOpen(false)} ajusteData={ajusteData} setAjusteData={setAjusteData} aplicarAjusteManual={aplicarAjusteManual} pagos={pagos} />
+            <AdjustmentModal isOpen={modalAjusteOpen} onClose={() => setModalAjusteOpen(false)} ajusteData={ajusteData} setAjusteData={setAjusteData} aplicarAjusteManual={aplicarAjusteManual} guardando={guardandoAjuste} />
             <PaymentPlanModal isOpen={modalPlanOpen} onClose={() => setModalPlanOpen(false)} planCuotasData={planCuotasData} setPlanCuotasData={setPlanCuotasData} crearPlanDeCuotas={crearPlanDeCuotas} alumnos={alumnosOrdenados} />
             <PaymentMethodModal isOpen={modalMetodoPagoOpen} onClose={() => setModalMetodoPagoOpen(false)} metodoPagoSeleccionado={metodoPagoSeleccionado} setMetodoPagoSeleccionado={setMetodoPagoSeleccionado} confirmarPago={confirmarPago} metodoOtroTexto={metodoOtroTexto} setMetodoOtroTexto={setMetodoOtroTexto} fechaPago={fechaPago} setFechaPago={setFechaPago} />
+            <PaymentNoteModal isOpen={modalNotaOpen} onClose={() => setModalNotaOpen(false)} pago={notaPago.pago} nota={notaPago.texto} setNota={(texto) => setNotaPago((actual) => ({ ...actual, texto }))} guardarNota={guardarNotaPago} guardando={guardandoNota} />
+            <PaymentImpactModal isOpen={modalImpactoOpen} onClose={() => setModalImpactoOpen(false)} data={impactoData} setData={setImpactoData} onSave={guardarImpacto} saving={guardandoImpacto} />
             <ConfirmDialog isOpen={isOpen} onClose={closeConfirm} onConfirm={confirmConfig.onConfirm} title={confirmConfig.title} message={confirmConfig.message} variant={confirmConfig.variant} confirmText={confirmConfig.confirmText} cancelText={confirmConfig.cancelText} />
         </div>
     );

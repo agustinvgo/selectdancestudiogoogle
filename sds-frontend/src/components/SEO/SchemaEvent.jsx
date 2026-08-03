@@ -41,7 +41,7 @@ const SchemaEvent = ({
                 price: precio,
                 priceCurrency: 'ARS',
                 availability: 'https://schema.org/InStock',
-                url: absoluteUrl('/competition'),
+                url: absoluteUrl('/competencia-danza-palermo'),
             },
         } : {}),
     };

@@ -7,16 +7,17 @@ export const SITE = {
     defaultImageHeight: 682,
     email: 'selectdancestudio.ar@gmail.com',
     whatsapp: 'https://wa.me/message/ZNBV2CLWYU36H1',
+    maps: 'https://www.google.com/maps/search/?api=1&query=Honduras+5550%2C+Oficina+105%2C+C1414BND%2C+Buenos+Aires',
     address: {
-        streetAddress: 'Honduras 5550, Of. 105',
-        addressLocality: 'Palermo',
+        streetAddress: 'Honduras 5550, Oficina 105',
+        addressLocality: 'Buenos Aires',
         addressRegion: 'Ciudad Autónoma de Buenos Aires',
-        postalCode: 'C1425',
+        postalCode: 'C1414BND',
         addressCountry: 'AR',
     },
     geo: {
-        latitude: -34.5875,
-        longitude: -58.4359,
+        latitude: -34.584464,
+        longitude: -58.435898,
     },
     social: {
         instagram: 'https://www.instagram.com/selectdance.studio/',
@@ -29,4 +30,3 @@ export const absoluteUrl = (path = '/') => {
     const normalizedPath = path.startsWith('/') ? path : `/${path}`;
     return `${SITE.url}${normalizedPath}`;
 };
-

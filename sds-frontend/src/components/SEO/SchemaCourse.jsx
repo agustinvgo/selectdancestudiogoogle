@@ -22,7 +22,7 @@ const SchemaCourse = ({ nivel, descripcion, rangoEdad, precio }) => {
                 priceCurrency: 'ARS',
                 price: precio,
                 availability: 'https://schema.org/InStock',
-                url: absoluteUrl('/clase-de-prueba'),
+                url: absoluteUrl('/contacto'),
             },
         } : {}),
         hasCourseInstance: {

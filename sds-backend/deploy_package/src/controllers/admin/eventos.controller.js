@@ -1,6 +1,25 @@
 const EventosModel = require('../../models/eventos.model');
 const EventosService = require('../../services/eventos.service');
 
+const normalizarPlanPago = (data) => {
+    const modalidad = data.modalidad_pago === 'cuotas' ? 'cuotas' : 'unico';
+    const cantidadCuotas = modalidad === 'cuotas' ? Number.parseInt(data.cantidad_cuotas, 10) : 1;
+
+    if (modalidad === 'cuotas') {
+        if (!Number.isInteger(cantidadCuotas) || cantidadCuotas < 2 || cantidadCuotas > 24) {
+            throw new Error('La cantidad de cuotas debe estar entre 2 y 24');
+        }
+        if (!data.fecha_primera_cuota) throw new Error('La fecha de la primera cuota es obligatoria');
+        if (!(Number(data.costo) > 0)) throw new Error('El evento debe tener un costo mayor a cero para pagarlo en cuotas');
+    }
+
+    return {
+        modalidad_pago: modalidad,
+        cantidad_cuotas: cantidadCuotas,
+        fecha_primera_cuota: modalidad === 'cuotas' ? data.fecha_primera_cuota : null
+    };
+};
+
 const EventosController = {
     // Lecturas 1 a 1 de Base de Datos
     async getAll(req, res) {
@@ -41,9 +60,10 @@ const EventosController = {
         try {
             const data = req.body;
             if (!data.nombre || !data.fecha || !data.lugar) return res.status(400).json({ success: false, message: 'Campos requeridos' });
+            const planPago = normalizarPlanPago(data);
 
             const id = await EventosModel.create({
-                ...data, descripcion: data.descripcion || '', hora: data.hora || null, ubicacion: data.ubicacion || null,
+                ...data, ...planPago, descripcion: data.descripcion || '', hora: data.hora || null, ubicacion: data.ubicacion || null,
                 tipo: data.tipo || 'Presentación', cupo_maximo: data.cupo_maximo || null, costo_inscripcion: data.costo || 0,
                 vestuario_requerido: data.vestimenta || null, maquillaje_instrucciones: data.maquillaje || null,
                 peinado_instrucciones: data.peinado || null, costo_vestuario: data.costo_vestuario || 0,
@@ -52,6 +72,9 @@ const EventosController = {
             res.status(201).json({ success: true, message: 'Creado', data: { id } });
         } catch (error) {
             console.error('Error al crear evento:', error);
+            if (error.message.includes('cuota') || error.message.includes('costo mayor')) {
+                return res.status(400).json({ success: false, message: error.message });
+            }
             res.status(500).json({ success: false, message: 'Error Server' });
         }
     },
@@ -60,9 +83,10 @@ const EventosController = {
         try {
             const data = req.body;
             if (!data.nombre) return res.status(400).json({ success: false, message: 'Nombre requerido' });
+            const planPago = normalizarPlanPago(data);
 
             const updated = await EventosModel.update(req.params.id, {
-                ...data, descripcion: data.descripcion || '', fecha: data.fecha || null, hora: data.hora || null,
+                ...data, ...planPago, descripcion: data.descripcion || '', fecha: data.fecha || null, hora: data.hora || null,
                 ubicacion: data.ubicacion || null, tipo: data.tipo || 'Presentación', cupo_maximo: data.cupo_maximo || null,
                 costo_inscripcion: data.costo || 0, vestuario_requerido: data.vestimenta || null,
                 maquillaje_instrucciones: data.maquillaje || null, peinado_instrucciones: data.peinado || null,
@@ -70,7 +94,12 @@ const EventosController = {
             });
             if (!updated) return res.status(404).json({ success: false, message: 'No encontrado' });
             res.json({ success: true, message: 'Actualizado' });
-        } catch (error) { res.status(500).json({ success: false, message: 'Error Server' }); }
+        } catch (error) {
+            if (error.message.includes('cuota') || error.message.includes('costo mayor')) {
+                return res.status(400).json({ success: false, message: error.message });
+            }
+            res.status(500).json({ success: false, message: 'Error Server' });
+        }
     },
 
     async delete(req, res) {

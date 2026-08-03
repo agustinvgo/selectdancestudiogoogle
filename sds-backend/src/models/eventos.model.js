@@ -89,6 +89,9 @@ const EventosModel = {
                 tipo,
                 cupo_maximo,
                 costo_inscripcion,
+                modalidad_pago,
+                cantidad_cuotas,
+                fecha_primera_cuota,
                 vestuario_requerido,
                 peinado_instrucciones,
                 maquillaje_instrucciones,
@@ -100,9 +103,10 @@ const EventosModel = {
             const [result] = await db.query(`
         INSERT INTO eventos (
           nombre, descripcion, fecha, hora, lugar, ubicacion, tipo, cupo_maximo, costo_inscripcion,
+          modalidad_pago, cantidad_cuotas, fecha_primera_cuota,
           vestuario_requerido, peinado_instrucciones, maquillaje_instrucciones,
           costo_vestuario, costo_maquillaje, costo_peinado
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `, [
                 nombre,
                 descripcion,
@@ -113,6 +117,9 @@ const EventosModel = {
                 tipo || 'Presentación',
                 cupo_maximo || null,
                 costo_inscripcion || 0,
+                modalidad_pago || 'unico',
+                cantidad_cuotas || 1,
+                fecha_primera_cuota || null,
                 vestuario_requerido || null,
                 peinado_instrucciones || null,
                 maquillaje_instrucciones || null,
@@ -140,6 +147,9 @@ const EventosModel = {
                 tipo,
                 cupo_maximo,
                 costo_inscripcion,
+                modalidad_pago,
+                cantidad_cuotas,
+                fecha_primera_cuota,
                 vestuario_requerido,
                 peinado_instrucciones,
                 maquillaje_instrucciones,
@@ -159,6 +169,9 @@ const EventosModel = {
                     tipo = ?,
                     cupo_maximo = ?,
                     costo_inscripcion = ?,
+                    modalidad_pago = ?,
+                    cantidad_cuotas = ?,
+                    fecha_primera_cuota = ?,
                     vestuario_requerido = ?,
                     peinado_instrucciones = ?,
                     maquillaje_instrucciones = ?,
@@ -176,6 +189,9 @@ const EventosModel = {
                 tipo || 'Presentación',
                 cupo_maximo || null,
                 costo_inscripcion || 0,
+                modalidad_pago || 'unico',
+                cantidad_cuotas || 1,
+                fecha_primera_cuota || null,
                 vestuario_requerido || null,
                 peinado_instrucciones || null,
                 maquillaje_instrucciones || null,

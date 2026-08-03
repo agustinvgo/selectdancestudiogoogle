@@ -89,9 +89,9 @@ Usa estos tags al final:
 
         // Contexto específico del Alumno logueado/detectado
         if (alumno) {
-            const [pagosRows] = await db.query('SELECT COUNT(*) as count FROM pagos WHERE alumno_id = ? AND estado = ?', [alumno.id, 'pendiente']);
+            const [pagosRows] = await db.query('SELECT COUNT(*) as count FROM pagos WHERE alumno_id = ? AND estado = ? AND COALESCE(impacto_financiero, "ingreso") = "ingreso"', [alumno.id, 'pendiente']);
             const pagosPendientes = pagosRows[0].count;
-            const [ultimoPagoRows] = await db.query('SELECT * FROM pagos WHERE alumno_id = ? AND estado = ? ORDER BY fecha_vencimiento ASC LIMIT 1', [alumno.id, 'pendiente']);
+            const [ultimoPagoRows] = await db.query('SELECT * FROM pagos WHERE alumno_id = ? AND estado = ? AND COALESCE(impacto_financiero, "ingreso") = "ingreso" ORDER BY fecha_vencimiento ASC LIMIT 1', [alumno.id, 'pendiente']);
             const ultimoPago = ultimoPagoRows[0] || null;
 
             contextoFinal += `\n\nINFORMACIÓN DEL ALUMNO (${alumno.nombre} ${alumno.apellido}):

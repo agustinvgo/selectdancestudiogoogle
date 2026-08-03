@@ -54,6 +54,7 @@ const WhatsAppController = {
                     FROM pagos
                     WHERE alumno_id = ?
                     AND estado IN ('pendiente', 'parcial')
+                    AND COALESCE(impacto_financiero, 'ingreso') = 'ingreso'
                     ORDER BY fecha_vencimiento ASC
                     LIMIT 1
                 `, [alumno_id]);
@@ -164,6 +165,10 @@ const WhatsAppController = {
 
             const pago = rows[0];
 
+            if ((pago.impacto_financiero || 'ingreso') !== 'ingreso') {
+                return res.status(400).json({ success: false, message: 'Este movimiento interno no genera recordatorios de pago' });
+            }
+
             if (!pago.telefono) {
                 return res.status(400).json({
                     success: false,
@@ -245,6 +250,7 @@ const WhatsAppController = {
                     FROM pagos
                     WHERE alumno_id = ?
                     AND estado IN ('pendiente', 'parcial')
+                    AND COALESCE(impacto_financiero, 'ingreso') = 'ingreso'
                     ORDER BY fecha_vencimiento ASC
                     LIMIT 1
                 `, [alumno.alumno_id]);

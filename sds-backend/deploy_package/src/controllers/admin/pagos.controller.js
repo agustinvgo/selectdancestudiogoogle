@@ -24,19 +24,20 @@ const PagosController = {
 
     async getAll(req, res) {
         try {
-            const { page, limit, estado, mes, anio, alumno_id, search } = req.query;
+            const { page, limit, estado, mes, anio, alumno_id, search, impacto } = req.query;
             const params = {
                 page: page ? parseInt(page) : undefined, limit: limit ? parseInt(limit) : undefined,
                 estado: estado === 'todos' ? undefined : estado, mes: mes ? parseInt(mes) : undefined,
                 anio: anio ? parseInt(anio) : undefined, alumno_id: alumno_id ? parseInt(alumno_id) : undefined,
-                search
+                search, impacto
             };
 
             const [result, statsRaw] = await Promise.all([PagosModel.findAll(params), PagosModel.getStats(params)]);
 
             const stats = {
                 total: parseInt(statsRaw?.total) || 0, pendientes: parseInt(statsRaw?.pendientes) || 0,
-                pagados: parseInt(statsRaw?.pagados) || 0, revision: parseInt(statsRaw?.revision) || 0
+                pagados: parseInt(statsRaw?.pagados) || 0, revision: parseInt(statsRaw?.revision) || 0,
+                no_computables: parseInt(statsRaw?.no_computables) || 0
             };
 
             res.json({ success: true, data: result.data || result, total: result.total, stats, page: params.page, limit: params.limit });
@@ -62,7 +63,8 @@ const PagosController = {
             res.status(201).json({ success: true, message: 'Pago registrado exitosamente', data: { id } });
         } catch (error) { 
             console.error('Error en PagosController.create:', error);
-            res.status(500).json({ success: false, message: 'Error Server' }); 
+            const esValidacion = /obligatoria|inválido/i.test(error.message);
+            res.status(esValidacion ? 400 : 500).json({ success: false, message: esValidacion ? error.message : 'Error Server' });
         }
     },
 
@@ -73,7 +75,8 @@ const PagosController = {
             res.json({ success: true, message: 'Pago actualizado exitosamente' });
         } catch (error) {
             if (error.message === 'Pago no encontrado') return res.status(404).json({ success: false, message: error.message });
-            res.status(500).json({ success: false, message: 'Error al actualizar pago' });
+            const esValidacion = /obligatoria|inválido/i.test(error.message);
+            res.status(esValidacion ? 400 : 500).json({ success: false, message: esValidacion ? error.message : 'Error al actualizar pago' });
         }
     },
 
@@ -102,7 +105,8 @@ const PagosController = {
             res.status(201).json({ success: true, message: `Plan de ${data.cuotas} cuotas creado exitosamente`, data });
         } catch (error) { 
             console.error('Error en crearPlanCuotas:', error);
-            res.status(500).json({ success: false, message: 'Error Server' }); 
+            const esValidacion = /obligatorios|cuotas|internos/i.test(error.message);
+            res.status(esValidacion ? 400 : 500).json({ success: false, message: esValidacion ? error.message : 'Error Server' });
         }
     },
 
@@ -134,6 +138,9 @@ const PagosController = {
 
             if (!pagos || pagos.length === 0) return res.status(404).json({ success: false, message: 'Pago no encontrado' });
             if (pagos[0].estado !== 'pagado') return res.status(400).json({ success: false, message: 'Debe estar pagado' });
+            if ((pagos[0].impacto_financiero || 'ingreso') !== 'ingreso') {
+                return res.status(400).json({ success: false, message: 'Este movimiento no corresponde a un ingreso y no genera comprobante' });
+            }
 
             const doc = PDFService.generarComprobante(pagos[0], pagos[0]);
             res.setHeader('Content-Type', 'application/pdf');
@@ -152,7 +159,8 @@ const PagosController = {
             res.json({ success: true, data: {
                 total_cobrado: totalCobrado, total_pendiente: parseFloat(estado.pendientes) || 0,
                 total_esperado: totalEsperado, tasa_cobro: totalEsperado > 0 ? (totalCobrado / totalEsperado) * 100 : 0,
-                vencidos: parseFloat(estado.vencidos) || 0, ingresosMensuales: estado.ingresosMensuales
+                vencidos: parseFloat(estado.vencidos) || 0, ajustes_aplicados: parseFloat(estado.ajustesMes) || 0,
+                ingresosMensuales: estado.ingresosMensuales
             }});
         } catch (error) { res.status(500).json({ success: false, message: 'Error Server' }); }
     },

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import toast from 'react-hot-toast';
-import { consultasAPI } from '../../services/api';
+import { SITE } from '../../config/site.js';
+import { buildWhatsAppUrl, trackWhatsAppClick } from '../../utils/whatsapp.js';
 
 const ContactSection = () => {
     const [formData, setFormData] = useState({
@@ -9,28 +9,22 @@ const ContactSection = () => {
         telefono: '',
         mensaje: ''
     });
-    const [loading, setLoading] = useState(false);
-
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-        setLoading(true);
-        try {
-            await consultasAPI.create(formData);
-            toast.success('¡Mensaje enviado correctamente! Nos pondremos en contacto contigo pronto.', {
-                duration: 5000,
-                position: 'bottom-center'
-            });
-            setFormData({ nombre: '', email: '', telefono: '', mensaje: '' });
-        } catch (error) {
-            console.error(error);
-            toast.error('Hubo un error al enviar tu mensaje. Por favor intenta nuevamente.');
-        } finally {
-            setLoading(false);
-        }
+        const message = [
+            'Hola, vi la web de Select Dance Studio y quisiera hacer una consulta.',
+            `Nombre: ${formData.nombre}`,
+            `Email: ${formData.email}`,
+            formData.telefono ? `Teléfono: ${formData.telefono}` : null,
+            `Consulta: ${formData.mensaje}`,
+        ].filter(Boolean).join('\n');
+
+        trackWhatsAppClick({ source: '/contacto', service: 'formulario_contacto' });
+        window.open(buildWhatsAppUrl(message), '_blank', 'noopener,noreferrer');
     };
 
     return (
@@ -47,11 +41,11 @@ const ContactSection = () => {
                         </p>
 
                         <div className="space-y-6 text-sm font-bold tracking-widest">
-                            <a href="https://maps.google.com/?q=Select+Dance+Studio+Honduras+5550" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 hover:text-red-500 transition-colors group">
+                            <a href={SITE.maps} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 hover:text-red-500 transition-colors group">
                                 <span className="w-12 h-[1px] bg-red-600 group-hover:w-16 transition-all duration-300"></span>
                                 HONDURAS 5550, OF. 105
                             </a>
-                            <a href="https://maps.google.com/?q=Palermo+Buenos+Aires" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 hover:text-red-500 transition-colors group">
+                            <a href={SITE.maps} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 hover:text-red-500 transition-colors group">
                                 <span className="w-12 h-[1px] bg-red-600 group-hover:w-16 transition-all duration-300"></span>
                                 PALERMO, BUENOS AIRES
                             </a>
@@ -109,10 +103,9 @@ const ContactSection = () => {
                             </div>
                             <button
                                 type="submit"
-                                disabled={loading}
                                 className="w-full bg-black dark:bg-white text-white dark:text-black font-bold py-5 rounded-none hover:bg-gray-800 dark:hover:bg-gray-200 transition-all uppercase tracking-[0.2em] text-xs mt-8"
                             >
-                                {loading ? 'ENVIANDO...' : 'ENVIAR CONSULTA'}
+                                CONTINUAR EN WHATSAPP
                             </button>
                         </form>
                     </div>
@@ -122,7 +115,7 @@ const ContactSection = () => {
             {/* Map Section */}
             <div className="mt-20 w-full h-[400px] rounded-3xl overflow-hidden grayscale hover:grayscale-0 transition-all duration-500">
                 <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3284.665796792673!2d-58.43572842426038!3d-34.58731997296016!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95bcb58eb7d6b387%3A0x6b8c0a877133989!2sHonduras%205550%2C%20C1414%20CABA!5e0!3m2!1ses!2sar!4v1709400000000!5m2!1ses!2sar"
+                    src="https://www.google.com/maps?q=Honduras+5550,+Oficina+105,+C1414BND,+Buenos+Aires&output=embed"
                     width="100%"
                     height="100%"
                     style={{ border: 0 }}

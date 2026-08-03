@@ -11,6 +11,8 @@ const PaymentFilters = ({
     setFiltroMes,
     filtroAnio,
     setFiltroAnio,
+    filtroImpacto,
+    setFiltroImpacto,
     limpiarFiltros,
     totalResults = 0,
     filteredResults = 0
@@ -18,9 +20,9 @@ const PaymentFilters = ({
     const mesesNombres = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
         'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
-    const hasActiveFilters = filtroAlumno || filtroEstado !== 'todos' || filtroMes !== 0;
+    const hasActiveFilters = filtroAlumno || filtroEstado !== 'todos' || filtroMes !== 0 || filtroImpacto !== 'todos';
 
-    const alumnoSeleccionado = alumnos.find(a => a.usuario_id === parseInt(filtroAlumno));
+    const alumnoSeleccionado = alumnos.find(a => a.id === parseInt(filtroAlumno));
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
@@ -33,7 +35,7 @@ const PaymentFilters = ({
                 </div>
             </div>
             <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Alumno</label>
                         <select
@@ -43,7 +45,7 @@ const PaymentFilters = ({
                         >
                             <option value="">Todos los alumnos</option>
                             {alumnos.map(alumno => (
-                                <option key={alumno.usuario_id} value={alumno.usuario_id}>
+                                <option key={alumno.id} value={alumno.id}>
                                     {alumno.nombre} {alumno.apellido}
                                 </option>
                             ))}
@@ -89,6 +91,21 @@ const PaymentFilters = ({
                             {[2026, 2027, 2028, 2029, 2030].map(anio => (
                                 <option key={anio} value={anio}>{anio}</option>
                             ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Impacto</label>
+                        <select
+                            value={filtroImpacto}
+                            onChange={(e) => setFiltroImpacto(e.target.value)}
+                            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${filtroImpacto !== 'todos' ? 'border-amber-500 bg-amber-50/30' : 'border-gray-200'}`}
+                        >
+                            <option value="todos">Todos los movimientos</option>
+                            <option value="ingreso">Solo ingresos reales</option>
+                            <option value="no_computable">No computables</option>
+                            <option value="ajuste">Ajustes / bonificaciones</option>
+                            <option value="informativo">Informativos</option>
                         </select>
                     </div>
 
@@ -139,6 +156,15 @@ const PaymentFilters = ({
                                     onClick={() => setFiltroMes(0)}
                                     className="hover:bg-green-100 rounded-full p-0.5 transition-colors"
                                 >
+                                    <XMarkIcon className="h-3 w-3" />
+                                </button>
+                            </span>
+                        )}
+
+                        {filtroImpacto !== 'todos' && (
+                            <span className="inline-flex items-center gap-1 px-3 py-1 bg-amber-50 text-amber-700 text-sm font-medium rounded-full border border-amber-200">
+                                {filtroImpacto === 'no_computable' ? 'No computables' : filtroImpacto === 'ingreso' ? 'Ingresos reales' : filtroImpacto === 'ajuste' ? 'Ajustes' : 'Informativos'}
+                                <button onClick={() => setFiltroImpacto('todos')} className="hover:bg-amber-100 rounded-full p-0.5 transition-colors">
                                     <XMarkIcon className="h-3 w-3" />
                                 </button>
                             </span>

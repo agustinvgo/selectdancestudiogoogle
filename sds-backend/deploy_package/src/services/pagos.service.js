@@ -5,12 +5,55 @@ const PDFService = require('./pdf.service');
 const db = require('../config/db');
 
 class PagosService {
-    
-    // Crear Pago Individual
-    static async createPago(pagoData) {
+    static IMPACTOS_VALIDOS = ['ingreso', 'ajuste', 'informativo'];
+
+    static _parseDateLocal(dateStr) {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        return new Date(year, month - 1, day);
+    }
+
+    static _dateToStr(d) {
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    static _addMonthsClamped(date, months) {
+        const firstTargetDay = new Date(date.getFullYear(), date.getMonth() + months, 1);
+        const lastTargetDay = new Date(firstTargetDay.getFullYear(), firstTargetDay.getMonth() + 1, 0).getDate();
+        return new Date(firstTargetDay.getFullYear(), firstTargetDay.getMonth(), Math.min(date.getDate(), lastTargetDay));
+    }
+
+    static _normalizarMovimiento(pagoData, pagoAnterior = {}) {
+        const impacto = pagoData.impacto_financiero || pagoAnterior.impacto_financiero || 'ingreso';
+        if (!PagosService.IMPACTOS_VALIDOS.includes(impacto)) {
+            throw new Error('Tipo de impacto financiero inválido');
+        }
+
+        pagoData.impacto_financiero = impacto;
+        if (typeof pagoData.categoria_movimiento === 'string') {
+            pagoData.categoria_movimiento = pagoData.categoria_movimiento.trim().slice(0, 50) || null;
+        }
         if (typeof pagoData.notas_pago === 'string') {
             pagoData.notas_pago = pagoData.notas_pago.trim().slice(0, 500) || null;
         }
+
+        if (impacto !== 'ingreso') {
+            const categoria = pagoData.categoria_movimiento ?? pagoAnterior.categoria_movimiento;
+            const nota = pagoData.notas_pago ?? pagoAnterior.notas_pago;
+            if (!categoria) throw new Error('La categoría es obligatoria para movimientos no computables');
+            if (!nota) throw new Error('La descripción es obligatoria para movimientos no computables');
+
+            pagoData.categoria_movimiento = categoria;
+            pagoData.notas_pago = nota;
+            pagoData.estado = 'pagado';
+            pagoData.fecha_pago = pagoData.fecha_pago || pagoAnterior.fecha_pago || PagosService._dateToStr(new Date());
+            pagoData.metodo_pago_realizado = 'No aplica';
+            pagoData.es_mensual = 0;
+        }
+    }
+
+    // Crear Pago Individual
+    static async createPago(pagoData) {
+        PagosService._normalizarMovimiento(pagoData);
 
         if (!pagoData.fecha_limite_sin_recargo && pagoData.fecha_vencimiento) {
             const vencimiento = new Date(pagoData.fecha_vencimiento);
@@ -21,6 +64,8 @@ class PagosService {
         if (pagoData.curso_id === '') pagoData.curso_id = null;
 
         const id = await PagosModel.create(pagoData);
+
+        if (pagoData.impacto_financiero !== 'ingreso') return id;
 
         // Enviar Email
         try {
@@ -57,6 +102,8 @@ class PagosService {
                 return { yaPagado: true };
             }
 
+            PagosService._normalizarMovimiento(pagoData, pagoAnterior);
+
             const estaCambiandoAPagado = pagoAnterior.estado !== 'pagado' && pagoData.estado === 'pagado';
 
             if (pagoData.estado === 'pagado' && !pagoData.fecha_pago) pagoData.fecha_pago = new Date().toISOString().split('T')[0];
@@ -68,7 +115,8 @@ class PagosService {
                 'curso_id', 'concepto', 'monto', 'fecha_vencimiento', 'fecha_limite_sin_recargo', 'fecha_pago', 'estado',
                 'metodo_pago', 'comprobante_url', 'observaciones', 'monto_original', 'recargo_aplicado', 'descuento_aplicado',
                 'comprobante_numero', 'plan_cuotas', 'cuota_numero', 'plan_pago_id', 'referencia_externa', 'tipo_descuento',
-                'notas_pago', 'metodo_pago_realizado', 'es_mensual', 'analisis_comprobante'
+                'notas_pago', 'metodo_pago_realizado', 'es_mensual', 'analisis_comprobante',
+                'impacto_financiero', 'categoria_movimiento'
             ];
 
             allowedFields.forEach(field => {
@@ -83,7 +131,7 @@ class PagosService {
             await connection.commit();
 
             // Enviar Recibo PDF
-            if (estaCambiandoAPagado && pagoAnterior.alumno_id) {
+            if (estaCambiandoAPagado && pagoAnterior.alumno_id && pagoData.impacto_financiero === 'ingreso') {
                 PagosService.enviarReciboPorEmail(pagoAnterior, pagoData.monto || pagoAnterior.monto);
             }
 
@@ -167,37 +215,73 @@ class PagosService {
 
     // Planes de Cuotas con Generación Múltiple
     static async crearPlanDeCuotas(planData) {
+        const alumnoId = Number.parseInt(planData.alumno_id, 10);
+        const concepto = String(planData.concepto || '').trim().slice(0, 200);
+        const montoTotal = Number(planData.monto_total);
+        const cuotas = Number.parseInt(planData.cuotas, 10);
+        const fechaPrimeraCuota = planData.fecha_primera_cuota;
+
+        if (!alumnoId || !concepto || !Number.isFinite(montoTotal) || montoTotal <= 0 || !fechaPrimeraCuota) {
+            throw new Error('Alumno, concepto, monto total y fecha de primera cuota son obligatorios');
+        }
+        if (!Number.isInteger(cuotas) || cuotas < 2 || cuotas > 24) {
+            throw new Error('El número de cuotas debe estar entre 2 y 24');
+        }
+        if (Math.round(montoTotal * 100) < cuotas) {
+            throw new Error('El monto total es insuficiente para la cantidad de cuotas');
+        }
+        if ((planData.impacto_financiero || 'ingreso') !== 'ingreso') {
+            throw new Error('Los movimientos internos no pueden dividirse en cuotas');
+        }
+
         let connection;
         try {
             connection = await db.getConnection();
             await connection.beginTransaction();
 
-            const { alumno_id, concepto, monto_total, cuotas, fecha_primera_cuota } = planData;
             const descripcion = typeof planData.descripcion === 'string'
                 ? planData.descripcion.trim().slice(0, 500)
                 : '';
-            const montoPorCuota = Math.round((monto_total / cuotas) * 100) / 100;
-            const planId = `PLAN-${Date.now()}-${alumno_id}`;
+            const totalCentavos = Math.round(montoTotal * 100);
+            const cuotaBaseCentavos = Math.floor(totalCentavos / cuotas);
+            const planId = `PLAN-${Date.now()}-${alumnoId}`;
             const pagosCreados = [];
+            const montosCuotas = [];
 
             for (let i = 1; i <= cuotas; i++) {
-                const fechaVenc = new Date(fecha_primera_cuota || Date.now());
-                fechaVenc.setMonth(fechaVenc.getMonth() + (i - 1));
+                const montoCuotaCentavos = i === cuotas
+                    ? totalCentavos - (cuotaBaseCentavos * (cuotas - 1))
+                    : cuotaBaseCentavos;
+                const montoCuota = montoCuotaCentavos / 100;
+                const fechaVenc = PagosService._addMonthsClamped(
+                    PagosService._parseDateLocal(fechaPrimeraCuota),
+                    i - 1
+                );
 
                 const fechaLimite = new Date(fechaVenc);
                 fechaLimite.setDate(fechaLimite.getDate() - 2);
 
                 const pagoId = await PagosModel.create({
-                    alumno_id, concepto: `${concepto} (Cuota ${i}/${cuotas})`, monto: montoPorCuota, monto_original: montoPorCuota,
-                    fecha_vencimiento: fechaVenc.toISOString().split('T')[0], fecha_limite_sin_recargo: fechaLimite.toISOString().split('T')[0],
+                    alumno_id: alumnoId,
+                    curso_id: planData.curso_id || null,
+                    concepto: `${concepto} (Cuota ${i}/${cuotas})`,
+                    monto: montoCuota,
+                    monto_original: montoCuota,
+                    fecha_vencimiento: PagosService._dateToStr(fechaVenc),
+                    fecha_limite_sin_recargo: PagosService._dateToStr(fechaLimite),
                     estado: 'pendiente', plan_cuotas: cuotas, cuota_numero: i, plan_pago_id: planId,
-                    notas_pago: descripcion || null
+                    metodo_pago: planData.metodo_pago || null,
+                    es_mensual: 0,
+                    notas_pago: descripcion || null,
+                    referencia_externa: planData.referencia_externa || null,
+                    impacto_financiero: 'ingreso'
                 }, connection);
                 pagosCreados.push(pagoId);
+                montosCuotas.push(montoCuota);
             }
 
             await connection.commit();
-            return { planId, cuotas, montoPorCuota, montoTotal: monto_total, pagosCreados };
+            return { planId, cuotas, montosCuotas, montoTotal, pagosCreados };
         } catch (error) {
             if (connection) await connection.rollback();
             throw error;

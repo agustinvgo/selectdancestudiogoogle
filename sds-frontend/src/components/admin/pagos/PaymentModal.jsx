@@ -54,6 +54,15 @@ const PaymentModal = ({
         }
     };
 
+    const noComputable = (values.impacto_financiero || 'ingreso') !== 'ingreso';
+    const pagoEnCuotas = (values.modalidad_pago || 'unico') === 'cuotas';
+    const numeroCuotas = Number.parseInt(values.cuotas, 10) || 0;
+    const montoTotalCentavos = Math.round((Number(values.monto) || 0) * 100);
+    const cuotaBaseCentavos = numeroCuotas > 0 ? Math.floor(montoTotalCentavos / numeroCuotas) : 0;
+    const ultimaCuotaCentavos = numeroCuotas > 0
+        ? montoTotalCentavos - (cuotaBaseCentavos * (numeroCuotas - 1))
+        : 0;
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Registrar Pago">
             {/* Tabs para seleccionar tipo de pago */}
@@ -127,6 +136,28 @@ const PaymentModal = ({
             </div>
 
             <form onSubmit={onSubmitWithValidation} className="space-y-4">
+                <div className="rounded-xl border border-gray-200 bg-gray-50 p-1">
+                    <div className="grid grid-cols-2 gap-1">
+                        <button
+                            type="button"
+                            onClick={() => handleChange('modalidad_pago', 'unico')}
+                            disabled={registrando}
+                            className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition-all ${(values.modalidad_pago || 'unico') === 'unico' ? 'bg-white text-gray-950 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+                        >
+                            Pago único
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleChange('modalidad_pago', 'cuotas')}
+                            disabled={registrando || noComputable}
+                            className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition-all ${pagoEnCuotas ? 'bg-white text-gray-950 shadow-sm' : 'text-gray-500 hover:text-gray-900'} disabled:cursor-not-allowed disabled:opacity-40`}
+                            title={noComputable ? 'Los movimientos internos no se dividen en cuotas' : 'Dividir el total en cuotas mensuales'}
+                        >
+                            Pago en cuotas
+                        </button>
+                    </div>
+                </div>
+
                 {/* Campo común: Alumno */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Alumno *</label>
@@ -158,7 +189,7 @@ const PaymentModal = ({
                     <div className="flex items-start space-x-2 text-gray-500 text-sm">
                         <span>💡</span>
                         <p>
-                            {tipoPagoActivo === 'matricula' && 'La matrícula es un pago único al inscribirse.'}
+                            {tipoPagoActivo === 'matricula' && 'La matrícula corresponde al cargo de inscripción.'}
                             {tipoPagoActivo === 'mensualidad' && 'La mensualidad corresponde al pago de clases.'}
                             {tipoPagoActivo === 'evento' && 'Pago para participar en un evento específico.'}
                             {tipoPagoActivo === 'uniforme' && 'Adquisición de vestimenta oficial de la academia.'}
@@ -166,9 +197,25 @@ const PaymentModal = ({
                         </p>
                     </div>
 
+                    {tipoPagoActivo === 'otro' && (
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-gray-700">Nombre del concepto *</label>
+                            <input
+                                type="text"
+                                value={values.concepto || ''}
+                                onChange={(e) => handleChange('concepto', e.target.value)}
+                                required
+                                maxLength={200}
+                                disabled={registrando}
+                                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 outline-none focus:ring-2 focus:ring-black disabled:opacity-50"
+                                placeholder="Ej.: Vestuario de competencia"
+                            />
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Monto ({values.concepto || 'Pago'}) *</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">{pagoEnCuotas ? 'Monto total del plan' : `Monto (${values.concepto || 'Pago'})`} *</label>
                             <input
                                 type="number"
                                 value={values.monto}
@@ -180,7 +227,7 @@ const PaymentModal = ({
                                     } ${registrando ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 disabled={registrando}
                                 required
-                                min="0"
+                                min="0.01"
                                 step="0.01"
                                 placeholder="Ej: 5000"
                             />
@@ -189,7 +236,7 @@ const PaymentModal = ({
                             )}
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Fecha de Vencimiento *</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">{pagoEnCuotas ? 'Fecha de la primera cuota' : 'Fecha de vencimiento'} *</label>
                             <input
                                 type="date"
                                 value={values.fecha_vencimiento}
@@ -223,10 +270,94 @@ const PaymentModal = ({
                         </select>
                     </div>
 
+                    {pagoEnCuotas && (
+                        <div className="rounded-xl border border-indigo-100 bg-indigo-50/60 p-4">
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-end">
+                                <div>
+                                    <label className="mb-2 block text-sm font-medium text-gray-700">Número de cuotas *</label>
+                                    <input
+                                        type="number"
+                                        value={values.cuotas || 3}
+                                        onChange={(e) => handleChange('cuotas', e.target.value)}
+                                        min="2"
+                                        max="24"
+                                        step="1"
+                                        required
+                                        disabled={registrando}
+                                        className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 outline-none focus:ring-2 focus:ring-black disabled:opacity-50"
+                                    />
+                                </div>
+                                <div className="rounded-lg bg-white px-4 py-3 ring-1 ring-indigo-100">
+                                    <p className="text-xs font-semibold uppercase tracking-wide text-indigo-500">Resumen</p>
+                                    {numeroCuotas >= 2 && montoTotalCentavos > 0 ? (
+                                        <>
+                                            <p className="mt-1 text-sm font-bold text-gray-900">
+                                                {numeroCuotas} cuotas mensuales de ${(cuotaBaseCentavos / 100).toLocaleString('es-AR')}
+                                            </p>
+                                            {ultimaCuotaCentavos !== cuotaBaseCentavos && (
+                                                <p className="mt-1 text-xs text-gray-500">Última cuota: ${(ultimaCuotaCentavos / 100).toLocaleString('es-AR')}</p>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <p className="mt-1 text-sm text-gray-500">Completa el monto y las cuotas.</p>
+                                    )}
+                                </div>
+                            </div>
+                            <p className="mt-3 text-xs leading-relaxed text-indigo-700">Se crearán pagos separados, uno por mes, comenzando en la fecha seleccionada.</p>
+                        </div>
+                    )}
+
+                    <div className="rounded-xl border border-gray-200 bg-white p-4">
+                        <label className="block text-sm font-semibold text-gray-800 mb-2">Impacto del movimiento</label>
+                        <select
+                            value={values.impacto_financiero || 'ingreso'}
+                            onChange={(e) => {
+                                handleChange('impacto_financiero', e.target.value);
+                                if (e.target.value === 'ingreso') {
+                                    handleChange('categoria_movimiento', '');
+                                } else {
+                                    handleChange('modalidad_pago', 'unico');
+                                }
+                            }}
+                            disabled={registrando}
+                            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 outline-none focus:ring-2 focus:ring-black"
+                        >
+                            <option value="ingreso">Ingreso real — suma a ingresos y saldo</option>
+                            <option value="ajuste">Ajuste / bonificación — reduce saldo, no suma a ingresos</option>
+                            <option value="informativo">Informativo — no modifica saldo ni ingresos</option>
+                        </select>
+                        <p className="mt-2 text-xs leading-relaxed text-gray-500">
+                            {noComputable ? 'Se registrará como movimiento interno y no se incluirá en los ingresos.' : 'Funcionará como un cobro normal.'}
+                        </p>
+                    </div>
+
+                    {noComputable && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Categoría del movimiento *</label>
+                            <select
+                                value={values.categoria_movimiento || ''}
+                                onChange={(e) => handleChange('categoria_movimiento', e.target.value)}
+                                required
+                                disabled={registrando}
+                                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 outline-none focus:ring-2 focus:ring-black"
+                            >
+                                <option value="">Seleccionar categoría...</option>
+                                <option value="beca">Beca</option>
+                                <option value="descuento">Descuento</option>
+                                <option value="bonificacion">Bonificación</option>
+                                <option value="cortesia">Cortesía</option>
+                                <option value="saldo_inicial">Saldo inicial</option>
+                                <option value="registro_historico">Registro histórico</option>
+                                <option value="correccion">Corrección administrativa</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+                    )}
+
                     <div>
                         <div className="mb-2 flex items-center justify-between gap-3">
                             <label className="block text-sm font-medium text-gray-700">
-                                Descripción / Nota interna (Opcional)
+                                Descripción / Nota interna {noComputable ? '*' : '(Opcional)'}
                             </label>
                             <span className="text-xs text-gray-400">
                                 {(values.notas_pago || '').length}/500
@@ -236,6 +367,7 @@ const PaymentModal = ({
                             value={values.notas_pago || ''}
                             onChange={(e) => handleChange('notas_pago', e.target.value)}
                             maxLength={500}
+                            required={noComputable}
                             rows={3}
                             disabled={registrando}
                             className={`w-full resize-none rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 outline-none transition-colors focus:border-transparent focus:ring-2 focus:ring-black ${registrando ? 'cursor-not-allowed opacity-50' : ''}`}
@@ -256,7 +388,7 @@ const PaymentModal = ({
                         disabled={registrando}
                         className="px-4 py-2 text-sm font-medium text-white bg-black rounded-lg hover:bg-gray-800 transition-colors flex items-center"
                     >
-                        {registrando ? 'Registrando...' : `Registrar ${values.concepto}`}
+                        {registrando ? 'Registrando...' : pagoEnCuotas ? `Crear plan de ${numeroCuotas || ''} cuotas` : `Registrar ${values.concepto}`}
                     </button>
                 </div>
             </form>

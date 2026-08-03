@@ -1,6 +1,7 @@
 const EventosModel = require('../models/eventos.model');
 const AlumnosModel = require('../models/alumnos.model');
 const PagosModel = require('../models/pagos.model');
+const PagosService = require('./pagos.service');
 const emailService = require('./email.service');
 
 class EventosService {
@@ -32,8 +33,10 @@ class EventosService {
             anioEvento = hoy.getFullYear();
         }
 
+        const pagoPrincipalEnCuotas = evento.modalidad_pago === 'cuotas'
+            && Number(evento.cantidad_cuotas) >= 2;
         const costos = [
-            { tipo: 'Inscripción', monto: evento.costo_inscripcion },
+            { tipo: 'Inscripción', monto: evento.costo_inscripcion, enCuotas: pagoPrincipalEnCuotas },
             { tipo: 'Vestuario', monto: evento.costo_vestuario, concepto_tipo: 'Uniforme' },
             { tipo: 'Maquillaje', monto: evento.costo_maquillaje, concepto_tipo: 'Otro' },
             { tipo: 'Peinado', monto: evento.costo_peinado, concepto_tipo: 'Otro' }
@@ -42,6 +45,27 @@ class EventosService {
         for (const costo of costos) {
             if (costo.monto && costo.monto > 0) {
                 try {
+                    if (costo.enCuotas) {
+                        const plan = await PagosService.crearPlanDeCuotas({
+                            alumno_id,
+                            concepto: `${costo.tipo} - ${evento.nombre}`,
+                            monto_total: Number(costo.monto),
+                            cuotas: Number(evento.cantidad_cuotas),
+                            fecha_primera_cuota: evento.fecha_primera_cuota || fechaVencimiento,
+                            descripcion: `Plan de pago del evento ${evento.nombre}`,
+                            referencia_externa: `EVENTO-${evento_id}-INSCRIPCION-${inscripcionId}`
+                        });
+
+                        plan.pagosCreados.forEach((id, index) => {
+                            pagosCreados.push({
+                                tipo: `${costo.tipo} (Cuota ${index + 1}/${plan.cuotas})`,
+                                monto: plan.montosCuotas[index],
+                                id
+                            });
+                        });
+                        continue;
+                    }
+
                     const id = await PagosModel.create({
                         alumno_id: alumno_id,
                         concepto: `${costo.tipo} - ${evento.nombre}`,
@@ -50,7 +74,9 @@ class EventosService {
                         fecha_vencimiento: fechaVencimiento,
                         estado: 'pendiente', // Bug #5 fix: minúscula para coincidir con el resto del sistema
                         mes: mesEvento,
-                        anio: anioEvento
+                        anio: anioEvento,
+                        impacto_financiero: 'ingreso',
+                        referencia_externa: `EVENTO-${evento_id}-INSCRIPCION-${inscripcionId}-${costo.tipo.toUpperCase()}`
                     });
                     pagosCreados.push({ tipo: costo.tipo, monto: costo.monto, id });
                 } catch (e) {
@@ -75,7 +101,7 @@ class EventosService {
         return {
             inscripcion_id: inscripcionId,
             pagos_creados: pagosCreados,
-            total_pagos: pagosCreados.reduce((a, b) => a + b.monto, 0)
+            total_pagos: pagosCreados.reduce((total, pago) => total + Number(pago.monto || 0), 0)
         };
     }
 

@@ -12,8 +12,8 @@ export const FAQ_ITEMS = [
         answer: 'Enseñamos ballet clásico, jazz, danza contemporánea y gimnasia artística, organizados por edades, nivel técnico y objetivos de cada alumna.',
     },
     {
-        question: '¿Puedo pedir una clase de prueba antes de inscribirme?',
-        answer: 'Sí. Podés solicitar una clase de prueba desde nuestra web. Los días y horarios disponibles aparecen en el formulario de reserva.',
+        question: '¿Cómo elijo la clase y el nivel adecuados?',
+        answer: 'Escribinos por WhatsApp con la edad, experiencia previa y disponibilidad. Te recomendaremos el grupo más adecuado y te informaremos horarios, vacantes y aranceles.',
     },
     {
         question: '¿Participan en competencias de danza?',
@@ -36,4 +36,3 @@ export const FAQ_ITEMS = [
         answer: 'Escribinos por WhatsApp o al correo selectdancestudio.ar@gmail.com. Te confirmaremos la disponibilidad horaria y coordinaremos los detalles.',
     },
 ];
-

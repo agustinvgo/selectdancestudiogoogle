@@ -4,7 +4,7 @@ import { pagosAPI, alumnosAPI, cursosAPI } from '../services/api';
 import useToast from './useToast';
 import useConfirm from './useConfirm';
 
-const usePagos = ({ page, pageSize, filtroEstado, filtroMes, filtroAnio, filtroAlumno }) => {
+const usePagos = ({ page, pageSize, filtroEstado, filtroMes, filtroAnio, filtroAlumno, filtroImpacto }) => {
     const queryClient = useQueryClient();
     const toast = useToast();
     const { isOpen, confirmConfig, confirm, closeConfirm } = useConfirm();
@@ -14,9 +14,9 @@ const usePagos = ({ page, pageSize, filtroEstado, filtroMes, filtroAnio, filtroA
 
     // 1. Fetch Data
     const { data: pagosData, isLoading: loadingPagos } = useQuery({
-        queryKey: ['pagos', { page, pageSize, filtroEstado, filtroMes, filtroAnio, filtroAlumno }],
+        queryKey: ['pagos', { page, pageSize, filtroEstado, filtroMes, filtroAnio, filtroAlumno, filtroImpacto }],
         queryFn: async () => {
-            const params = { page, limit: pageSize, estado: filtroEstado, mes: filtroMes, anio: filtroAnio, alumno_id: filtroAlumno };
+            const params = { page, limit: pageSize, estado: filtroEstado, mes: filtroMes, anio: filtroAnio, alumno_id: filtroAlumno, impacto: filtroImpacto };
             const response = await pagosAPI.getAll(params);
             return response.data;
         },
@@ -182,7 +182,7 @@ const usePagos = ({ page, pageSize, filtroEstado, filtroMes, filtroAnio, filtroA
     return {
         pagosData: pagosData?.data || [],
         totalItems: pagosData?.total || 0,
-        stats: pagosData?.stats || { total: 0, pendientes: 0, pagados: 0, revision: 0 },
+        stats: pagosData?.stats || { total: 0, pendientes: 0, pagados: 0, revision: 0, no_computables: 0 },
         alumnos,
         cursos,
         resumenFinanciero,

@@ -1,6 +1,7 @@
 const EventosModel = require('../models/eventos.model');
 const AlumnosModel = require('../models/alumnos.model');
 const PagosModel = require('../models/pagos.model');
+const PagosService = require('./pagos.service');
 const emailService = require('./email.service');
 
 class EventosService {
@@ -15,13 +16,15 @@ class EventosService {
         const pagosCreados = [];
 
         // Generar Facturación Automática
-        const fechaVencimiento = evento.fecha || new Date().toISOString().split('T')[0];
-        const fechaObj = evento.fecha ? new Date(evento.fecha) : new Date();
-        const mesEvento = fechaObj.getMonth() + 1;
-        const anioEvento = fechaObj.getFullYear();
+        const fechaVencimiento = evento.fecha
+            ? (typeof evento.fecha === 'string' ? evento.fecha.split('T')[0] : new Date(evento.fecha).toISOString().split('T')[0])
+            : new Date().toISOString().split('T')[0];
+        const [anioEvento, mesEvento] = fechaVencimiento.split('-').map(Number);
 
+        const pagoPrincipalEnCuotas = evento.modalidad_pago === 'cuotas'
+            && Number(evento.cantidad_cuotas) >= 2;
         const costos = [
-            { tipo: 'Inscripción', monto: evento.costo_inscripcion },
+            { tipo: 'Inscripción', monto: evento.costo_inscripcion, enCuotas: pagoPrincipalEnCuotas },
             { tipo: 'Vestuario', monto: evento.costo_vestuario, concepto_tipo: 'Uniforme' },
             { tipo: 'Maquillaje', monto: evento.costo_maquillaje, concepto_tipo: 'Otro' },
             { tipo: 'Peinado', monto: evento.costo_peinado, concepto_tipo: 'Otro' }
@@ -30,15 +33,38 @@ class EventosService {
         for (const costo of costos) {
             if (costo.monto && costo.monto > 0) {
                 try {
+                    if (costo.enCuotas) {
+                        const plan = await PagosService.crearPlanDeCuotas({
+                            alumno_id,
+                            concepto: `${costo.tipo} - ${evento.nombre}`,
+                            monto_total: Number(costo.monto),
+                            cuotas: Number(evento.cantidad_cuotas),
+                            fecha_primera_cuota: evento.fecha_primera_cuota || fechaVencimiento,
+                            descripcion: `Plan de pago del evento ${evento.nombre}`,
+                            referencia_externa: `EVENTO-${evento_id}-INSCRIPCION-${inscripcionId}`
+                        });
+
+                        plan.pagosCreados.forEach((id, index) => {
+                            pagosCreados.push({
+                                tipo: `${costo.tipo} (Cuota ${index + 1}/${plan.cuotas})`,
+                                monto: plan.montosCuotas[index],
+                                id
+                            });
+                        });
+                        continue;
+                    }
+
                     const id = await PagosModel.create({
                         alumno_id: alumno_id,
                         concepto: `${costo.tipo} - ${evento.nombre}`,
                         tipo: costo.concepto_tipo || 'Evento',
                         monto: costo.monto,
                         fecha_vencimiento: fechaVencimiento,
-                        estado: 'Pendiente',
+                        estado: 'pendiente',
                         mes: mesEvento,
-                        anio: anioEvento
+                        anio: anioEvento,
+                        impacto_financiero: 'ingreso',
+                        referencia_externa: `EVENTO-${evento_id}-INSCRIPCION-${inscripcionId}-${costo.tipo.toUpperCase()}`
                     });
                     pagosCreados.push({ tipo: costo.tipo, monto: costo.monto, id });
                 } catch (e) {
@@ -63,7 +89,7 @@ class EventosService {
         return {
             inscripcion_id: inscripcionId,
             pagos_creados: pagosCreados,
-            total_pagos: pagosCreados.reduce((a, b) => a + b.monto, 0)
+            total_pagos: pagosCreados.reduce((total, pago) => total + Number(pago.monto || 0), 0)
         };
     }
 

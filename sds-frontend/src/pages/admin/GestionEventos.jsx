@@ -25,7 +25,8 @@ const GestionEventos = () => {
     const [formData, setFormData] = useState({
         nombre: '', descripcion: '', fecha: '', hora: '', lugar: '', ubicacion: '', 
         tipo: 'Presentación', costo: '', cupo_maximo: '', vestimenta: '', 
-        costo_vestuario: '', maquillaje: '', costo_maquillaje: '', peinado: '', costo_peinado: ''
+        costo_vestuario: '', maquillaje: '', costo_maquillaje: '', peinado: '', costo_peinado: '',
+        modalidad_pago: 'unico', cantidad_cuotas: 3, fecha_primera_cuota: ''
     });
 
     const { isOpen, confirmConfig, confirm, closeConfirm } = useConfirm();
@@ -57,7 +58,8 @@ const GestionEventos = () => {
         setFormData({
             nombre: '', descripcion: '', fecha: '', hora: '', lugar: '', ubicacion: '',
             tipo: 'Presentación', costo: '', cupo_maximo: '', vestimenta: '',
-            costo_vestuario: '', maquillaje: '', costo_maquillaje: '', peinado: '', costo_peinado: ''
+            costo_vestuario: '', maquillaje: '', costo_maquillaje: '', peinado: '', costo_peinado: '',
+            modalidad_pago: 'unico', cantidad_cuotas: 3, fecha_primera_cuota: ''
         });
     };
 
@@ -71,7 +73,12 @@ const GestionEventos = () => {
                 cupo_maximo: evento.cupo_maximo || '', vestimenta: evento.vestuario_requerido || evento.vestimenta || '',
                 costo_vestuario: evento.costo_vestuario || '', maquillaje: evento.maquillaje_instrucciones || evento.maquillaje || '',
                 costo_maquillaje: evento.costo_maquillaje || '', peinado: evento.peinado_instrucciones || evento.peinado || '',
-                costo_peinado: evento.costo_peinado || ''
+                costo_peinado: evento.costo_peinado || '',
+                modalidad_pago: evento.modalidad_pago === 'cuotas' ? 'cuotas' : 'unico',
+                cantidad_cuotas: Number(evento.cantidad_cuotas) >= 2 ? Number(evento.cantidad_cuotas) : 3,
+                fecha_primera_cuota: evento.fecha_primera_cuota
+                    ? String(evento.fecha_primera_cuota).split('T')[0]
+                    : ''
             });
         } else {
             cerrarModal(); // Resets form

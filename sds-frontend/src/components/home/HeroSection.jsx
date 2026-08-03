@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import WhatsAppCTA from '../public/WhatsAppCTA.jsx';
 
 const heroSources = {
     avif: '/optimized/home/hero-640.avif 640w, /optimized/home/hero-1024.avif 1024w',
@@ -38,17 +39,19 @@ const HeroSection = () => {
                     <div className="w-16 md:w-24 h-1 bg-red-600 mx-auto mb-6 md:mb-8"></div>
 
                     <div className="flex flex-row gap-3 md:gap-6 mt-2 md:mt-8 w-full justify-center items-center">
-                        <Link
-                            to="/cursos"
+                        <WhatsAppCTA
+                            message="Hola, vi la web de Select Dance Studio. Quisiera consultar qué clase recomiendan según edad y experiencia, además de horarios, vacantes y aranceles."
+                            source="/"
+                            service="hero_inicio"
                             className="w-1/2 sm:w-auto px-2 sm:px-6 py-3 md:px-10 md:py-4 bg-white text-black font-bold tracking-widest text-[9px] sm:text-xs md:text-sm hover:bg-gray-200 transition-all transform hover:scale-105 text-center"
                         >
-                            VER CLASES
-                        </Link>
+                            CONSULTAR WHATSAPP
+                        </WhatsAppCTA>
                         <Link
-                            to="/login"
+                            to="/cursos"
                             className="w-1/2 sm:w-auto px-2 sm:px-6 py-3 md:px-10 md:py-4 border border-white/30 text-white font-bold tracking-[0.1em] sm:tracking-widest text-[9px] sm:text-xs md:text-sm hover:bg-white/10 transition-all backdrop-blur-sm text-center"
                         >
-                            AREA ALUMNOS
+                            VER CLASES
                         </Link>
                     </div>
                 </div>

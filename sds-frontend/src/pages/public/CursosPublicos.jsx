@@ -6,12 +6,12 @@ import { Toaster } from 'react-hot-toast';
 import PageSEO from '../../components/SEO/PageSEO.jsx';
 import SchemaBreadcrumb from '../../components/SEO/SchemaBreadcrumb.jsx';
 import { motion } from 'framer-motion';
+import { buildWhatsAppUrl, trackWhatsAppClick } from '../../utils/whatsapp.js';
 
 // Modular Components
 import CoursesHero from '../../components/public/CoursesHero.jsx';
 import CourseGrid from '../../components/public/CourseGrid.jsx';
 import CourseFilters from '../../components/public/CourseFilters.jsx';
-import TrialModal from '../../components/public/TrialModal.jsx';
 import CourseDetailsModal from '../../components/public/CourseDetailsModal.jsx';
 import CourseGridSkeleton from '../../components/public/CourseGridSkeleton.jsx';
 
@@ -25,10 +25,8 @@ const CursosPublicos = () => {
     });
 
     // Modal States
-    const [trialModalOpen, setTrialModalOpen] = useState(false);
     const [detailsModalOpen, setDetailsModalOpen] = useState(false);
 
-    const [selectedCourseName, setSelectedCourseName] = useState(''); // For Trial Modal
     const [viewCourse, setViewCourse] = useState(null); // For Details Modal
 
     // 1. Fetch Courses
@@ -48,11 +46,13 @@ const CursosPublicos = () => {
         setDetailsModalOpen(true);
     };
 
-    // 3. Open Trial Modal (Directly or from Details)
-    const handleRequestTrial = (courseName = '') => {
-        setDetailsModalOpen(false); // Close details if open
-        setSelectedCourseName(courseName);
-        setTrialModalOpen(true);
+    // 3. Enviar una consulta personalizada por WhatsApp
+    const handleWhatsAppContact = (courseName = '') => {
+        setDetailsModalOpen(false);
+        const courseText = courseName ? ` por la clase ${courseName}` : ' por las clases disponibles';
+        const message = `Hola, vi la web de Select Dance Studio y quisiera consultar${courseText}. ¿Me pueden informar edades, niveles, horarios, vacantes y aranceles?`;
+        trackWhatsAppClick({ source: '/cursos', service: courseName || 'cursos_generales' });
+        window.open(buildWhatsAppUrl(message), '_blank', 'noopener,noreferrer');
     };
 
     // Helper to normalize levels for filtering
@@ -180,7 +180,7 @@ const CursosPublicos = () => {
         >
             <PageSEO
                 title="Cursos de Danza en Palermo — Horarios y Niveles"
-                description="Descubrí todos nuestros cursos de ballet, jazz y danza contemporánea en Palermo, Buenos Aires. Niveles Baby, Mini, Junior, Teen, Senior y Recreativo. Solicitá tu clase de prueba."
+                description="Descubrí nuestros cursos de ballet, jazz, danza contemporánea y acrobacia en Palermo. Consultá niveles, horarios, vacantes y aranceles por WhatsApp."
                 canonical="/cursos"
             />
             <SchemaBreadcrumb items={[
@@ -189,7 +189,7 @@ const CursosPublicos = () => {
             ]} />
             <Toaster position="bottom-right" />
             <div className="max-w-7xl mx-auto">
-                <CoursesHero onOpenModal={() => handleRequestTrial()} />
+                <CoursesHero onContact={() => handleWhatsAppContact()} />
 
                 <CourseFilters onFilterChange={handleFilterChange} />
 
@@ -234,15 +234,7 @@ const CursosPublicos = () => {
                 isOpen={detailsModalOpen}
                 onClose={() => setDetailsModalOpen(false)}
                 course={viewCourse}
-                onRequestTrial={(c) => handleRequestTrial(c.nombre)}
-            />
-
-            {/* Form Modal */}
-            <TrialModal
-                isOpen={trialModalOpen}
-                onClose={() => setTrialModalOpen(false)}
-                selectedCourse={selectedCourseName}
-                courses={cursos}
+                onContact={(c) => handleWhatsAppContact(c.nombre)}
             />
         </motion.div>
     );

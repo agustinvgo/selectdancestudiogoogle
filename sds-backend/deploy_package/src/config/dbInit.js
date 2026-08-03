@@ -11,6 +11,7 @@ const dbInit = {
             await this.repairUsuarios();
             await this.repairCursos();
             await this.repairPagos();
+            await this.repairEventos();
             await this.ensureTableEsperas();
 
             console.log('--- ✅ Base de Datos Sincronizada y Lista ---');
@@ -106,13 +107,36 @@ const dbInit = {
             { name: 'descuento_aplicado', type: 'DECIMAL(10, 2) DEFAULT 0 AFTER recargo_aplicado' },
             { name: 'fecha_limite_sin_recargo', type: 'DATE AFTER fecha_vencimiento' },
             { name: 'es_mensual', type: 'TINYINT(1) DEFAULT 0 AFTER observaciones' },
-            { name: 'codigo_unico', type: 'VARCHAR(100) UNIQUE AFTER es_mensual' }
+            { name: 'codigo_unico', type: 'VARCHAR(100) UNIQUE AFTER es_mensual' },
+            { name: 'impacto_financiero', type: "VARCHAR(20) NOT NULL DEFAULT 'ingreso' AFTER codigo_unico" },
+            { name: 'categoria_movimiento', type: 'VARCHAR(50) NULL AFTER impacto_financiero' }
         ];
 
         for (const col of required) {
             if (!columns.includes(col.name)) {
                 console.log(`➕ Añadiendo columna [${col.name}] a pagos...`);
                 await db.query(`ALTER TABLE pagos ADD COLUMN ${col.name} ${col.type}`);
+            }
+        }
+    },
+
+    /**
+     * Asegura que los eventos puedan definir el cobro principal en cuotas
+     */
+    async repairEventos() {
+        const columns = await this.getTableColumns('eventos');
+        if (!columns) return;
+
+        const required = [
+            { name: 'modalidad_pago', type: "VARCHAR(20) NOT NULL DEFAULT 'unico' AFTER costo_inscripcion" },
+            { name: 'cantidad_cuotas', type: 'INT NOT NULL DEFAULT 1 AFTER modalidad_pago' },
+            { name: 'fecha_primera_cuota', type: 'DATE NULL AFTER cantidad_cuotas' }
+        ];
+
+        for (const col of required) {
+            if (!columns.includes(col.name)) {
+                console.log(`➕ Añadiendo columna [${col.name}] a eventos...`);
+                await db.query(`ALTER TABLE eventos ADD COLUMN ${col.name} ${col.type}`);
             }
         }
     },
