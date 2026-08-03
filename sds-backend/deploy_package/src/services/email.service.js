@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const path = require('path');
+const { formatPaymentPeriod } = require('../utils/paymentPeriod');
 const { formatSchedule } = require('../utils/formatters');
 
 /**
@@ -510,12 +511,14 @@ const enviarConfirmacionAgendamiento = async (email, nombre, interes, horario) =
     });
 };
 
-const enviarReciboPago = async (email, nombre, concepto, monto, fechaPago, pdfBuffer) => {
+const enviarReciboPago = async (email, nombre, concepto, monto, fechaPago, fechaVencimiento, pdfBuffer) => {
+    const periodo = formatPaymentPeriod(fechaVencimiento);
     const content = `
         <h1>¡Pago Recibido! 🧾</h1>
         <p>Hola <strong>${nombre}</strong>,<br>hemos recibido tu pago correctamente.</p>
         <div class="info-box">
             <p><strong>Concepto:</strong> ${concepto}</p>
+            <p><strong>Período abonado:</strong> ${periodo}</p>
             <p><strong>Monto:</strong> $${monto}</p>
             <p><strong>Fecha:</strong> ${new Date(fechaPago).toLocaleDateString('es-AR')}</p>
             <p><strong>Estado:</strong> Pagado ✔</p>
@@ -525,7 +528,7 @@ const enviarReciboPago = async (email, nombre, concepto, monto, fechaPago, pdfBu
     return sendEmail({
         from: `"Select Dance Studio" <${process.env.SMTP_USER}>`,
         to: email,
-        subject: `Comprobante de Pago - ${concepto}`,
+        subject: `Comprobante de Pago - ${concepto}${periodo !== '-' ? ` - ${periodo}` : ''}`,
         html: emailTemplate('Pago Recibido', content),
         attachments: [{ filename: `recibo_pago.pdf`, content: pdfBuffer, contentType: 'application/pdf' }]
     });

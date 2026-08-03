@@ -3,6 +3,7 @@ import { EyeIcon, ArrowDownTrayIcon, XCircleIcon, CheckCircleIcon, CurrencyDolla
 import StatusBadge from '../../StatusBadge';
 import SortableTableHeader from '../../SortableTableHeader';
 import useTableSort from '../../../hooks/useTableSort';
+import { formatPaymentPeriod } from '../../../utils/paymentPeriod';
 
 const PaymentTable = ({
     pagos: initialPagos,
@@ -72,13 +73,16 @@ const PaymentTable = ({
                                     <StatusBadge status={pago.estado} />
                                 </div>
 
-                                <div className="flex items-center gap-4 text-sm text-gray-600 mb-4 bg-gray-50 rounded-lg p-2.5">
+                                <div className="grid grid-cols-3 gap-3 text-sm text-gray-600 mb-4 bg-gray-50 rounded-lg p-2.5">
                                     <div>
                                         <span className="block text-[10px] text-gray-400 uppercase tracking-wider">Monto</span>
                                         <span className="text-gray-900 font-bold">${Math.round(pago.monto || 0).toLocaleString('es-AR')}</span>
                                     </div>
-                                    <div className="w-px h-8 bg-gray-200"></div>
-                                    <div>
+                                    <div className="border-l border-gray-200 pl-3">
+                                        <span className="block text-[10px] text-gray-400 uppercase tracking-wider">Período</span>
+                                        <span className="text-gray-700 font-medium">{formatPaymentPeriod(pago.fecha_vencimiento)}</span>
+                                    </div>
+                                    <div className="border-l border-gray-200 pl-3">
                                         <span className="block text-[10px] text-gray-400 uppercase tracking-wider">Vence</span>
                                         <span className="text-gray-700 font-medium">{pago.fecha_vencimiento ? new Date(pago.fecha_vencimiento).toLocaleDateString('es-AR') : '-'}</span>
                                     </div>
@@ -198,10 +202,7 @@ const PaymentTable = ({
                                         {pago.concepto}
                                     </td>
                                     <td className="px-4 py-4 text-sm text-gray-600 whitespace-nowrap">
-                                        {pago.fecha_vencimiento ? (() => {
-                                            const fecha = new Date(pago.fecha_vencimiento);
-                                            return `${fecha.getMonth() + 1}/${fecha.getFullYear()}`;
-                                        })() : '-'}
+                                        {formatPaymentPeriod(pago.fecha_vencimiento)}
                                     </td>
                                     <td className="px-4 py-4 text-sm text-right font-semibold text-gray-900 whitespace-nowrap">
                                         ${Math.round(pago.monto || 0).toLocaleString('es-AR')}

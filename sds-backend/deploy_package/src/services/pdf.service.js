@@ -1,6 +1,7 @@
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
+const { formatPaymentPeriod } = require('../utils/paymentPeriod');
 
 const PDFService = {
     /**
@@ -105,6 +106,8 @@ const PDFService = {
         } else {
             doc.text(`Fecha Pago: ${new Date().toLocaleDateString('es-AR')}`);
         }
+
+        doc.text(`Período abonado: ${formatPaymentPeriod(pagoData.fecha_vencimiento)}`);
 
         doc.moveDown(3);
     },

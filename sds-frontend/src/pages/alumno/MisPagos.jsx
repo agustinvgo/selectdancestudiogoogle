@@ -5,6 +5,7 @@ import { pagosAPI } from '../../services/api';
 import { ArrowUpTrayIcon, CheckCircleIcon, ClockIcon, ExclamationTriangleIcon, DocumentCheckIcon } from '@heroicons/react/24/outline';
 import Loader from '../../components/Loader';
 import useToast from '../../hooks/useToast';
+import { formatPaymentPeriod } from '../../utils/paymentPeriod';
 
 const MisPagos = () => {
     const { user } = useAuth();
@@ -196,11 +197,17 @@ const MisPagos = () => {
                                                     </div>
                                                 )}
                                                 <h4 className="font-semibold text-gray-900 text-lg">{pago.concepto}</h4>
-                                                <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mt-3 text-sm">
+                                                <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mt-3 text-sm">
                                                     <div>
                                                         <p className="text-gray-500">Monto</p>
                                                         <p className="text-green-400 font-bold text-3xl">
                                                             ${parseFloat(pago.monto).toLocaleString()}
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-gray-500">Período abonado</p>
+                                                        <p className="font-semibold text-gray-900">
+                                                            {formatPaymentPeriod(pago.fecha_vencimiento)}
                                                         </p>
                                                     </div>
                                                     <div>

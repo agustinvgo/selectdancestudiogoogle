@@ -125,7 +125,8 @@ class PagosService {
 
             await emailService.enviarReciboPago(
                 emailDestino, `${alumno.nombre} ${alumno.apellido}`,
-                pagoAnterior.concepto, montoCobrado, new Date(), pdfBuffer
+                pagoAnterior.concepto, montoCobrado, new Date(),
+                pagoAnterior.fecha_vencimiento, pdfBuffer
             );
         } catch (error) {
             console.error('Error en enviarReciboPorEmail:', error);
