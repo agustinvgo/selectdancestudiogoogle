@@ -1,7 +1,6 @@
 import { Toaster } from 'react-hot-toast';
 import PageSEO from '../../components/SEO/PageSEO.jsx';
 import SchemaLocalBusiness from '../../components/SEO/SchemaLocalBusiness.jsx';
-import SchemaFAQ from '../../components/SEO/SchemaFAQ.jsx';
 import SchemaBreadcrumb from '../../components/SEO/SchemaBreadcrumb.jsx';
 
 // Modular Components
@@ -21,7 +20,6 @@ const Home = () => {
                 canonical="/"
             />
             <SchemaLocalBusiness />
-            <SchemaFAQ />
             <SchemaBreadcrumb items={[{ name: 'Inicio', url: '/' }]} />
             <Toaster />
 

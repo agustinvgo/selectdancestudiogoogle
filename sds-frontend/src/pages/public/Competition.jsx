@@ -33,6 +33,9 @@ const Competition = () => {
                 description="El equipo de competición de Select Dance Studio participa en torneos y festivales de danza a nivel nacional. Conocé nuestro Salón de la Fama."
                 canonical="/competition"
                 ogImage="/optimized/competition/hero-1280.webp"
+                ogImageWidth={1280}
+                ogImageHeight={853}
+                ogImageAlt="Equipo de competición de Select Dance Studio"
             />
             <SchemaBreadcrumb items={[
                 { name: 'Inicio', url: '/' },

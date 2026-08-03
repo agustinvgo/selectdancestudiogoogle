@@ -8,6 +8,7 @@ import Sidebar from './components/Sidebar.jsx';
 import Loader from './components/Loader.jsx';
 import ScrollToTop from './components/ScrollToTop.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
+import { Helmet } from 'react-helmet-async';
 
 // Lazy Load Pages
 
@@ -61,6 +62,10 @@ const Home = lazy(() => import('./pages/public/Home.jsx'));
 const CursosPublicos = lazy(() => import('./pages/public/CursosPublicos.jsx'));
 const Competition = lazy(() => import('./pages/public/Competition.jsx'));
 const QuienesSomos = lazy(() => import('./pages/public/QuienesSomos.jsx'));
+const ClasePrueba = lazy(() => import('./pages/public/ClasePrueba.jsx'));
+const FAQ = lazy(() => import('./pages/public/FAQ.jsx'));
+const Contacto = lazy(() => import('./pages/public/Contacto.jsx'));
+const NotFound = lazy(() => import('./pages/public/NotFound.jsx'));
 // const Highlights = lazy(() => import('./pages/public/Highlights')); // Removed during cleanup
 // const TubelightDemo = lazy(() => import('./pages/public/TubelightDemo')); // Removed during cleanup
 
@@ -76,6 +81,9 @@ const ProtectedLayout = ({ children }) => {
 
     return (
         <div className="h-screen overflow-hidden bg-gray-50 flex flex-col">
+            <Helmet>
+                <meta name="robots" content="noindex, nofollow, noarchive" />
+            </Helmet>
             <Navbar onMenuClick={() => setSidebarOpen(prev => !prev)} />
             <div className="flex flex-1 relative overflow-hidden">
                 <Sidebar
@@ -97,7 +105,7 @@ const ProtectedLayout = ({ children }) => {
 const AppRoutes = () => {
     const { user, loading } = useAuth();
     const location = useLocation();
-    const publicPaths = ['/', '/cursos', '/competition', '/nosotros'];
+    const publicPaths = ['/', '/cursos', '/competition', '/nosotros', '/clase-de-prueba', '/faq', '/contacto'];
     const isPublicPath = publicPaths.includes(location.pathname);
 
     if (loading && !isPublicPath) {
@@ -113,6 +121,9 @@ const AppRoutes = () => {
                     <Route path="/cursos" element={<CursosPublicos />} />
                     <Route path="/competition" element={<Competition />} />
                     <Route path="/nosotros" element={<QuienesSomos />} />
+                    <Route path="/clase-de-prueba" element={<ClasePrueba />} />
+                    <Route path="/faq" element={<FAQ />} />
+                    <Route path="/contacto" element={<Contacto />} />
                     {/* <Route path="/tubelight" element={<TubelightDemo />} /> Removed during cleanup */}
                 </Route>
 
@@ -394,7 +405,7 @@ const AppRoutes = () => {
                 <Route path="/pago-pendiente" element={<PagoPendiente />} />
 
                 {/* Ruta por defecto */}
-                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="*" element={<NotFound />} />
             </Routes>
         </Suspense>
     );

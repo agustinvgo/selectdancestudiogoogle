@@ -1,45 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-
   <url>
-    <loc>https://www.selectdancestudio.com/</loc>
+    <loc>https://selectdancestudio.com/</loc>
+    <lastmod>2026-07-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <image:image>
-      <image:loc>https://www.selectdancestudio.com/og-image.webp</image:loc>
-      <image:title>Select Dance Studio — Academia de Danza en Palermo, Buenos Aires</image:title>
+      <image:loc>https://selectdancestudio.com/optimized/home/hero-1024.webp</image:loc>
+      <image:title>Select Dance Studio — Academia de danza en Palermo</image:title>
     </image:image>
   </url>
-
   <url>
-    <loc>https://www.selectdancestudio.com/cursos</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-
-  <url>
-    <loc>https://www.selectdancestudio.com/competition</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <url>
-    <loc>https://www.selectdancestudio.com/nosotros</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <url>
-    <loc>https://www.selectdancestudio.com/clase-de-prueba</loc>
+    <loc>https://selectdancestudio.com/cursos</loc>
+    <lastmod>2026-07-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
-
   <url>
-    <loc>https://www.selectdancestudio.com/faq</loc>
+    <loc>https://selectdancestudio.com/clase-de-prueba</loc>
+    <lastmod>2026-07-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://selectdancestudio.com/competition</loc>
+    <lastmod>2026-07-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://selectdancestudio.com/nosotros</loc>
+    <lastmod>2026-07-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://selectdancestudio.com/contacto</loc>
+    <lastmod>2026-07-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://selectdancestudio.com/faq</loc>
+    <lastmod>2026-07-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
-
 </urlset>

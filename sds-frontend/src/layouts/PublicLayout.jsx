@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 const PublicLayout = () => {
     const location = useLocation();
     const isHome = location.pathname === '/';
-    const darkPages = ['/', '/competition', '/cursos', '/nosotros'];
+    const darkPages = ['/', '/competition', '/cursos', '/nosotros', '/clase-de-prueba', '/faq', '/contacto'];
     const isDarkPage = darkPages.includes(location.pathname);
     const [isScrolled, setIsScrolled] = useState(false);
 
@@ -99,6 +99,7 @@ const PublicLayout = () => {
                                 <li><Link to="/cursos" className="hover:text-red-500 transition-colors">Cursos & Horarios</Link></li>
                                 <li><Link to="/competition" className="hover:text-red-500 transition-colors">Elite Competition</Link></li>
                                 <li><Link to="/nosotros" className="hover:text-red-500 transition-colors">Quiénes Somos</Link></li>
+                                <li><Link to="/clase-de-prueba" className="hover:text-red-500 transition-colors">Clase de Prueba</Link></li>
                             </ul>
                         </div>
 
@@ -119,6 +120,7 @@ const PublicLayout = () => {
                             <ul className={`text-sm space-y-2 ${isDarkPage ? 'text-gray-400' : 'text-gray-600'}`}>
                                 <li><Link to="/login" className="hover:text-red-500 transition-colors underline decoration-red-500/20">Área de Alumnos</Link></li>
                                 <li><Link to="/contacto" className="hover:text-red-500 transition-colors">Contacto</Link></li>
+                                <li><Link to="/faq" className="hover:text-red-500 transition-colors">Preguntas Frecuentes</Link></li>
                                 <li><a href="mailto:selectdancestudio.ar@gmail.com" className="hover:text-red-500 transition-colors">Email Academia</a></li>
                             </ul>
                         </div>
