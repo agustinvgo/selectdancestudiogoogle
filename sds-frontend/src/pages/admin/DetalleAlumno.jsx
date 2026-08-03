@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { alumnosAPI } from '../../services/api';
+import { alumnosAPI, getMediaUrl } from '../../services/api';
 import {
     UserCircleIcon, EnvelopeIcon, PhoneIcon, MapPinIcon,
     IdentificationIcon, ArrowLeftIcon, CalendarIcon, CurrencyDollarIcon, AcademicCapIcon
@@ -72,7 +72,7 @@ const DetalleAlumno = () => {
                                 <div className="w-32 h-32 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-gray-800 shadow-xl overflow-hidden">
                                     {alumno.foto_perfil ? (
                                         <img
-                                            src={`http://localhost:5000${alumno.foto_perfil}`}
+                                            src={getMediaUrl(alumno.foto_perfil)}
                                             alt={`${alumno.nombre} ${alumno.apellido}`}
                                             className="w-full h-full object-cover"
                                         />

@@ -222,6 +222,29 @@ const PaymentModal = ({
                             ))}
                         </select>
                     </div>
+
+                    <div>
+                        <div className="mb-2 flex items-center justify-between gap-3">
+                            <label className="block text-sm font-medium text-gray-700">
+                                Descripción / Nota interna (Opcional)
+                            </label>
+                            <span className="text-xs text-gray-400">
+                                {(values.notas_pago || '').length}/500
+                            </span>
+                        </div>
+                        <textarea
+                            value={values.notas_pago || ''}
+                            onChange={(e) => handleChange('notas_pago', e.target.value)}
+                            maxLength={500}
+                            rows={3}
+                            disabled={registrando}
+                            className={`w-full resize-none rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 outline-none transition-colors focus:border-transparent focus:ring-2 focus:ring-black ${registrando ? 'cursor-not-allowed opacity-50' : ''}`}
+                            placeholder="Ej.: Uniforme de competencia 2026 — campera talla M"
+                        />
+                        <p className="mt-1 text-xs text-gray-500">
+                            Solo se mostrará en la administración para identificar este pago.
+                        </p>
+                    </div>
                 </div>
 
                 <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">

@@ -69,6 +69,11 @@ const PaymentTable = ({
                                             {pago.alumno_nombre} {pago.alumno_apellido}
                                         </h3>
                                         <p className="text-xs text-gray-500 mt-0.5">{pago.concepto}</p>
+                                        {pago.notas_pago && (
+                                            <p className="mt-1 max-w-[220px] truncate text-xs text-indigo-600" title={pago.notas_pago}>
+                                                Nota: {pago.notas_pago}
+                                            </p>
+                                        )}
                                     </div>
                                     <StatusBadge status={pago.estado} />
                                 </div>
@@ -198,8 +203,13 @@ const PaymentTable = ({
                                     <td className="px-4 py-4 text-sm text-gray-900 whitespace-nowrap">
                                         {pago.alumno_nombre} {pago.alumno_apellido}
                                     </td>
-                                    <td className="px-4 py-4 text-sm text-gray-600 whitespace-nowrap">
-                                        {pago.concepto}
+                                    <td className="px-4 py-4 text-sm text-gray-600">
+                                        <p className="whitespace-nowrap">{pago.concepto}</p>
+                                        {pago.notas_pago && (
+                                            <p className="mt-1 max-w-[260px] truncate text-xs text-indigo-600" title={pago.notas_pago}>
+                                                Nota: {pago.notas_pago}
+                                            </p>
+                                        )}
                                     </td>
                                     <td className="px-4 py-4 text-sm text-gray-600 whitespace-nowrap">
                                         {formatPaymentPeriod(pago.fecha_vencimiento)}

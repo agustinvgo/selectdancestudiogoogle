@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { PlusIcon, ArrowPathIcon, CalendarIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import { exportPagos } from '../../utils/exportExcel';
 import { pagosAPI } from '../../services/api';
@@ -42,7 +42,7 @@ const GestionPagos = () => {
     const [exporting, setExporting] = useState(false);
     
     const [planCuotasData, setPlanCuotasData] = useState({
-        alumno_id: '', concepto: 'Matrícula', monto_total: '', cuotas: 3, fecha_primera_cuota: ''
+        alumno_id: '', concepto: 'Matrícula', descripcion: '', monto_total: '', cuotas: 3, fecha_primera_cuota: ''
     });
 
     const {
@@ -53,12 +53,19 @@ const GestionPagos = () => {
         handleSubirComprobante, descargarComprobante, generarPagosMensuales, queryClient
     } = usePagos({ page, pageSize, filtroEstado, filtroMes, filtroAnio, filtroAlumno });
 
+    const alumnosOrdenados = useMemo(() => [...(alumnos || [])].sort((a, b) => {
+        const nombreA = `${a.nombre || ''} ${a.apellido || ''}`.trim();
+        const nombreB = `${b.nombre || ''} ${b.apellido || ''}`.trim();
+        return nombreA.localeCompare(nombreB, 'es', { sensitivity: 'base' });
+    }), [alumnos]);
+
     useEffect(() => { setPage(1); }, [filtroEstado, filtroMes, filtroAnio, filtroAlumno]);
 
     const abrirModal = () => {
         setFormData({
             alumno_id: '', curso_id: '', concepto: 'Mensualidad', monto: '',
-            fecha_vencimiento: '', fecha_limite_sin_recargo: '', metodo_pago: '', estado: 'pendiente', observaciones: ''
+            fecha_vencimiento: '', fecha_limite_sin_recargo: '', metodo_pago: '', estado: 'pendiente',
+            observaciones: '', notas_pago: ''
         });
         setModalOpen(true);
     };
@@ -123,7 +130,7 @@ const GestionPagos = () => {
             queryClient.invalidateQueries(['pagos']);
             queryClient.invalidateQueries(['finanzas']);
             setModalPlanOpen(false);
-            setPlanCuotasData({ alumno_id: '', concepto: 'Matrícula', monto_total: '', cuotas: 3, fecha_primera_cuota: '' });
+            setPlanCuotasData({ alumno_id: '', concepto: 'Matrícula', descripcion: '', monto_total: '', cuotas: 3, fecha_primera_cuota: '' });
             toast.success(`Plan de ${planCuotasData.cuotas} cuotas creado exitosamente`);
         } catch (error) { toast.error('Error al crear plan de cuotas'); }
     };
@@ -178,7 +185,7 @@ const GestionPagos = () => {
             <PaymentStats resumenFinanciero={resumenFinanciero} />
 
             <PaymentFilters
-                alumnos={alumnos} filtroAlumno={filtroAlumno} setFiltroAlumno={setFiltroAlumno}
+                alumnos={alumnosOrdenados} filtroAlumno={filtroAlumno} setFiltroAlumno={setFiltroAlumno}
                 filtroEstado={filtroEstado} setFiltroEstado={setFiltroEstado}
                 filtroMes={filtroMes} setFiltroMes={setFiltroMes} filtroAnio={filtroAnio} setFiltroAnio={setFiltroAnio}
                 limpiarFiltros={() => { setFiltroEstado('todos'); setFiltroMes(0); setFiltroAlumno(''); }}
@@ -194,9 +201,9 @@ const GestionPagos = () => {
 
             {totalItems > 0 && <Pagination currentPage={page} totalItems={totalItems} pageSize={pageSize} onPageChange={setPage} />}
 
-            <PaymentModal isOpen={modalOpen} onClose={() => setModalOpen(false)} formData={formData} setFormData={setFormData} handleSubmit={handleSubmit} tipoPagoActivo={tipoPagoActivo} setTipoPagoActivo={setTipoPagoActivo} alumnos={alumnos} cursos={cursos} registrando={registrando} />
+            <PaymentModal isOpen={modalOpen} onClose={() => setModalOpen(false)} formData={formData} setFormData={setFormData} handleSubmit={handleSubmit} tipoPagoActivo={tipoPagoActivo} setTipoPagoActivo={setTipoPagoActivo} alumnos={alumnosOrdenados} cursos={cursos} registrando={registrando} />
             <AdjustmentModal isOpen={modalAjusteOpen} onClose={() => setModalAjusteOpen(false)} ajusteData={ajusteData} setAjusteData={setAjusteData} aplicarAjusteManual={aplicarAjusteManual} pagos={pagos} />
-            <PaymentPlanModal isOpen={modalPlanOpen} onClose={() => setModalPlanOpen(false)} planCuotasData={planCuotasData} setPlanCuotasData={setPlanCuotasData} crearPlanDeCuotas={crearPlanDeCuotas} alumnos={alumnos} />
+            <PaymentPlanModal isOpen={modalPlanOpen} onClose={() => setModalPlanOpen(false)} planCuotasData={planCuotasData} setPlanCuotasData={setPlanCuotasData} crearPlanDeCuotas={crearPlanDeCuotas} alumnos={alumnosOrdenados} />
             <PaymentMethodModal isOpen={modalMetodoPagoOpen} onClose={() => setModalMetodoPagoOpen(false)} metodoPagoSeleccionado={metodoPagoSeleccionado} setMetodoPagoSeleccionado={setMetodoPagoSeleccionado} confirmarPago={confirmarPago} metodoOtroTexto={metodoOtroTexto} setMetodoOtroTexto={setMetodoOtroTexto} fechaPago={fechaPago} setFechaPago={setFechaPago} />
             <ConfirmDialog isOpen={isOpen} onClose={closeConfirm} onConfirm={confirmConfig.onConfirm} title={confirmConfig.title} message={confirmConfig.message} variant={confirmConfig.variant} confirmText={confirmConfig.confirmText} cancelText={confirmConfig.cancelText} />
         </div>

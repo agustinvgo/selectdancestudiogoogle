@@ -42,6 +42,24 @@ const PaymentPlanModal = ({
                     </select>
                 </div>
 
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="plan-description">
+                        Descripción / Nota interna
+                    </label>
+                    <textarea
+                        id="plan-description"
+                        value={planCuotasData.descripcion || ''}
+                        onChange={(e) => setPlanCuotasData({ ...planCuotasData, descripcion: e.target.value })}
+                        className="w-full min-h-24 resize-y bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                        maxLength={500}
+                        placeholder="Ej.: Uniforme de competencia 2026 — campera y pantalón"
+                    />
+                    <div className="mt-1.5 flex items-center justify-between gap-3 text-xs text-gray-500">
+                        <span>Solo será visible en administración y se copiará a todas las cuotas.</span>
+                        <span>{(planCuotasData.descripcion || '').length}/500</span>
+                    </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Monto Total</label>

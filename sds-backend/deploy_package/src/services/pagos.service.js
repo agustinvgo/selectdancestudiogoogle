@@ -8,6 +8,10 @@ class PagosService {
     
     // Crear Pago Individual
     static async createPago(pagoData) {
+        if (typeof pagoData.notas_pago === 'string') {
+            pagoData.notas_pago = pagoData.notas_pago.trim().slice(0, 500) || null;
+        }
+
         if (!pagoData.fecha_limite_sin_recargo && pagoData.fecha_vencimiento) {
             const vencimiento = new Date(pagoData.fecha_vencimiento);
             vencimiento.setDate(vencimiento.getDate() - 2);
@@ -169,6 +173,9 @@ class PagosService {
             await connection.beginTransaction();
 
             const { alumno_id, concepto, monto_total, cuotas, fecha_primera_cuota } = planData;
+            const descripcion = typeof planData.descripcion === 'string'
+                ? planData.descripcion.trim().slice(0, 500)
+                : '';
             const montoPorCuota = Math.round((monto_total / cuotas) * 100) / 100;
             const planId = `PLAN-${Date.now()}-${alumno_id}`;
             const pagosCreados = [];
@@ -183,7 +190,8 @@ class PagosService {
                 const pagoId = await PagosModel.create({
                     alumno_id, concepto: `${concepto} (Cuota ${i}/${cuotas})`, monto: montoPorCuota, monto_original: montoPorCuota,
                     fecha_vencimiento: fechaVenc.toISOString().split('T')[0], fecha_limite_sin_recargo: fechaLimite.toISOString().split('T')[0],
-                    estado: 'pendiente', plan_cuotas: cuotas, cuota_numero: i, plan_pago_id: planId
+                    estado: 'pendiente', plan_cuotas: cuotas, cuota_numero: i, plan_pago_id: planId,
+                    notas_pago: descripcion || null
                 }, connection);
                 pagosCreados.push(pagoId);
             }

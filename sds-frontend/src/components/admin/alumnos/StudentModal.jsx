@@ -1,6 +1,7 @@
 import Modal from '../../Modal';
 import Button from '../../Button';
 import { PlusIcon, TrashIcon, UserIcon } from '@heroicons/react/24/outline';
+import { getMediaUrl } from '../../../services/api';
 
 const StudentModal = ({
     isOpen,
@@ -20,7 +21,7 @@ const StudentModal = ({
                         <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-200 flex items-center justify-center">
                             {formData.previewUrl || formData.foto_perfil ? (
                                 <img
-                                    src={formData.previewUrl || `http://localhost:5000${formData.foto_perfil}`}
+                                    src={formData.previewUrl || getMediaUrl(formData.foto_perfil)}
                                     alt="Perfil"
                                     className="w-full h-full object-cover"
                                 />

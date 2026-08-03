@@ -1,5 +1,6 @@
 import { PencilIcon, TrashIcon, EyeIcon, NoSymbolIcon, CheckCircleIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
+import { getMediaUrl } from '../../../services/api';
 
 const StudentTable = ({ alumnos, isActivo, abrirModal, toggleEstadoAlumno, eliminarAlumno, searchTerm }) => {
     const navigate = useNavigate();
@@ -129,7 +130,7 @@ const StudentTable = ({ alumnos, isActivo, abrirModal, toggleEstadoAlumno, elimi
                                                 {alumno.foto_perfil ? (
                                                     <img
                                                         className="h-10 w-10 rounded-full object-cover"
-                                                        src={`http://localhost:5000${alumno.foto_perfil}`}
+                                                        src={getMediaUrl(alumno.foto_perfil)}
                                                         alt={alumno.nombre}
                                                     />
                                                 ) : (
@@ -230,4 +231,3 @@ const StudentTable = ({ alumnos, isActivo, abrirModal, toggleEstadoAlumno, elimi
 };
 
 export default StudentTable;
-
