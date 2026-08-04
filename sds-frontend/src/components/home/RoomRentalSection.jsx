@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
+import WhatsAppCTA from '../public/WhatsAppCTA.jsx';
+import { WHATSAPP_MESSAGES } from '../../utils/whatsapp.js';
 
 const FAQS = [
     {
@@ -73,9 +75,6 @@ const RoomRentalSection = () => {
         return () => observer.disconnect();
     }, []);
 
-    const whatsappMsg = encodeURIComponent('Hola! Me interesa consultar sobre el alquiler de salas en Select Dance Studio.');
-    const whatsappUrl = `https://wa.me/message/ZNBV2CLWYU36H1?text=${whatsappMsg}`;
-
     return (
         <section className="py-24 bg-black relative overflow-hidden" id="alquiler-salas">
             {/* Fondo decorativo */}
@@ -106,11 +105,11 @@ const RoomRentalSection = () => {
 
                         {/* CTAs */}
                         <div className="flex flex-col sm:flex-row gap-3 mb-10">
-                            <a
+                            <WhatsAppCTA
                                 id="sala-whatsapp-cta"
-                                href={whatsappUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                                message={WHATSAPP_MESSAGES.roomRental}
+                                source="/"
+                                service="alquiler_sala"
                                 className="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-4 rounded-full transition-all duration-200 text-sm uppercase tracking-widest shadow-lg shadow-red-900/30 hover:shadow-red-900/50"
                             >
                                 {/* WhatsApp icon */}
@@ -119,7 +118,7 @@ const RoomRentalSection = () => {
                                     <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.523 5.847L.057 23.97l6.266-1.644A11.93 11.93 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.8 9.8 0 01-5.032-1.386l-.36-.214-3.724.977.995-3.634-.235-.374A9.793 9.793 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/>
                                 </svg>
                                 Consultar por WhatsApp
-                            </a>
+                            </WhatsAppCTA>
                             <a
                                 id="sala-email-cta"
                                 href="mailto:selectdancestudio.ar@gmail.com?subject=Consulta%20Alquiler%20de%20Sala"

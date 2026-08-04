@@ -2,6 +2,10 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Home, BookOpen, Users, Star, LogIn } from 'lucide-react';
 import { NavBar } from '../components/ui/TubelightNavbar.jsx';
 import { useState, useEffect } from 'react';
+import WhatsAppCTA from '../components/public/WhatsAppCTA.jsx';
+import { WHATSAPP_MESSAGES } from '../utils/whatsapp.js';
+import { SITE } from '../config/site.js';
+import { trackPhoneClick } from '../utils/contactTracking.js';
 
 const PublicLayout = () => {
     const location = useLocation();
@@ -85,13 +89,20 @@ const PublicLayout = () => {
                                 <p>Honduras 5550, Oficina 105</p>
                                 <p>Palermo, CABA, C1414BND</p>
                                 <a
-                                    href="https://wa.me/message/ZNBV2CLWYU36H1"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                    href={`tel:${SITE.phone}`}
+                                    onClick={() => trackPhoneClick({ source: location.pathname })}
+                                    className="block text-amber-500 hover:text-amber-400 font-medium transition-colors"
+                                >
+                                    Llamar: {SITE.phoneDisplay}
+                                </a>
+                                <WhatsAppCTA
+                                    message={WHATSAPP_MESSAGES.general}
+                                    source={location.pathname}
+                                    service="footer_contacto"
                                     className="block mt-4 text-amber-500 hover:text-amber-400 font-medium transition-colors"
                                 >
                                     WhatsApp: Contactar ahora
-                                </a>
+                                </WhatsAppCTA>
                             </address>
                         </div>
 
@@ -103,7 +114,16 @@ const PublicLayout = () => {
                                 <li><Link to="/cursos" className="hover:text-red-500 transition-colors">Cursos & Horarios</Link></li>
                                 <li><Link to="/competencia-danza-palermo" className="hover:text-red-500 transition-colors">Equipo de Competencia</Link></li>
                                 <li><Link to="/nosotros" className="hover:text-red-500 transition-colors">Quiénes Somos</Link></li>
-                                <li><Link to="/contacto" className="hover:text-red-500 transition-colors">Consultar por WhatsApp</Link></li>
+                                <li>
+                                    <WhatsAppCTA
+                                        message={WHATSAPP_MESSAGES.general}
+                                        source={location.pathname}
+                                        service="footer_navegacion"
+                                        className="hover:text-red-500 transition-colors"
+                                    >
+                                        Consultar por WhatsApp
+                                    </WhatsAppCTA>
+                                </li>
                             </ul>
                         </div>
 

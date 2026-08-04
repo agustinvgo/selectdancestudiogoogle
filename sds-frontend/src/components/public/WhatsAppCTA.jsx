@@ -5,9 +5,11 @@ const WhatsAppCTA = ({
     source,
     service,
     children = 'Consultar por WhatsApp',
-    className = ''
+    className = '',
+    ...linkProps
 }) => (
     <a
+        {...linkProps}
         href={buildWhatsAppUrl(message)}
         target="_blank"
         rel="noopener noreferrer"

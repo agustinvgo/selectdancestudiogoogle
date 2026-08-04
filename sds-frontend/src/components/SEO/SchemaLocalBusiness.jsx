@@ -17,6 +17,7 @@ const SchemaLocalBusiness = () => {
         },
         image: absoluteUrl(SITE.defaultImage),
         email: SITE.email,
+        telephone: SITE.phone,
         priceRange: '$$',
         currenciesAccepted: 'ARS',
         address: {
@@ -32,6 +33,7 @@ const SchemaLocalBusiness = () => {
             '@type': 'ContactPoint',
             contactType: 'customer service',
             email: SITE.email,
+            telephone: SITE.phone,
             url: SITE.whatsapp,
             availableLanguage: 'Spanish',
         },

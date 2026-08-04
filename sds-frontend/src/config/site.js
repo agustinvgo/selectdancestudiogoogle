@@ -6,7 +6,9 @@ export const SITE = {
     defaultImageWidth: 1024,
     defaultImageHeight: 682,
     email: 'selectdancestudio.ar@gmail.com',
-    whatsapp: 'https://wa.me/message/ZNBV2CLWYU36H1',
+    phone: '+541127744309',
+    phoneDisplay: '011 2774-4309',
+    whatsapp: 'https://wa.me/5491154890120',
     maps: 'https://www.google.com/maps/search/?api=1&query=Honduras+5550%2C+Oficina+105%2C+C1414BND%2C+Buenos+Aires',
     address: {
         streetAddress: 'Honduras 5550, Oficina 105',

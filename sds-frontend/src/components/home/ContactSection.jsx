@@ -1,32 +1,9 @@
-import { useState } from 'react';
 import { SITE } from '../../config/site.js';
-import { buildWhatsAppUrl, trackWhatsAppClick } from '../../utils/whatsapp.js';
+import WhatsAppCTA from '../public/WhatsAppCTA.jsx';
+import { WHATSAPP_MESSAGES } from '../../utils/whatsapp.js';
+import { trackPhoneClick } from '../../utils/contactTracking.js';
 
 const ContactSection = () => {
-    const [formData, setFormData] = useState({
-        nombre: '',
-        email: '',
-        telefono: '',
-        mensaje: ''
-    });
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        const message = [
-            'Hola, vi la web de Select Dance Studio y quisiera hacer una consulta.',
-            `Nombre: ${formData.nombre}`,
-            `Email: ${formData.email}`,
-            formData.telefono ? `Teléfono: ${formData.telefono}` : null,
-            `Consulta: ${formData.mensaje}`,
-        ].filter(Boolean).join('\n');
-
-        trackWhatsAppClick({ source: '/contacto', service: 'formulario_contacto' });
-        window.open(buildWhatsAppUrl(message), '_blank', 'noopener,noreferrer');
-    };
-
     return (
         <section className="relative py-24 px-4 md:px-8 bg-transparent text-inherit transition-colors duration-500">
             <div className="max-w-7xl mx-auto">
@@ -53,61 +30,35 @@ const ContactSection = () => {
                                 <span className="w-12 h-[1px] bg-red-600 group-hover:w-16 transition-all duration-300"></span>
                                 SELECTDANCESTUDIO.AR@GMAIL.COM
                             </a>
+                            <a
+                                href={`tel:${SITE.phone}`}
+                                onClick={() => trackPhoneClick({ source: '/contacto' })}
+                                className="flex items-center gap-4 hover:text-red-500 transition-colors group"
+                            >
+                                <span className="w-12 h-[1px] bg-red-600 group-hover:w-16 transition-all duration-300"></span>
+                                LLAMAR: {SITE.phoneDisplay}
+                            </a>
                         </div>
                     </div>
 
                     <div className="bg-white dark:bg-white/5 p-8 md:p-12 rounded-3xl border border-gray-200 dark:border-white/20 transition-colors duration-500 shadow-xl dark:shadow-none">
-                        <form className="space-y-6" onSubmit={handleSubmit}>
-                            <div>
-                                <input
-                                    type="text"
-                                    name="nombre"
-                                    value={formData.nombre}
-                                    onChange={handleChange}
-                                    placeholder="NOMBRE COMPLETO"
-                                    required
-                                    className="w-full bg-transparent border-b border-gray-300 dark:border-white/20 py-4 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-red-600 transition-all text-sm tracking-widest uppercase"
-                                />
-                            </div>
-                            <div>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    placeholder="EMAIL"
-                                    required
-                                    className="w-full bg-transparent border-b border-gray-300 dark:border-white/20 py-4 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-red-600 transition-all text-sm tracking-widest uppercase"
-                                />
-                            </div>
-                            <div>
-                                <input
-                                    type="tel"
-                                    name="telefono"
-                                    value={formData.telefono}
-                                    onChange={handleChange}
-                                    placeholder="TELÉFONO"
-                                    className="w-full bg-transparent border-b border-gray-300 dark:border-white/20 py-4 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-red-600 transition-all text-sm tracking-widest uppercase"
-                                />
-                            </div>
-                            <div>
-                                <textarea
-                                    name="mensaje"
-                                    rows="3"
-                                    value={formData.mensaje}
-                                    onChange={handleChange}
-                                    placeholder="MENSAJE"
-                                    required
-                                    className="w-full bg-transparent border-b border-gray-300 dark:border-white/20 py-4 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-red-600 transition-all text-sm tracking-widest uppercase resize-none"
-                                ></textarea>
-                            </div>
-                            <button
-                                type="submit"
-                                className="w-full bg-black dark:bg-white text-white dark:text-black font-bold py-5 rounded-none hover:bg-gray-800 dark:hover:bg-gray-200 transition-all uppercase tracking-[0.2em] text-xs mt-8"
-                            >
-                                CONTINUAR EN WHATSAPP
-                            </button>
-                        </form>
+                        <span className="block text-xs font-bold text-red-600 tracking-[0.2em] mb-5 uppercase">
+                            Consulta directa
+                        </span>
+                        <h3 className="text-3xl md:text-4xl font-bold tracking-tight mb-5 text-gray-900 dark:text-white">
+                            Hablemos por WhatsApp
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-8">
+                            El mensaje ya estará preparado. Completá la edad y la disciplina de interés en WhatsApp y presioná enviar.
+                        </p>
+                        <WhatsAppCTA
+                            message={WHATSAPP_MESSAGES.general}
+                            source="/contacto"
+                            service="consulta_directa"
+                            className="flex w-full items-center justify-center bg-black dark:bg-white text-white dark:text-black font-bold py-5 hover:bg-gray-800 dark:hover:bg-gray-200 transition-all uppercase tracking-[0.2em] text-xs"
+                        >
+                            ABRIR WHATSAPP
+                        </WhatsAppCTA>
                     </div>
                 </div>
             </div>

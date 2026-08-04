@@ -579,7 +579,7 @@ Select Dance Studio`;
 
             for (const [key, data] of Object.entries(porProfesor)) {
                 // Construir mensaje por profesor
-                let mensaje = `🗓️ *Resumen de clases de la mujer mas hermosa del mundo- ${hoy}*\n`;
+                let mensaje = `🗓️ *Resumen de clases de hoy — ${hoy}*\n`;
                 mensaje += `Hola ${data.nombre.split(' ')[0]}! Acá está tu agenda de hoy:\n\n`;
 
                 for (const curso of data.cursos) {

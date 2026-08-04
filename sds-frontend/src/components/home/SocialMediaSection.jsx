@@ -1,4 +1,5 @@
 import { Instagram, Video, MessageCircle } from 'lucide-react';
+import { buildWhatsAppUrl, trackWhatsAppClick, WHATSAPP_MESSAGES } from '../../utils/whatsapp.js';
 
 
 const SOCIAL_LINKS = [
@@ -21,7 +22,8 @@ const SOCIAL_LINKS = [
     {
         name: 'WhatsApp',
         icon: MessageCircle,
-        url: 'https://wa.me/message/ZNBV2CLWYU36H1',
+        url: buildWhatsAppUrl(WHATSAPP_MESSAGES.general),
+        service: 'redes_inicio',
         gradient: 'from-green-500 via-green-600 to-teal-600',
         handle: 'Habla con nosotros',
         desc: 'Escríbenos directamente para inscripciones y dudas.'
@@ -48,6 +50,7 @@ const SocialMediaSection = () => {
                             href={social.url}
                             target="_blank"
                             rel="noopener noreferrer"
+                            onClick={() => social.name === 'WhatsApp' && trackWhatsAppClick({ source: '/', service: social.service })}
                             className={`relative group p-8 rounded-3xl overflow-hidden bg-gradient-to-br ${social.gradient}`}
                         >
                             <div className="absolute inset-0 bg-white/20 group-hover:bg-transparent transition-colors duration-500" />
