@@ -107,7 +107,7 @@ const AppRoutes = () => {
     const location = useLocation();
     const publicPaths = [
         '/', '/cursos', '/competencia-danza-palermo', '/nosotros', '/faq', '/contacto',
-        '/danza-infantil-palermo', '/acro-dance-palermo', '/gimnasia-artistica-palermo',
+        '/danza-infantil-palermo', '/acro-dance-palermo', '/gimnasia-acrobatica-palermo', '/gimnasia-artistica-palermo',
         '/ballet-jazz-palermo', '/alquiler-sala-danza-palermo', '/competition', '/clase-de-prueba'
     ];
     const isPublicPath = publicPaths.includes(location.pathname);
@@ -126,7 +126,8 @@ const AppRoutes = () => {
                     <Route path="/competencia-danza-palermo" element={<Competition />} />
                     <Route path="/danza-infantil-palermo" element={<ServiceLandingPage serviceKey="danzaInfantil" />} />
                     <Route path="/acro-dance-palermo" element={<ServiceLandingPage serviceKey="acroDance" />} />
-                    <Route path="/gimnasia-artistica-palermo" element={<ServiceLandingPage serviceKey="gimnasiaArtistica" />} />
+                    <Route path="/gimnasia-acrobatica-palermo" element={<ServiceLandingPage serviceKey="gimnasiaAcrobatica" />} />
+                    <Route path="/gimnasia-artistica-palermo" element={<Navigate to="/gimnasia-acrobatica-palermo" replace />} />
                     <Route path="/ballet-jazz-palermo" element={<ServiceLandingPage serviceKey="balletJazz" />} />
                     <Route path="/alquiler-sala-danza-palermo" element={<ServiceLandingPage serviceKey="alquilerSala" />} />
                     <Route path="/nosotros" element={<QuienesSomos />} />

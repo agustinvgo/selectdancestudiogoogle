@@ -77,7 +77,7 @@ const navigation = [
     ['Cursos', '/cursos'],
     ['Danza infantil', '/danza-infantil-palermo'],
     ['Acro Dance', '/acro-dance-palermo'],
-    ['Gimnasia artística', '/gimnasia-artistica-palermo'],
+    ['Gimnasia acrobática', '/gimnasia-acrobatica-palermo'],
     ['Ballet y jazz', '/ballet-jazz-palermo'],
     ['Competencia', '/competencia-danza-palermo'],
     ['Alquiler de sala', '/alquiler-sala-danza-palermo'],

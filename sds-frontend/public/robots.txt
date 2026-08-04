@@ -4,7 +4,7 @@ Allow: /cursos
 Allow: /competencia-danza-palermo
 Allow: /danza-infantil-palermo
 Allow: /acro-dance-palermo
-Allow: /gimnasia-artistica-palermo
+Allow: /gimnasia-acrobatica-palermo
 Allow: /ballet-jazz-palermo
 Allow: /alquiler-sala-danza-palermo
 Allow: /nosotros

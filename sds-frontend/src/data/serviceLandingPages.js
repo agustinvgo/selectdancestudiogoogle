@@ -51,17 +51,17 @@ export const SERVICE_LANDING_PAGES = {
         ],
         whatsappMessage: 'Hola, vi la página de Acro Dance en Palermo. Quisiera consultar por niveles, edades, horarios, vacantes y aranceles.',
     },
-    gimnasiaArtistica: {
-        canonical: '/gimnasia-artistica-palermo',
-        title: 'Gimnasia artística infantil en Palermo',
-        description: 'Entrenamiento de gimnasia artística para niñas en Palermo. Fuerza, flexibilidad, equilibrio, coordinación y preparación física progresiva.',
+    gimnasiaAcrobatica: {
+        canonical: '/gimnasia-acrobatica-palermo',
+        title: 'Gimnasia acrobática infantil en Palermo',
+        description: 'Entrenamiento de gimnasia acrobática para niñas en Palermo. Fuerza, flexibilidad, equilibrio, coordinación y preparación física progresiva.',
         eyebrow: 'Preparación física y técnica',
-        heading: 'Gimnasia artística en Palermo',
+        heading: 'Gimnasia acrobática en Palermo',
         intro: 'Un espacio de entrenamiento corporal para desarrollar fuerza, flexibilidad, equilibrio y coordinación mediante objetivos progresivos y seguimiento docente.',
         image: '/optimized/home/mini-1280.webp',
-        imageAlt: 'Entrenamiento de gimnasia artística infantil en Palermo',
+        imageAlt: 'Entrenamiento de gimnasia acrobática infantil en Palermo',
         audience: 'Niñas y adolescentes según edad y nivel',
-        service: 'gimnasia_artistica',
+        service: 'gimnasia_acrobatica',
         highlights: [
             ['Base física', 'Trabajo gradual de fuerza, movilidad, alineación y control del cuerpo.'],
             ['Coordinación', 'Secuencias que desarrollan orientación espacial, equilibrio y precisión.'],
@@ -75,7 +75,7 @@ export const SERVICE_LANDING_PAGES = {
             ['¿Se puede empezar sin experiencia?', 'Sí. La disponibilidad de grupos iniciales depende de las vacantes y edades de cada período.'],
             ['¿Cómo consulto horarios?', 'Escribinos por WhatsApp con la edad de la alumna y te enviaremos las opciones vigentes.'],
         ],
-        whatsappMessage: 'Hola, vi la información de gimnasia artística en Palermo. Quisiera consultar por edades, niveles, horarios, vacantes y aranceles.',
+        whatsappMessage: 'Hola, vi la información de gimnasia acrobática en Palermo. Quisiera consultar por edades, niveles, horarios, vacantes y aranceles.',
     },
     balletJazz: {
         canonical: '/ballet-jazz-palermo',

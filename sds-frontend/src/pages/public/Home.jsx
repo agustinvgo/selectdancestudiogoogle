@@ -16,7 +16,7 @@ const Home = () => {
         <div className="bg-transparent text-inherit w-full">
             <PageSEO
                 title="Select Dance Studio"
-                description="Select Dance Studio: clases de ballet, jazz, contemporáneo y gimnasia artística para niñas en Palermo, CABA. Alquiler de salas profesionales para clases, ensayos y workshops."
+                description="Select Dance Studio: clases de ballet, jazz, contemporáneo y gimnasia acrobática para niñas en Palermo, CABA. Alquiler de salas profesionales para clases, ensayos y workshops."
                 canonical="/"
             />
             <SchemaLocalBusiness />

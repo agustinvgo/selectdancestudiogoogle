@@ -30,7 +30,7 @@ const SEO = ({ title, description, name, type, schema }) => {
 
 SEO.defaultProps = {
     title: 'Select Dance Studio | Alto Rendimiento en Danza en Palermo',
-    description: 'Academia de danza y gimnasia artística en Palermo. Formación competitiva, ballet, lyrical jazz y core training para niñas y adolescentes.',
+    description: 'Academia de danza y gimnasia acrobática en Palermo. Formación competitiva, ballet, lyrical jazz y core training para niñas y adolescentes.',
     name: 'Select Dance Studio',
     type: 'website',
     schema: {

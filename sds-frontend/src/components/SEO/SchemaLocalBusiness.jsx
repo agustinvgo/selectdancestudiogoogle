@@ -7,7 +7,7 @@ const SchemaLocalBusiness = () => {
         '@id': `${SITE.url}/#organization`,
         name: SITE.name,
         alternateName: 'Select Dance Studio Palermo',
-        description: 'Academia de danza en Palermo, Buenos Aires. Clases de ballet, jazz, contemporáneo y gimnasia artística para niñas y adolescentes.',
+        description: 'Academia de danza en Palermo, Buenos Aires. Clases de ballet, jazz, contemporáneo y gimnasia acrobática para niñas y adolescentes.',
         url: SITE.url,
         logo: {
             '@type': 'ImageObject',

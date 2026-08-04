@@ -4,7 +4,7 @@ const CORE_ROUTES = [
     {
         canonical: '/',
         title: 'Academia de danza en Palermo para niñas y adolescentes',
-        description: 'Clases de danza, ballet, jazz, acrobacia y gimnasia artística para niñas y adolescentes en Palermo, Buenos Aires.',
+        description: 'Clases de danza, ballet, jazz, acrobacia y gimnasia acrobática para niñas y adolescentes en Palermo, Buenos Aires.',
         heading: 'Academia de danza y gimnasia en Palermo',
         summary: 'Formación técnica y artística por edades y niveles en Honduras 5550, Palermo. Consultá horarios, vacantes y aranceles por WhatsApp.',
         image: '/optimized/home/hero-1024.webp',

@@ -12,7 +12,7 @@ const PublicLayout = () => {
     const isHome = location.pathname === '/';
     const darkPages = [
         '/', '/cursos', '/competencia-danza-palermo', '/nosotros', '/faq', '/contacto',
-        '/danza-infantil-palermo', '/acro-dance-palermo', '/gimnasia-artistica-palermo',
+        '/danza-infantil-palermo', '/acro-dance-palermo', '/gimnasia-acrobatica-palermo', '/gimnasia-artistica-palermo',
         '/ballet-jazz-palermo', '/alquiler-sala-danza-palermo'
     ];
     const isDarkPage = darkPages.includes(location.pathname);
@@ -134,7 +134,7 @@ const PublicLayout = () => {
                                 <li><Link to="/danza-infantil-palermo" className="hover:text-red-500 transition-colors">Danza infantil</Link></li>
                                 <li><Link to="/ballet-jazz-palermo" className="hover:text-red-500 transition-colors">Ballet, jazz y contemporáneo</Link></li>
                                 <li><Link to="/acro-dance-palermo" className="hover:text-red-500 transition-colors">Acro Dance</Link></li>
-                                <li><Link to="/gimnasia-artistica-palermo" className="hover:text-red-500 transition-colors">Gimnasia artística</Link></li>
+                                <li><Link to="/gimnasia-acrobatica-palermo" className="hover:text-red-500 transition-colors">Gimnasia acrobática</Link></li>
                                 <li><Link to="/alquiler-sala-danza-palermo" className="hover:text-red-500 transition-colors">Alquiler de sala</Link></li>
                             </ul>
                         </div>

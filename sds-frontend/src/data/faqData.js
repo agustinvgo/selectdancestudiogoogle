@@ -9,7 +9,7 @@ export const FAQ_ITEMS = [
     },
     {
         question: '¿Qué estilos de danza enseñan?',
-        answer: 'Enseñamos ballet clásico, jazz, danza contemporánea y gimnasia artística, organizados por edades, nivel técnico y objetivos de cada alumna.',
+        answer: 'Enseñamos ballet clásico, jazz, danza contemporánea y gimnasia acrobática, organizados por edades, nivel técnico y objetivos de cada alumna.',
     },
     {
         question: '¿Cómo elijo la clase y el nivel adecuados?',
