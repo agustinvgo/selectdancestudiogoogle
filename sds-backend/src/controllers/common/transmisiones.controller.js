@@ -1,6 +1,7 @@
 const db = require('../../config/db');
 const jwt = require('jsonwebtoken');
 const svc = require('../../services/transmision.service');
+const ResponsablesAlumnosModel = require('../../models/responsables-alumnos.model');
 
 // GET /api/transmisiones/authorize — usado por nginx (auth_request) antes de servir el video.
 // Devuelve 200 si quien pide es admin, o un alumno con una clase suya programada ahora.
@@ -18,11 +19,12 @@ exports.authorizeRead = async (req, res) => {
 
         // ¿El alumno tiene algún curso programado ahora (horario o manual)?
         const [cursos] = await db.query(
-            `SELECT c.* FROM cursos c
+            `SELECT DISTINCT c.* FROM cursos c
              JOIN inscripciones_curso ic ON ic.curso_id = c.id
              JOIN alumnos a ON a.id = ic.alumno_id
-             WHERE a.usuario_id = ? AND ic.activo = 1 AND c.activo = 1`,
-            [user.id]
+             LEFT JOIN responsables_alumnos ra ON ra.alumno_id = a.id
+             WHERE (a.usuario_id = ? OR ra.usuario_id = ?) AND ic.activo = 1 AND c.activo = 1`,
+            [user.id, user.id]
         );
         for (const c of cursos) {
             if (svc.dentroDeHorario(c) || await svc.getManual(c.id)) {
@@ -40,12 +42,18 @@ exports.authorizeRead = async (req, res) => {
 // Devuelve la clase en vivo de su hijo, si la hay.
 exports.enVivoAlumno = async (req, res) => {
     try {
+        const alumnoId = Number(req.query.alumno_id);
+        if (alumnoId && !(await ResponsablesAlumnosModel.canAccessAlumno(req.user.id, alumnoId))) {
+            return res.status(403).json({ success: false, message: 'Acceso denegado' });
+        }
         const [cursos] = await db.query(
-            `SELECT c.* FROM cursos c
+            `SELECT DISTINCT c.* FROM cursos c
              JOIN inscripciones_curso ic ON ic.curso_id = c.id
              JOIN alumnos a ON a.id = ic.alumno_id
-             WHERE a.usuario_id = ? AND ic.activo = 1 AND c.activo = 1`,
-            [req.user.id]
+             LEFT JOIN responsables_alumnos ra ON ra.alumno_id = a.id
+             WHERE ${alumnoId ? 'a.id = ?' : '(a.usuario_id = ? OR ra.usuario_id = ?)'}
+               AND ic.activo = 1 AND c.activo = 1`,
+            alumnoId ? [alumnoId] : [req.user.id, req.user.id]
         );
 
         let esperando = null;

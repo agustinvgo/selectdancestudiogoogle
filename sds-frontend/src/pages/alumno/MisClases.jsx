@@ -14,8 +14,8 @@ const normalizarDia = (dia = '') => dia
     .replace(/[\u0300-\u036f]/g, '');
 
 const MisClases = () => {
-    const { user } = useAuth();
-    const alumnoId = user?.alumno?.id;
+    const { alumnoActivo } = useAuth();
+    const alumnoId = alumnoActivo?.id;
 
     const { data: cursosData, isLoading } = useQuery({
         queryKey: ['cursos', 'alumno', alumnoId],

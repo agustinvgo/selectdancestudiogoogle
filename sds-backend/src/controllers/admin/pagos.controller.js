@@ -1,5 +1,6 @@
 const PagosModel = require('../../models/pagos.model');
 const AlumnosModel = require('../../models/alumnos.model');
+const ResponsablesAlumnosModel = require('../../models/responsables-alumnos.model');
 const PDFService = require('../../services/pdf.service');
 const PagosService = require('../../services/pagos.service');
 const ComprobantesService = require('../../services/comprobantes.service');
@@ -18,7 +19,13 @@ const PagosController = {
 
     async getMisPagos(req, res) {
         try {
-            const alumno = await AlumnosModel.findByUsuarioId(req.user.id);
+            const alumnoId = Number(req.query.alumno_id);
+            if (alumnoId && !(await ResponsablesAlumnosModel.canAccessAlumno(req.user.id, alumnoId, 'puede_ver_pagos'))) {
+                return res.status(403).json({ success: false, message: 'Acceso denegado' });
+            }
+            const alumno = alumnoId
+                ? await AlumnosModel.findById(alumnoId)
+                : await AlumnosModel.findByUsuarioId(req.user.id);
             if (!alumno) return res.status(404).json({ success: false, message: 'Alumno no encontrado' });
             const pagos = await PagosModel.findByAlumno(alumno.id);
             res.json({ success: true, data: pagos });
@@ -132,8 +139,7 @@ const PagosController = {
             if (req.user.rol !== 'admin') {
                 const pago = await PagosModel.findById(req.params.id);
                 if (!pago) return res.status(404).json({ success: false, message: 'Pago no encontrado' });
-                const alumno = await AlumnosModel.findByUsuarioId(req.user.id);
-                if (!alumno || alumno.id !== pago.alumno_id) {
+                if (!(await ResponsablesAlumnosModel.canAccessAlumno(req.user.id, pago.alumno_id, 'puede_ver_pagos'))) {
                     return res.status(403).json({ success: false, message: 'Acceso denegado' });
                 }
             }
@@ -148,8 +154,7 @@ const PagosController = {
             if (req.user.rol !== 'admin') {
                 const pago = await PagosModel.findById(req.params.id);
                 if (!pago) return res.status(404).json({ success: false, message: 'Pago no encontrado' });
-                const alumno = await AlumnosModel.findByUsuarioId(req.user.id);
-                if (!alumno || alumno.id !== pago.alumno_id) {
+                if (!(await ResponsablesAlumnosModel.canAccessAlumno(req.user.id, pago.alumno_id, 'puede_ver_pagos'))) {
                     return res.status(403).json({ success: false, message: 'Acceso denegado' });
                 }
             }
@@ -172,8 +177,7 @@ const PagosController = {
 
             // Verificar que el pago pertenece al alumno del usuario logueado (si no es admin)
             if (req.user.rol !== 'admin') {
-                const alumno = await AlumnosModel.findByUsuarioId(req.user.id);
-                if (!alumno || alumno.id !== pagos[0].alumno_id) {
+                if (!(await ResponsablesAlumnosModel.canAccessAlumno(req.user.id, pagos[0].alumno_id, 'puede_ver_pagos'))) {
                     return res.status(403).json({ success: false, message: 'Acceso denegado' });
                 }
             }

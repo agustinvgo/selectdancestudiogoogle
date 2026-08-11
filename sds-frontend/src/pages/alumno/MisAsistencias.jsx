@@ -6,20 +6,20 @@ import { CheckCircleIcon, XCircleIcon, ChartBarIcon } from '@heroicons/react/24/
 import Loader from '../../components/Loader';
 
 const MisAsistencias = () => {
-    const { user } = useAuth();
+    const { user, alumnoActivo } = useAuth();
     const [mesSeleccionado, setMesSeleccionado] = useState(new Date().getMonth() + 1);
     const [anioSeleccionado, setAnioSeleccionado] = useState(Math.max(new Date().getFullYear(), 2026));
 
-    const alumnoId = user?.alumno?.id;
+    const alumnoId = alumnoActivo?.id;
     const esAlumno = user?.rol === 'alumno';
 
     const { data: asistenciasData, isLoading, error } = useQuery({
-        queryKey: ['asistencias', 'mis', mesSeleccionado, anioSeleccionado],
+        queryKey: ['asistencias', 'mis', alumnoId, mesSeleccionado, anioSeleccionado],
         queryFn: async () => {
-            const response = await asistenciasAPI.getMisAsistencias(mesSeleccionado, anioSeleccionado);
+            const response = await asistenciasAPI.getMisAsistencias(mesSeleccionado, anioSeleccionado, alumnoId);
             return response.data.data;
         },
-        enabled: esAlumno,
+        enabled: esAlumno && !!alumnoId,
         retry: 1
     });
 

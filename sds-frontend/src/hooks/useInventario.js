@@ -61,7 +61,7 @@ const useInventario = () => {
         },
         onError: (error) => {
             console.error('Error registering sale:', error);
-            toast.error('Error al registrar venta');
+            toast.error(error.response?.data?.message || 'Error al registrar venta');
         }
     });
 

@@ -4,6 +4,7 @@ import { getMediaUrl } from '../../../services/api';
 
 const StudentTable = ({ alumnos, isActivo, abrirModal, toggleEstadoAlumno, eliminarAlumno, searchTerm }) => {
     const navigate = useNavigate();
+    const alumnoEstaActivo = (alumno) => isActivo(alumno.activo ?? alumno.usuario_activo);
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -25,11 +26,11 @@ const StudentTable = ({ alumnos, isActivo, abrirModal, toggleEstadoAlumno, elimi
                                     </h3>
                                     <p className="text-sm text-gray-500 mt-1">{alumno.email}</p>
                                 </div>
-                                <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${isActivo(alumno.usuario_activo)
+                                <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${alumnoEstaActivo(alumno)
                                     ? 'bg-green-50 text-green-700 border border-green-200'
                                     : 'bg-gray-100 text-gray-600 border border-gray-200'
                                     }`}>
-                                    {isActivo(alumno.usuario_activo) ? 'Activo' : 'Inactivo'}
+                                    {alumnoEstaActivo(alumno) ? 'Activo' : 'Inactivo'}
                                 </span>
                             </div>
 
@@ -72,12 +73,12 @@ const StudentTable = ({ alumnos, isActivo, abrirModal, toggleEstadoAlumno, elimi
                                 </button>
                                 <button
                                     onClick={() => toggleEstadoAlumno(alumno)}
-                                    className={`flex-1 py-2 px-3 flex items-center justify-center gap-2 rounded-lg border font-medium text-sm transition-all ${isActivo(alumno.usuario_activo)
+                                    className={`flex-1 py-2 px-3 flex items-center justify-center gap-2 rounded-lg border font-medium text-sm transition-all ${alumnoEstaActivo(alumno)
                                         ? 'border-gray-200 text-red-600 hover:bg-red-50 hover:border-red-200'
                                         : 'border-gray-200 text-green-600 hover:bg-green-50 hover:border-green-200'
                                         }`}
                                 >
-                                    {isActivo(alumno.usuario_activo) ? (
+                                    {alumnoEstaActivo(alumno) ? (
                                         <>
                                             <NoSymbolIcon className="h-4 w-4" />
                                             <span>Desactivar</span>
@@ -163,11 +164,11 @@ const StudentTable = ({ alumnos, isActivo, abrirModal, toggleEstadoAlumno, elimi
                                         ) : '-'}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                                        <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${isActivo(alumno.usuario_activo)
+                                        <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${alumnoEstaActivo(alumno)
                                             ? 'bg-green-50 text-green-700 border border-green-200'
                                             : 'bg-gray-100 text-gray-600 border border-gray-200'
                                             }`}>
-                                            {isActivo(alumno.usuario_activo) ? 'Activo' : 'Inactivo'}
+                                            {alumnoEstaActivo(alumno) ? 'Activo' : 'Inactivo'}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
@@ -188,10 +189,10 @@ const StudentTable = ({ alumnos, isActivo, abrirModal, toggleEstadoAlumno, elimi
                                             </button>
                                             <button
                                                 onClick={() => toggleEstadoAlumno(alumno)}
-                                                className={isActivo(alumno.usuario_activo) ? "text-red-600 hover:text-red-900" : "text-green-600 hover:text-green-900"}
-                                                title={isActivo(alumno.usuario_activo) ? "Desactivar" : "Activar"}
+                                                className={alumnoEstaActivo(alumno) ? "text-red-600 hover:text-red-900" : "text-green-600 hover:text-green-900"}
+                                                title={alumnoEstaActivo(alumno) ? "Desactivar" : "Activar"}
                                             >
-                                                {isActivo(alumno.usuario_activo) ? (
+                                                {alumnoEstaActivo(alumno) ? (
                                                     <NoSymbolIcon className="h-5 w-5" />
                                                 ) : (
                                                     <CheckCircleIcon className="h-5 w-5" />

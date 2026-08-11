@@ -5,8 +5,8 @@ import { CalendarIcon, MapPinIcon, CurrencyDollarIcon, CheckCircleIcon, XCircleI
 import Loader from '../../components/Loader';
 
 const MisEventos = () => {
-    const { user } = useAuth();
-    const alumnoId = user?.alumno?.id;
+    const { alumnoActivo } = useAuth();
+    const alumnoId = alumnoActivo?.id;
 
     const { data: eventosData, isLoading } = useQuery({
         queryKey: ['eventos', 'alumno', alumnoId],

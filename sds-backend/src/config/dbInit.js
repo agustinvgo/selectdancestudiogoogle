@@ -9,10 +9,12 @@ const dbInit = {
             // 1. Verificar/Reparar tablas críticas (Idempotente)
             await this.repairClasesPrueba();
             await this.repairUsuarios();
+            await this.ensureResponsablesAlumnos();
             await this.repairCursos();
             await this.ensureCursoProfesores();
             await this.ensureAgendaConfirmaciones();
             await this.ensurePushNotifications();
+            await this.ensureInventarioVentas();
             await this.repairPagos();
             await this.repairEventos();
             await this.ensureTableDisponibles();
@@ -92,6 +94,87 @@ const dbInit = {
         } catch (e) {
             // Ignorar si la tabla recién se creó o no aplica
         }
+    },
+
+    /**
+     * Permite que una misma cuenta familiar acceda a varios alumnos y que un
+     * alumno tenga más de un responsable. También convierte las cuentas
+     * existentes en el responsable principal para mantener compatibilidad.
+     */
+    async ensureResponsablesAlumnos() {
+        const alumnoColumns = await this.getTableColumns('alumnos');
+        if (!alumnoColumns) return;
+
+        if (!alumnoColumns.includes('activo')) {
+            await db.query('ALTER TABLE alumnos ADD COLUMN activo TINYINT(1) NOT NULL DEFAULT 1 AFTER usuario_id');
+        }
+
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS responsables_alumnos (
+                usuario_id INT NOT NULL,
+                alumno_id INT NOT NULL,
+                parentesco VARCHAR(80) DEFAULT NULL,
+                es_principal TINYINT(1) NOT NULL DEFAULT 0,
+                recibe_notificaciones TINYINT(1) NOT NULL DEFAULT 1,
+                puede_ver_pagos TINYINT(1) NOT NULL DEFAULT 1,
+                puede_confirmar_asistencia TINYINT(1) NOT NULL DEFAULT 1,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (usuario_id, alumno_id),
+                KEY idx_responsables_alumno (alumno_id),
+                CONSTRAINT fk_responsables_alumnos_usuario
+                    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+                CONSTRAINT fk_responsables_alumnos_alumno
+                    FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        `);
+
+        await db.query(`
+            INSERT IGNORE INTO responsables_alumnos (usuario_id, alumno_id, parentesco, es_principal)
+            SELECT usuario_id, id, 'Cuenta principal', 1
+            FROM alumnos
+            WHERE usuario_id IS NOT NULL
+        `);
+    },
+
+    /**
+     * Asegura el historial de ventas del inventario.
+     */
+    async ensureInventarioVentas() {
+        const productosColumns = await this.getTableColumns('productos');
+        const usuariosColumns = await this.getTableColumns('usuarios');
+        if (!productosColumns || !usuariosColumns) return;
+
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS ventas (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                usuario_id INT DEFAULT NULL,
+                total DECIMAL(12,2) NOT NULL,
+                metodo_pago VARCHAR(50) NOT NULL DEFAULT 'Efectivo',
+                fecha_venta TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                KEY idx_ventas_usuario (usuario_id),
+                KEY idx_ventas_fecha (fecha_venta),
+                CONSTRAINT fk_ventas_usuario
+                    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        `);
+
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS detalle_ventas (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                venta_id INT NOT NULL,
+                producto_id INT NOT NULL,
+                cantidad INT NOT NULL,
+                precio_unitario DECIMAL(12,2) NOT NULL,
+                subtotal DECIMAL(12,2) NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                KEY idx_detalle_ventas_venta (venta_id),
+                KEY idx_detalle_ventas_producto (producto_id),
+                CONSTRAINT fk_detalle_ventas_venta
+                    FOREIGN KEY (venta_id) REFERENCES ventas(id) ON DELETE CASCADE,
+                CONSTRAINT fk_detalle_ventas_producto
+                    FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE RESTRICT
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        `);
     },
 
     /**

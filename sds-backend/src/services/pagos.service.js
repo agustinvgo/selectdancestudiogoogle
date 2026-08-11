@@ -1,5 +1,6 @@
 const PagosModel = require('../models/pagos.model');
 const AlumnosModel = require('../models/alumnos.model');
+const ResponsablesAlumnosModel = require('../models/responsables-alumnos.model');
 const emailService = require('./email.service');
 const PDFService = require('./pdf.service');
 const db = require('../config/db');
@@ -21,6 +22,15 @@ class PagosService {
         const firstTargetDay = new Date(date.getFullYear(), date.getMonth() + months, 1);
         const lastTargetDay = new Date(firstTargetDay.getFullYear(), firstTargetDay.getMonth() + 1, 0).getDate();
         return new Date(firstTargetDay.getFullYear(), firstTargetDay.getMonth(), Math.min(date.getDate(), lastTargetDay));
+    }
+
+    static async getDestinatariosNotificaciones(alumno) {
+        const responsables = await ResponsablesAlumnosModel.findNotificationRecipientsByAlumnoId(alumno.id);
+        const emails = responsables.map((responsable) => responsable.email);
+        const emailRespaldo = alumno.email || alumno.email_padre;
+
+        if (emailRespaldo) emails.push(emailRespaldo);
+        return [...new Set(emails.map((email) => String(email).trim().toLowerCase()).filter(Boolean))];
     }
 
     static _normalizarMovimiento(pagoData, pagoAnterior = {}) {
@@ -77,10 +87,12 @@ class PagosService {
         // Enviar Email
         try {
             const alumno = await AlumnosModel.findById(pagoData.alumno_id);
-            const emailDestino = alumno?.email || alumno?.email_padre;
-            if (alumno && emailDestino) {
-                emailService.enviarNotificacionNuevoPago(emailDestino, alumno.nombre, pagoData.concepto, pagoData.monto, pagoData.fecha_vencimiento)
-                    .catch(err => console.error('Error enviando Email nuevo pago:', err));
+            if (alumno) {
+                const destinatarios = await PagosService.getDestinatariosNotificaciones(alumno);
+                destinatarios.forEach((emailDestino) => {
+                    emailService.enviarNotificacionNuevoPago(emailDestino, alumno.nombre, pagoData.concepto, pagoData.monto, pagoData.fecha_vencimiento)
+                        .catch(err => console.error('Error enviando Email nuevo pago:', err));
+                });
             }
         } catch (emailError) {
             console.error('Error preparando Email de nuevo pago:', emailError);
@@ -157,8 +169,8 @@ class PagosService {
         try {
             const alumno = await AlumnosModel.findById(pagoAnterior.alumno_id);
             if (!alumno) return;
-            const emailDestino = alumno.email || alumno.email_padre;
-            if (!emailDestino) return;
+            const destinatarios = await PagosService.getDestinatariosNotificaciones(alumno);
+            if (!destinatarios.length) return;
 
             const pdfBuffer = await new Promise((resolve, reject) => {
                 try {
@@ -171,11 +183,11 @@ class PagosService {
                 } catch (e) { reject(e); }
             });
 
-            await emailService.enviarReciboPago(
+            await Promise.all(destinatarios.map((emailDestino) => emailService.enviarReciboPago(
                 emailDestino, `${alumno.nombre} ${alumno.apellido}`,
                 pagoAnterior.concepto, montoCobrado, new Date(),
                 pagoAnterior.fecha_vencimiento, pdfBuffer
-            );
+            )));
         } catch (error) {
             console.error('Error en enviarReciboPorEmail:', error);
         }

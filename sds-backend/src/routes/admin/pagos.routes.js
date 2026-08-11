@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const PagosController = require('../../controllers/admin/pagos.controller');
-const { verifyToken, isAdmin, isOwnerOrAdmin, isAlumnoOwnerOrAdmin } = require('../../middlewares/auth.middleware');
+const { verifyToken, isAdmin, isAlumnoOwnerOrAdmin } = require('../../middlewares/auth.middleware');
 const { uploadLimiter } = require('../../middlewares/rateLimiters');
 const pagosValidators = require('../../validators/pagos.validators');
 const { handleValidationErrors } = require('../../middlewares/validate.middleware');
@@ -21,8 +21,13 @@ router.get('/estado-financiero', isAdmin, PagosController.getEstadoFinanciero);
 // Obtener MIS pagos (alumno logueado) - no requiere ID param, usa JWT
 router.get('/mis-pagos', PagosController.getMisPagos);
 
+const canViewPayments = (req, res, next) => {
+    req.accessPermission = 'puede_ver_pagos';
+    return isAlumnoOwnerOrAdmin(req, res, next);
+};
+
 // Obtener pagos de un alumno (admin o el propio alumno — :id es alumnos.id)
-router.get('/alumno/:id', isAlumnoOwnerOrAdmin, PagosController.getByAlumno);
+router.get('/alumno/:id', canViewPayments, PagosController.getByAlumno);
 
 // Crear pago (admin only)
 router.post('/', isAdmin, pagosValidators.create, handleValidationErrors, PagosController.create);
@@ -40,7 +45,7 @@ router.post('/plan-cuotas', isAdmin, PagosController.crearPlanCuotas);
 router.get('/estadisticas-avanzadas', isAdmin, PagosController.getEstadisticasAvanzadas);
 
 // Generar comprobante PDF (requiere ser dueño o admin) — debe ir ANTES de /:id
-router.get('/:id/comprobante', isOwnerOrAdmin, PagosController.generarComprobante);
+router.get('/:id/comprobante', PagosController.generarComprobante);
 
 // Actualizar pago (admin only)
 router.put('/:id', isAdmin, pagosValidators.update, handleValidationErrors, PagosController.update);
@@ -70,7 +75,7 @@ router.post('/:id/comprobante', uploadLimiter, (req, res, next) => {
 }, PagosController.subirComprobante);
 
 // Ver comprobante (Admin/Alumno) - Fix #1: requiere ser dueño o admin
-router.get('/:id/archivo-comprobante', isOwnerOrAdmin, PagosController.verComprobante);
+router.get('/:id/archivo-comprobante', PagosController.verComprobante);
 
 // Validar o Rechazar comprobante (Admin only) - Se usa el update general pero podemos hacer uno especifico si se necesita logica extra
 // router.post('/:id/validar-comprobante', isAdmin, PagosController.validarComprobante);

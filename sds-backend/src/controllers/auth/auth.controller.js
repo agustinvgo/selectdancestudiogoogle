@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const UsuariosModel = require('../../models/usuarios.model');
 const AlumnosModel = require('../../models/alumnos.model');
+const ResponsablesAlumnosModel = require('../../models/responsables-alumnos.model');
 const emailService = require('../../services/email.service');
 const db = require('../../config/db');
 const { normalizeEmailAddress } = require('../../middlewares/validate.middleware');
@@ -73,8 +74,11 @@ const AuthController = {
 
             // Si es alumno, obtener datos del alumno
             let alumnoData = null;
+            let alumnosData = [];
             if (usuario.rol === 'alumno') {
-                alumnoData = await AlumnosModel.findByUsuarioId(usuario.id);
+                alumnosData = await ResponsablesAlumnosModel.findAlumnosByUsuarioId(usuario.id);
+                alumnoData = alumnosData[0] || await AlumnosModel.findByUsuarioId(usuario.id);
+                if (!alumnosData.length && alumnoData) alumnosData = [alumnoData];
             }
 
             // Configuración de cookie
@@ -95,7 +99,8 @@ const AuthController = {
                         email: usuario.email,
                         rol: usuario.rol,
                         primer_login: usuario.primer_login,
-                        alumno: alumnoData
+                        alumno: alumnoData,
+                        alumnos: alumnosData
                     }
                 }
             });
@@ -206,15 +211,19 @@ const AuthController = {
             }
 
             let alumnoData = null;
+            let alumnosData = [];
             if (usuario.rol === 'alumno') {
-                alumnoData = await AlumnosModel.findByUsuarioId(usuario.id);
+                alumnosData = await ResponsablesAlumnosModel.findAlumnosByUsuarioId(usuario.id);
+                alumnoData = alumnosData[0] || await AlumnosModel.findByUsuarioId(usuario.id);
+                if (!alumnosData.length && alumnoData) alumnosData = [alumnoData];
             }
 
             res.json({
                 success: true,
                 data: {
                     ...usuario,
-                    alumno: alumnoData
+                    alumno: alumnoData,
+                    alumnos: alumnosData
                 }
             });
         } catch (error) {

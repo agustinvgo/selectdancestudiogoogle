@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const AlumnosController = require('../../controllers/admin/alumnos.controller');
+const ResponsablesAlumnosController = require('../../controllers/admin/responsables-alumnos.controller');
 const { verifyToken, isAdmin, isOwnerOrAdmin, isAlumnoOwnerOrAdmin, isProfesor } = require('../../middlewares/auth.middleware');
 const profileUpload = require('../../middlewares/profileUpload.middleware');
 const { compress: compressImage } = require('../../middlewares/profileUpload.middleware');
@@ -29,6 +30,12 @@ const validateAlumno = [
 
 // Crear alumno (solo admin) - Soporte para foto de perfil con compresión WebP
 router.post('/', isAdmin, profileUpload.single('foto_perfil'), compressImage, validateAlumno, AlumnosController.create);
+
+// Responsables / familia. Siempre lo administra el equipo del estudio.
+router.get('/:id/responsables', isAdmin, ResponsablesAlumnosController.getAll);
+router.post('/:id/responsables', isAdmin, ResponsablesAlumnosController.createOrLink);
+router.put('/:id/responsables/:usuarioId', isAdmin, ResponsablesAlumnosController.update);
+router.delete('/:id/responsables/:usuarioId', isAdmin, ResponsablesAlumnosController.remove);
 
 // Obtener ficha completa (Fix #2: solo admin)
 router.get('/:id/ficha-completa', isAdmin, AlumnosController.getFichaCompleta);

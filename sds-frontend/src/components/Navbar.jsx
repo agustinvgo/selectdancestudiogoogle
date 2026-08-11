@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ArrowRightOnRectangleIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import logo from '../assets/logo-select-dance-studio.webp';
+import AlumnoSelector from './alumno/AlumnoSelector';
 
 const Navbar = ({ onMenuClick }) => {
     const { user, logout } = useAuth();
@@ -40,12 +41,13 @@ const Navbar = ({ onMenuClick }) => {
 
                 {/* User info & logout */}
                 <div className="flex items-center space-x-4">
+                    {user?.rol === 'alumno' && <AlumnoSelector className="hidden sm:inline-flex" />}
                     <div className="text-right hidden md:block">
                         <p className="text-sm font-semibold text-gray-900">
-                            {user?.alumno ? `${user.alumno.nombre} ${user.alumno.apellido}` : user?.email}
+                            {[user?.nombre, user?.apellido].filter(Boolean).join(' ') || user?.email}
                         </p>
                         <p className="text-xs text-gray-500">
-                            {user?.rol === 'admin' ? 'Administrador' : user?.rol === 'profesor' ? 'Profesor' : 'Alumno'}
+                            {user?.rol === 'admin' ? 'Administrador' : user?.rol === 'profesor' ? 'Profesor' : 'Familia / Alumno'}
                         </p>
                     </div>
 

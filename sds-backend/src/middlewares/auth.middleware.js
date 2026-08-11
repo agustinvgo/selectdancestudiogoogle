@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const db = require('../config/db');
+const ResponsablesAlumnosModel = require('../models/responsables-alumnos.model');
 
 const verifyToken = (req, res, next) => {
     try {
@@ -78,11 +79,11 @@ const isAlumnoOwnerOrAdmin = async (req, res, next) => {
 
     try {
         const alumnoId = parseInt(req.params.id);
-        const [rows] = await db.query('SELECT usuario_id FROM alumnos WHERE id = ?', [alumnoId]);
+        const [rows] = await db.query('SELECT id FROM alumnos WHERE id = ?', [alumnoId]);
         if (!rows.length) {
             return res.status(404).json({ success: false, message: 'Alumno no encontrado' });
         }
-        if (rows[0].usuario_id !== req.user.id) {
+        if (!await ResponsablesAlumnosModel.canAccessAlumno(req.user.id, alumnoId, req.accessPermission)) {
             return res.status(403).json({ success: false, message: 'Acceso denegado. No tienes permisos para acceder a estos datos' });
         }
         next();

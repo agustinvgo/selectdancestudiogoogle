@@ -134,8 +134,11 @@ const GestionInventario = () => {
 
     const openSaleModal = (producto) => {
         setSaleProduct(producto);
-        const defaultVarId = producto.isGroup && producto.variants?.length > 0 ? producto.variants[0].id : producto.id;
-        const defaultPrice = producto.isGroup && producto.variants?.length > 0 ? producto.variants[0].precio_venta : producto.precio_venta;
+        const defaultVariant = producto.isGroup
+            ? producto.variants?.find((variant) => Number(variant.stock_actual) > 0) || producto.variants?.[0]
+            : null;
+        const defaultVarId = defaultVariant?.id || producto.id;
+        const defaultPrice = defaultVariant?.precio_venta || producto.precio_venta;
         setSaleData({ cantidad: 1, metodo_pago: 'Efectivo', selectedVariantId: defaultVarId, precio_final: defaultPrice });
         setShowSaleModal(true);
     };

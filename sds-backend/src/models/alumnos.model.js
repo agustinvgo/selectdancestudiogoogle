@@ -26,9 +26,9 @@ const AlumnosModel = {
             // Filtro por estado activo/inactivo (basado en usuarios.activo)
             if (filters.activo !== undefined && filters.activo !== 'todos' && filters.activo !== '') {
                 if (filters.activo === 'activos' || filters.activo === true || filters.activo === 'true') {
-                    whereClauses.push('u.activo = 1');
+                    whereClauses.push('a.activo = 1');
                 } else if (filters.activo === 'inactivos' || filters.activo === false || filters.activo === 'false') {
-                    whereClauses.push('u.activo = 0');
+                    whereClauses.push('a.activo = 0');
                 }
             }
 
@@ -150,8 +150,8 @@ const AlumnosModel = {
             const [rows] = await db.query(`
                 SELECT 
                     COUNT(*) as total,
-                    SUM(CASE WHEN u.activo = 1 THEN 1 ELSE 0 END) as activos,
-                    SUM(CASE WHEN u.activo = 0 THEN 1 ELSE 0 END) as inactivos
+                    SUM(CASE WHEN alumnos.activo = 1 THEN 1 ELSE 0 END) as activos,
+                    SUM(CASE WHEN alumnos.activo = 0 THEN 1 ELSE 0 END) as inactivos
                 FROM alumnos
                 INNER JOIN usuarios u ON alumnos.usuario_id = u.id
             `);
@@ -231,9 +231,20 @@ const AlumnosModel = {
             await connection.query('DELETE FROM inscripciones_curso WHERE alumno_id = ?', [id]);
             await connection.query('DELETE FROM inscripciones_evento WHERE alumno_id = ?', [id]);
             await connection.query('DELETE FROM pagos WHERE alumno_id = ?', [id]);
+            await connection.query('DELETE FROM responsables_alumnos WHERE alumno_id = ?', [id]);
 
             const [resultAlumno] = await connection.query('DELETE FROM alumnos WHERE id = ?', [id]);
-            await connection.query('DELETE FROM usuarios WHERE id = ?', [alumno.usuario_id]);
+            const [remainingLinks] = await connection.query(
+                'SELECT COUNT(*) AS total FROM responsables_alumnos WHERE usuario_id = ?',
+                [alumno.usuario_id]
+            );
+            const [remainingStudents] = await connection.query(
+                'SELECT COUNT(*) AS total FROM alumnos WHERE usuario_id = ?',
+                [alumno.usuario_id]
+            );
+            if (!remainingLinks[0].total && !remainingStudents[0].total) {
+                await connection.query('DELETE FROM usuarios WHERE id = ?', [alumno.usuario_id]);
+            }
 
             await connection.commit();
             return resultAlumno.affectedRows > 0;
@@ -252,10 +263,7 @@ const AlumnosModel = {
             const alumno = await this.findById(id);
             if (!alumno) return false;
 
-            const [result] = await db.query(
-                'UPDATE usuarios SET activo = ? WHERE id = ? AND rol != "admin"',
-                [activo ? 1 : 0, alumno.usuario_id]
-            );
+            const [result] = await db.query('UPDATE alumnos SET activo = ? WHERE id = ?', [activo ? 1 : 0, id]);
             return result.affectedRows > 0;
         } catch (error) {
             console.error('[setActivo] Error:', error);

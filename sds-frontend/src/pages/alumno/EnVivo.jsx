@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import Hls from 'hls.js';
 import { transmisionesAPI } from '../../services/api';
 import { VideoCameraIcon, SignalIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '../../context/AuthContext';
 
 // Reproductor HLS reutilizable (usa hls.js; en Safari usa el player nativo)
 const HlsPlayer = ({ src }) => {
@@ -125,13 +126,15 @@ const HlsPlayer = ({ src }) => {
 
 const EnVivo = () => {
     const [now, setNow] = useState(Date.now());
+    const { alumnoActivo } = useAuth();
 
     // Poll cada 10s para detectar inicio/fin de la transmisión
     const { data } = useQuery({
-        queryKey: ['transmision-en-vivo'],
-        queryFn: async () => (await transmisionesAPI.enVivo()).data,
+        queryKey: ['transmision-en-vivo', alumnoActivo?.id],
+        queryFn: async () => (await transmisionesAPI.enVivo(alumnoActivo?.id)).data,
         refetchInterval: 10000,
         refetchOnWindowFocus: true,
+        enabled: !!alumnoActivo?.id,
     });
 
     useEffect(() => {

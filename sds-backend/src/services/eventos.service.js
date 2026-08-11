@@ -2,6 +2,7 @@ const EventosModel = require('../models/eventos.model');
 const AlumnosModel = require('../models/alumnos.model');
 const PagosModel = require('../models/pagos.model');
 const PagosService = require('./pagos.service');
+const ResponsablesAlumnosModel = require('../models/responsables-alumnos.model');
 const emailService = require('./email.service');
 
 class EventosService {
@@ -88,11 +89,17 @@ class EventosService {
         // Enviar Correo Electrónico Sincrónico-Silencioso
         try {
             const alumno = await AlumnosModel.findById(alumno_id);
-            const emailDestino = alumno?.email || alumno?.email_padre;
-            
-            if (alumno && emailDestino) {
-                emailService.enviarConfirmacionInscripcionEvento(emailDestino, alumno.nombre, evento.nombre, evento.fecha, evento.lugar)
-                    .catch(err => console.error('Error enviando Email de evento:', err));
+
+            if (alumno) {
+                const destinatarios = await ResponsablesAlumnosModel.findNotificationRecipientsByAlumnoId(alumno_id);
+                const emails = [...new Set([
+                    ...destinatarios.map((responsable) => responsable.email),
+                    alumno.email || alumno.email_padre
+                ].map((email) => String(email || '').trim().toLowerCase()).filter(Boolean))];
+                emails.forEach((emailDestino) => {
+                    emailService.enviarConfirmacionInscripcionEvento(emailDestino, alumno.nombre, evento.nombre, evento.fecha, evento.lugar)
+                        .catch(err => console.error('Error enviando Email de evento:', err));
+                });
             }
         } catch (emailError) {
             console.error('Error preparando Email de evento:', emailError);

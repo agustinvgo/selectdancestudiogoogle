@@ -5,6 +5,7 @@ const PagosModel = require('../../models/pagos.model');
 const emailService = require('../../services/email.service');
 const db = require('../../config/db');
 const logger = require('../../config/logger');
+const ResponsablesAlumnosModel = require('../../models/responsables-alumnos.model');
 
 const AlumnosController = {
     // Listar todos los alumnos (admin only)
@@ -133,6 +134,8 @@ const AlumnosController = {
                 email_padre: email_padre || null,
                 direccion: direccion || null
             }, connection);
+
+            await ResponsablesAlumnosModel.ensurePrimaryLink(usuarioId, alumnoId, connection);
 
             // Crear pagos iniciales si existen
             if (pagosIniciales && Array.isArray(pagosIniciales) && pagosIniciales.length > 0) {

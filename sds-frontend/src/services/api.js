@@ -63,7 +63,7 @@ export const authAPI = {
 
 // ===== TRANSMISIONES EN VIVO =====
 export const transmisionesAPI = {
-    enVivo: () => api.get('/transmisiones/en-vivo'),        // alumno: clase en vivo de su hijo
+    enVivo: (alumnoId) => api.get('/transmisiones/en-vivo', { params: alumnoId ? { alumno_id: alumnoId } : undefined }),
     listAdmin: () => api.get('/transmisiones'),             // admin: todos los cursos + estado
     iniciar: (cursoId) => api.post(`/transmisiones/${cursoId}/iniciar`),
     detener: (cursoId) => api.post(`/transmisiones/${cursoId}/detener`),
@@ -82,12 +82,16 @@ export const alumnosAPI = {
         headers: alumnoData instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : undefined
     }),
     delete: (id) => api.delete(`/alumnos/${id}`),
+    getResponsables: (id) => api.get(`/alumnos/${id}/responsables`),
+    addResponsable: (id, data) => api.post(`/alumnos/${id}/responsables`, data),
+    updateResponsable: (id, usuarioId, data) => api.put(`/alumnos/${id}/responsables/${usuarioId}`, data),
+    removeResponsable: (id, usuarioId) => api.delete(`/alumnos/${id}/responsables/${usuarioId}`),
 };
 
 // ===== ASISTENCIAS =====
 export const asistenciasAPI = {
     getByAlumno: (id, mes, anio) => api.get(`/asistencias/alumno/${id}`, { params: { mes, anio } }),
-    getMisAsistencias: (mes, anio) => api.get('/asistencias/mis-asistencias', { params: { mes, anio } }), // Para alumno logueado
+    getMisAsistencias: (mes, anio, alumnoId) => api.get('/asistencias/mis-asistencias', { params: { mes, anio, alumno_id: alumnoId } }), // Para alumno logueado
     getHistoria: (id) => api.get(`/asistencias/alumno/${id}/historia`),
     getByCurso: (id, fecha) => api.get(`/asistencias/curso/${id}`, { params: { fecha } }),
     marcar: (asistenciaData) => api.post('/asistencias', asistenciaData),
@@ -119,7 +123,7 @@ export const pagosAPI = {
         return api.get('/pagos', { params });
     },
     getByAlumno: (id) => api.get(`/pagos/alumno/${id}`),
-    getMisPagos: () => api.get('/pagos/mis-pagos'), // Para alumno logueado (no necesita ID)
+    getMisPagos: (alumnoId) => api.get('/pagos/mis-pagos', { params: alumnoId ? { alumno_id: alumnoId } : undefined }), // Para alumno logueado
     getPendientes: () => api.get('/pagos/pendientes'),
     getEstadoFinanciero: (mes = null, anio = null) => api.get('/pagos/estado-financiero', { params: { mes, anio } }),
     create: (pagoData) => api.post('/pagos', pagoData),

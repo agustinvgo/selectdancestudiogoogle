@@ -323,7 +323,7 @@ const GestionAlumnos = () => {
     };
 
     const toggleEstadoAlumno = async (alumno) => {
-        const nuevoEstado = !isActivo(alumno.usuario_activo);
+        const nuevoEstado = !isActivo(alumno.activo ?? alumno.usuario_activo);
         const accion = nuevoEstado ? 'activar' : 'desactivar';
 
         confirm({

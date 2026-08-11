@@ -1,5 +1,6 @@
 const AsistenciasModel = require('../../models/asistencias.model');
 const AlumnosModel = require('../../models/alumnos.model');
+const ResponsablesAlumnosModel = require('../../models/responsables-alumnos.model');
 
 const createHttpError = (message, statusCode) => {
     const error = new Error(message);
@@ -90,7 +91,13 @@ const AsistenciasController = {
         try {
             const usuarioId = req.user.id;
             const { mes, anio } = req.query;
-            const alumno = await AlumnosModel.findByUsuarioId(usuarioId);
+            const alumnoId = Number(req.query.alumno_id);
+            if (alumnoId && !(await ResponsablesAlumnosModel.canAccessAlumno(usuarioId, alumnoId))) {
+                return res.status(403).json({ success: false, message: 'Acceso denegado' });
+            }
+            const alumno = alumnoId
+                ? await AlumnosModel.findById(alumnoId)
+                : await AlumnosModel.findByUsuarioId(usuarioId);
             if (!alumno) {
                 return res.status(404).json({ success: false, message: 'Alumno no encontrado' });
             }

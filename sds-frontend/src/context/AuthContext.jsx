@@ -14,10 +14,27 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [alumnoActivoId, setAlumnoActivoId] = useState(null);
+
+    const alumnos = user?.rol === 'alumno'
+        ? (Array.isArray(user?.alumnos) && user.alumnos.length ? user.alumnos : (user?.alumno ? [user.alumno] : []))
+        : [];
+    const alumnoActivo = alumnos.find((alumno) => String(alumno.id) === String(alumnoActivoId)) || alumnos[0] || null;
 
     useEffect(() => {
         checkAuth();
     }, []);
+
+    useEffect(() => {
+        if (!user?.id || !alumnos.length) {
+            setAlumnoActivoId(null);
+            return;
+        }
+        const storageKey = `alumno-activo:${user.id}`;
+        const savedId = localStorage.getItem(storageKey);
+        const selectedExists = alumnos.some((alumno) => String(alumno.id) === String(savedId));
+        setAlumnoActivoId(selectedExists ? savedId : String(alumnos[0].id));
+    }, [user?.id, user?.alumnos, user?.alumno]);
 
     const checkAuth = async () => {
         try {
@@ -100,7 +117,17 @@ export const AuthProvider = ({ children }) => {
             // Si falla el request, igual limpiamos localmente
         }
         localStorage.removeItem('user');
+        if (user?.id) localStorage.removeItem(`alumno-activo:${user.id}`);
         setUser(null);
+    };
+
+    const setAlumnoActivo = (alumnoOrId) => {
+        const id = typeof alumnoOrId === 'object' ? alumnoOrId?.id : alumnoOrId;
+        const exists = alumnos.some((alumno) => String(alumno.id) === String(id));
+        if (!exists) return;
+        const normalizedId = String(id);
+        setAlumnoActivoId(normalizedId);
+        localStorage.setItem(`alumno-activo:${user.id}`, normalizedId);
     };
 
     const updateUser = (updatedData) => {
@@ -120,6 +147,9 @@ export const AuthProvider = ({ children }) => {
         logout,
         checkAuth,
         updateUser,
+        alumnos,
+        alumnoActivo,
+        setAlumnoActivo,
         isAuthenticated: !!user,
         isAdmin: user?.rol === 'admin',
         isProfesor: user?.rol === 'profesor',

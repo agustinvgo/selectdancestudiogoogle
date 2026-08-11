@@ -7,6 +7,7 @@ import {
 } from '@heroicons/react/24/outline';
 import Loader from '../../components/Loader';
 import { toast } from 'react-hot-toast';
+import ResponsablesPanel from '../../components/admin/alumnos/ResponsablesPanel';
 
 const DetalleAlumno = () => {
     const { id } = useParams();
@@ -84,8 +85,8 @@ const DetalleAlumno = () => {
                                     {alumno.nombre} {alumno.apellido}
                                 </h2>
                                 <p className="text-gray-500 mt-1">{alumno.email}</p>
-                                <span className={`mt-3 inline-block px-3 py-1 rounded-full text-xs font-bold ${alumno.usuario_activo ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
-                                    {alumno.usuario_activo ? 'Activo' : 'Inactivo'}
+                                <span className={`mt-3 inline-block px-3 py-1 rounded-full text-xs font-bold ${(alumno.activo ?? alumno.usuario_activo) ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+                                    {(alumno.activo ?? alumno.usuario_activo) ? 'Activo' : 'Inactivo'}
                                 </span>
                             </div>
                         </div>
@@ -169,6 +170,8 @@ const DetalleAlumno = () => {
 
                 {/* Columna Derecha: Registros */}
                 <div className="lg:col-span-2 space-y-6">
+
+                    <ResponsablesPanel alumnoId={alumno.id} />
 
                     {/* Cursos */}
                     <div className="card">

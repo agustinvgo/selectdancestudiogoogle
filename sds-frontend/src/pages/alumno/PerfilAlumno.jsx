@@ -5,8 +5,8 @@ import { UserCircleIcon, EnvelopeIcon, PhoneIcon, MapPinIcon, IdentificationIcon
 import Loader from '../../components/Loader';
 
 const PerfilAlumno = () => {
-    const { user } = useAuth();
-    const alumnoId = user?.alumno?.id;
+    const { user, alumnoActivo } = useAuth();
+    const alumnoId = alumnoActivo?.id;
 
     const { data: alumnoData, isLoading } = useQuery({
         queryKey: ['alumno', alumnoId],
@@ -20,7 +20,7 @@ const PerfilAlumno = () => {
 
     if (isLoading) return <Loader />;
 
-    const alumno = alumnoData || user?.alumno;
+    const alumno = alumnoData || alumnoActivo;
 
     if (!alumno) {
         return (

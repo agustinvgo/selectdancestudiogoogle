@@ -11,6 +11,11 @@ const VentaRapidaModal = ({
 }) => {
     if (!showSaleModal || !saleProduct) return null;
 
+    const varianteActiva = saleProduct.isGroup
+        ? saleProduct.variants?.find((variant) => String(variant.id) === String(saleData.selectedVariantId))
+        : null;
+    const stockDisponible = Number(varianteActiva?.stock_actual ?? saleProduct.stock_actual ?? 0);
+
     return (
         <div className="fixed inset-0 bg-gray-900/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
             <div className="bg-white rounded-2xl w-full max-w-sm border border-gray-100 shadow-2xl animate-fade-in-up">
@@ -43,7 +48,7 @@ const VentaRapidaModal = ({
                                 <MinusIcon className="w-5 h-5" />
                             </button>
                             <span className="text-3xl font-bold text-gray-900 w-16 text-center">{saleData.cantidad}</span>
-                            <button type="button" onClick={() => setSaleData(d => ({ ...d, cantidad: Math.min(saleProduct.stock_actual, d.cantidad + 1) }))} className="p-2 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 transition-colors">
+                            <button type="button" disabled={saleData.cantidad >= stockDisponible} onClick={() => setSaleData(d => ({ ...d, cantidad: Math.min(stockDisponible, d.cantidad + 1) }))} className="p-2 bg-gray-100 rounded-lg text-gray-600 hover:bg-gray-200 transition-colors disabled:cursor-not-allowed disabled:opacity-40">
                                 <PlusIcon className="w-5 h-5" />
                             </button>
                         </div>

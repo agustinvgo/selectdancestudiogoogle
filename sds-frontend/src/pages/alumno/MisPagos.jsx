@@ -8,21 +8,21 @@ import useToast from '../../hooks/useToast';
 import { formatPaymentPeriod } from '../../utils/paymentPeriod';
 
 const MisPagos = () => {
-    const { user } = useAuth();
+    const { user, alumnoActivo } = useAuth();
     const queryClient = useQueryClient();
     const toast = useToast();
     const [filtro, setFiltro] = useState('todos'); // todos, pendientes, pagados
 
-    const alumnoId = user?.alumno?.id;
+    const alumnoId = alumnoActivo?.id;
 
     // 1. Fetch Pagos del alumno logueado usando endpoint seguro
     const { data: pagosData, isLoading } = useQuery({
-        queryKey: ['pagos', 'mis-pagos'],
+        queryKey: ['pagos', 'mis-pagos', alumnoId],
         queryFn: async () => {
-            const response = await pagosAPI.getMisPagos();
+            const response = await pagosAPI.getMisPagos(alumnoId);
             return response.data.data;
         },
-        enabled: !!user
+        enabled: !!user && !!alumnoId
     });
 
     const pagos = pagosData || [];

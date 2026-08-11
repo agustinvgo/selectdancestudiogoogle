@@ -649,7 +649,7 @@ const PagosModel = {
         let inactivos = 0;
 
         for (const alumno of alumnos) {
-            if (!alumno.usuario_activo) {
+            if (!(alumno.activo ?? alumno.usuario_activo)) {
                 inactivos++;
                 continue;
             }
