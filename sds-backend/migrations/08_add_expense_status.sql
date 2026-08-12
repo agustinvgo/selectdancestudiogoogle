@@ -1,7 +1,20 @@
 -- Permite distinguir compromisos pendientes de egresos efectivamente pagados.
 -- Los gastos históricos se consideran pagados para conservar los balances anteriores.
-ALTER TABLE gastos
-    ADD COLUMN IF NOT EXISTS estado ENUM('pendiente', 'pagado') NOT NULL DEFAULT 'pagado' AFTER fecha;
+SET @estado_gasto_existe = (
+    SELECT COUNT(*)
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'gastos'
+      AND COLUMN_NAME = 'estado'
+);
+SET @agregar_estado_gasto = IF(
+    @estado_gasto_existe = 0,
+    "ALTER TABLE gastos ADD COLUMN estado ENUM('pendiente', 'pagado') NOT NULL DEFAULT 'pagado' AFTER fecha",
+    'SELECT 1'
+);
+PREPARE agregar_estado_gasto_stmt FROM @agregar_estado_gasto;
+EXECUTE agregar_estado_gasto_stmt;
+DEALLOCATE PREPARE agregar_estado_gasto_stmt;
 
 DROP VIEW IF EXISTS vw_balance_financiero;
 CREATE VIEW vw_balance_financiero AS
