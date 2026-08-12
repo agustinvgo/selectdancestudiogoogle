@@ -18,7 +18,8 @@ class EstadisticasService {
             db.query(`
                 SELECT COALESCE(SUM(monto), 0) AS total
                 FROM gastos
-                WHERE MONTH(fecha) = ? AND YEAR(fecha) = ?
+                WHERE estado = 'pagado'
+                AND MONTH(fecha) = ? AND YEAR(fecha) = ?
             `, [currentMonth, currentYear])
         ]);
 

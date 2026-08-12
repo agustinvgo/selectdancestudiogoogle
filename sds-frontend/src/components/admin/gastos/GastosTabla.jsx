@@ -1,5 +1,5 @@
 import Loader from '../../Loader';
-import { PaperClipIcon, ArrowUpTrayIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PaperClipIcon, ArrowUpTrayIcon, PencilIcon, TrashIcon, CheckCircleIcon, ClockIcon } from '@heroicons/react/24/outline';
 
 const GastosTabla = ({
     isLoading,
@@ -7,6 +7,7 @@ const GastosTabla = ({
     handleVerComprobante,
     handleUploadComprobante,
     uploadingGastoId,
+    handleCambiarEstado,
     openEditModal,
     handleDelete
 }) => {
@@ -22,6 +23,7 @@ const GastosTabla = ({
                                 <th className="px-6 py-3 text-left">Categoría</th>
                                 <th className="px-6 py-3 text-left">Descripción</th>
                                 <th className="px-6 py-3 text-right">Monto</th>
+                                <th className="px-6 py-3 text-center">Estado</th>
                                 <th className="px-6 py-3 text-center">Comprobante</th>
                                 <th className="px-6 py-3 text-center">Acciones</th>
                             </tr>
@@ -29,13 +31,13 @@ const GastosTabla = ({
                         <tbody className="divide-y divide-gray-800">
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
+                                    <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
                                         <Loader />
                                     </td>
                                 </tr>
                             ) : gastos.length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
+                                    <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
                                         No hay gastos registrados en este período
                                     </td>
                                 </tr>
@@ -55,6 +57,19 @@ const GastosTabla = ({
                                         </td>
                                         <td className="px-6 py-4 text-right font-medium text-gray-900">
                                             ${parseFloat(gasto.monto).toLocaleString('es-AR')}
+                                        </td>
+                                        <td className="px-6 py-4 text-center">
+                                            <button
+                                                onClick={() => handleCambiarEstado(gasto)}
+                                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${gasto.estado === 'pendiente'
+                                                    ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                                                    : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                                                    }`}
+                                                title={gasto.estado === 'pendiente' ? 'Marcar como pagado' : 'Marcar como por pagar'}
+                                            >
+                                                {gasto.estado === 'pendiente' ? <ClockIcon className="w-4 h-4" /> : <CheckCircleIcon className="w-4 h-4" />}
+                                                {gasto.estado === 'pendiente' ? 'Por pagar' : 'Pagado'}
+                                            </button>
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             {gasto.comprobante_url ? (
@@ -129,6 +144,17 @@ const GastosTabla = ({
                                     ${parseFloat(gasto.monto).toLocaleString('es-AR')}
                                 </span>
                             </div>
+
+                            <button
+                                onClick={() => handleCambiarEstado(gasto)}
+                                className={`w-full inline-flex justify-center items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${gasto.estado === 'pendiente'
+                                    ? 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                                    : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                                    }`}
+                            >
+                                {gasto.estado === 'pendiente' ? <ClockIcon className="w-4 h-4" /> : <CheckCircleIcon className="w-4 h-4" />}
+                                {gasto.estado === 'pendiente' ? 'Por pagar · Marcar pagado' : 'Pagado · Cambiar a por pagar'}
+                            </button>
 
                             {gasto.descripcion && (
                                 <p className="text-sm text-gray-500 bg-white border border-gray-100 p-2 rounded">

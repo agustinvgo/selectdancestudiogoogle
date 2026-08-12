@@ -12,6 +12,7 @@ const GestionGastos = () => {
     const [mes, setMes] = useState(new Date().getMonth() + 1);
     const [anio, setAnio] = useState(new Date().getFullYear());
     const [categoriaFiltro, setCategoriaFiltro] = useState('');
+    const [estadoFiltro, setEstadoFiltro] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
 
     const categorias = ['Alquiler', 'Sueldos', 'Servicios', 'Mantenimiento', 'Insumos', 'Marketing', 'Impuestos', 'Otros'];
@@ -26,14 +27,14 @@ const GestionGastos = () => {
         deleteGastoWithConfirm,
         uploadComprobanteMutation,
         toast
-    } = useGastos({ mes, anio, categoriaFiltro });
+    } = useGastos({ mes, anio, categoriaFiltro, estadoFiltro });
 
     // 3. UI Local State
     const [showModal, setShowModal] = useState(false);
     const [editingGasto, setEditingGasto] = useState(null);
     const [formData, setFormData] = useState({
         fecha: new Date().toISOString().split('T')[0],
-        monto: '', categoria: '', descripcion: '', comprobante: null
+        monto: '', categoria: '', descripcion: '', estado: 'pagado', comprobante: null
     });
 
     const [previewUrl, setPreviewUrl] = useState(null);
@@ -47,11 +48,17 @@ const GestionGastos = () => {
         (g.descripcion || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (g.categoria || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
-    const totalGastos = gastos.reduce((acc, curr) => acc + parseFloat(curr.monto), 0);
+    const totalPagado = gastos
+        .filter(gasto => gasto.estado !== 'pendiente')
+        .reduce((acc, curr) => acc + parseFloat(curr.monto), 0);
+    const totalPendiente = gastos
+        .filter(gasto => gasto.estado === 'pendiente')
+        .reduce((acc, curr) => acc + parseFloat(curr.monto), 0);
+    const totalComprometido = totalPagado + totalPendiente;
 
     // 5. Handlers
     const resetForm = () => {
-        setFormData({ fecha: new Date().toISOString().split('T')[0], monto: '', categoria: '', descripcion: '', comprobante: null });
+        setFormData({ fecha: new Date().toISOString().split('T')[0], monto: '', categoria: '', descripcion: '', estado: 'pagado', comprobante: null });
     };
 
     const handleFormSubmit = (e) => {
@@ -61,6 +68,7 @@ const GestionGastos = () => {
         data.append('monto', formData.monto);
         data.append('categoria', formData.categoria);
         data.append('descripcion', formData.descripcion);
+        data.append('estado', formData.estado);
         if (formData.comprobante) data.append('comprobante', formData.comprobante);
 
         if (editingGasto) {
@@ -107,6 +115,7 @@ const GestionGastos = () => {
             Categoría: g.categoria,
             Descripción: g.descripcion,
             Monto: parseFloat(g.monto),
+            Estado: g.estado === 'pendiente' ? 'Por pagar' : 'Pagado',
             Comprobante: g.comprobante_url ? 'Sí' : 'No'
         }));
         const wb = XLSX.utils.book_new();
@@ -117,8 +126,14 @@ const GestionGastos = () => {
 
     const openEditModal = (gasto) => {
         setEditingGasto(gasto);
-        setFormData({ fecha: gasto.fecha.split('T')[0], monto: gasto.monto, categoria: gasto.categoria, descripcion: gasto.descripcion || '' });
+        setFormData({ fecha: gasto.fecha.split('T')[0], monto: gasto.monto, categoria: gasto.categoria, descripcion: gasto.descripcion || '', estado: gasto.estado || 'pagado', comprobante: null });
         setShowModal(true);
+    };
+
+    const handleCambiarEstado = (gasto) => {
+        const data = new FormData();
+        data.append('estado', gasto.estado === 'pendiente' ? 'pagado' : 'pendiente');
+        updateMutation.mutate({ id: gasto.id, data });
     };
 
     return (
@@ -141,8 +156,8 @@ const GestionGastos = () => {
             </div>
 
             {/* Filtros */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="card md:col-span-3">
+            <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
+                <div className="card xl:col-span-4">
                     <div className="card-body p-4 flex flex-wrap gap-4 items-center">
                         <div className="flex items-center gap-2"><FunnelIcon className="w-5 h-5 text-gray-500" /><span className="text-sm font-medium text-gray-600">Filtros:</span></div>
                         <select value={mes} onChange={(e) => setMes(e.target.value)} className="bg-white border-gray-200 rounded-lg text-gray-900 text-sm">
@@ -155,6 +170,11 @@ const GestionGastos = () => {
                             <option value="">Todas</option>
                             {categorias.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                         </select>
+                        <select value={estadoFiltro} onChange={(e) => setEstadoFiltro(e.target.value)} className="bg-white border-gray-200 rounded-lg text-gray-900 text-sm">
+                            <option value="">Todos los estados</option>
+                            <option value="pagado">Pagados</option>
+                            <option value="pendiente">Por pagar</option>
+                        </select>
                         <div className="relative flex-1 min-w-[200px]">
                             <input type="text" placeholder="Buscar concepto..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-black outline-none" />
                             <svg className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
@@ -162,10 +182,22 @@ const GestionGastos = () => {
                     </div>
                 </div>
 
+                <div className="card bg-white border border-gray-200 xl:col-start-2">
+                    <div className="card-body p-4">
+                        <p className="text-gray-500 text-sm font-medium uppercase tracking-wider">Pagado</p>
+                        <p className="text-2xl font-bold text-emerald-700 mt-1">${totalPagado.toLocaleString('es-AR')}</p>
+                    </div>
+                </div>
                 <div className="card bg-white border border-gray-200">
                     <div className="card-body p-4">
-                        <p className="text-gray-500 text-sm font-medium uppercase tracking-wider">Total Gastos</p>
-                        <p className="text-2xl font-bold text-gray-900 mt-1">${totalGastos.toLocaleString('es-AR')}</p>
+                        <p className="text-gray-500 text-sm font-medium uppercase tracking-wider">Por pagar</p>
+                        <p className="text-2xl font-bold text-amber-700 mt-1">${totalPendiente.toLocaleString('es-AR')}</p>
+                    </div>
+                </div>
+                <div className="card bg-white border border-gray-200">
+                    <div className="card-body p-4">
+                        <p className="text-gray-500 text-sm font-medium uppercase tracking-wider">Total comprometido</p>
+                        <p className="text-2xl font-bold text-gray-900 mt-1">${totalComprometido.toLocaleString('es-AR')}</p>
                     </div>
                 </div>
             </div>
@@ -176,6 +208,7 @@ const GestionGastos = () => {
                 handleVerComprobante={handleVerComprobante} 
                 handleUploadComprobante={handleUploadComprobanteClick} 
                 uploadingGastoId={uploadingGastoId}
+                handleCambiarEstado={handleCambiarEstado}
                 openEditModal={openEditModal} handleDelete={deleteGastoWithConfirm} 
             />
 

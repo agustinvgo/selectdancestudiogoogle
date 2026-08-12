@@ -4,16 +4,16 @@ import useToast from './useToast';
 import useRequestQueue from './useRequestQueue';
 import Swal from 'sweetalert2';
 
-const useGastos = ({ mes, anio, categoriaFiltro }) => {
+const useGastos = ({ mes, anio, categoriaFiltro, estadoFiltro }) => {
     const queryClient = useQueryClient();
     const toast = useToast();
     const { enqueue } = useRequestQueue();
 
     // 1. Fetch Gastos
     const { data: gastosData, isLoading } = useQuery({
-        queryKey: ['gastos', mes, anio, categoriaFiltro],
+        queryKey: ['gastos', mes, anio, categoriaFiltro, estadoFiltro],
         queryFn: async () => {
-            const response = await gastosAPI.getAll({ mes, anio, categoria: categoriaFiltro });
+            const response = await gastosAPI.getAll({ mes, anio, categoria: categoriaFiltro, estado: estadoFiltro });
             return response.data.data || [];
         }
     });

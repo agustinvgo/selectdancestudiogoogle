@@ -4,10 +4,10 @@ const GastosModel = {
     // Crear nuevo gasto
     async create(data) {
         try {
-            const { fecha, monto, categoria, descripcion, comprobante_url, usuario_id } = data;
+            const { fecha, monto, categoria, descripcion, estado, comprobante_url, usuario_id } = data;
             const [result] = await db.query(
-                'INSERT INTO gastos (fecha, monto, categoria, descripcion, comprobante_url, usuario_id) VALUES (?, ?, ?, ?, ?, ?)',
-                [fecha, monto, categoria, descripcion, comprobante_url, usuario_id]
+                'INSERT INTO gastos (fecha, monto, categoria, descripcion, estado, comprobante_url, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                [fecha, monto, categoria, descripcion, estado, comprobante_url, usuario_id]
             );
             return result.insertId;
         } catch (error) {
@@ -29,6 +29,11 @@ const GastosModel = {
             if (filters.categoria) {
                 query += ' AND g.categoria = ?';
                 params.push(filters.categoria);
+            }
+
+            if (filters.estado) {
+                query += ' AND g.estado = ?';
+                params.push(filters.estado);
             }
 
             query += ' ORDER BY g.fecha DESC';
@@ -53,7 +58,7 @@ const GastosModel = {
     // Actualizar gasto (Dynamic Update)
     async update(id, data) {
         try {
-            const allowedFields = ['fecha', 'monto', 'categoria', 'descripcion', 'comprobante_url'];
+            const allowedFields = ['fecha', 'monto', 'categoria', 'descripcion', 'estado', 'comprobante_url'];
             const fields = Object.keys(data).filter(key => allowedFields.includes(key) && data[key] !== undefined);
             if (fields.length === 0) return false;
 
@@ -86,7 +91,8 @@ const GastosModel = {
             let query = `
                 SELECT categoria, SUM(monto) as total, COUNT(*) as cantidad
                 FROM gastos
-                WHERE MONTH(fecha) = ? AND YEAR(fecha) = ?
+                WHERE estado = 'pagado'
+                  AND MONTH(fecha) = ? AND YEAR(fecha) = ?
                 GROUP BY categoria
                 ORDER BY total DESC
             `;
@@ -101,7 +107,7 @@ const GastosModel = {
     async getTotal(mes, anio) {
         try {
             const [rows] = await db.query(
-                'SELECT SUM(monto) as total FROM gastos WHERE MONTH(fecha) = ? AND YEAR(fecha) = ?',
+                "SELECT SUM(monto) as total FROM gastos WHERE estado = 'pagado' AND MONTH(fecha) = ? AND YEAR(fecha) = ?",
                 [mes, anio]
             );
             return rows[0].total || 0;

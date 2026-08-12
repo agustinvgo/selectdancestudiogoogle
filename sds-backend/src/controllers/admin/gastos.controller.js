@@ -6,11 +6,12 @@ const GastosController = {
     // Obtener todos los gastos
     async getAll(req, res) {
         try {
-            const { mes, anio, categoria } = req.query;
+            const { mes, anio, categoria, estado } = req.query;
             const filters = {};
             if (mes) filters.mes = mes;
             if (anio) filters.anio = anio;
             if (categoria) filters.categoria = categoria;
+            if (estado) filters.estado = estado;
 
             const gastos = await GastosModel.findAll(filters);
 
@@ -38,12 +39,19 @@ const GastosController = {
     // Crear gasto
     async create(req, res) {
         try {
-            const { fecha, monto, categoria, descripcion } = req.body;
+            const { fecha, monto, categoria, descripcion, estado = 'pagado' } = req.body;
 
             if (!monto || !categoria) {
                 return res.status(400).json({
                     success: false,
                     message: 'Monto y categoría son requeridos'
+                });
+            }
+
+            if (!['pagado', 'pendiente'].includes(estado)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'El estado del gasto no es válido'
                 });
             }
 
@@ -58,6 +66,7 @@ const GastosController = {
                 monto,
                 categoria,
                 descripcion,
+                estado,
                 comprobante_url,
                 usuario_id: req.user ? req.user.id : null
             };
@@ -85,6 +94,13 @@ const GastosController = {
             const { id } = req.params;
 
             const updateData = { ...req.body };
+
+            if (updateData.estado && !['pagado', 'pendiente'].includes(updateData.estado)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'El estado del gasto no es válido'
+                });
+            }
 
             if (req.file) {
                 updateData.comprobante_url = `/uploads/comprobantes/${req.file.filename}`;
