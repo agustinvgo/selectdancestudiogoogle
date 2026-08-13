@@ -26,8 +26,117 @@ const ALLOWED_IMAGE_TYPES = new Set([
 ]);
 const ALLOWED_IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif', 'avif']);
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+const MAX_SERVER_PIXELS = 40_000_000;
+const MAX_SAFE_PREVIEW_PIXELS = 8_000_000;
+const PREVIEW_MAX_DIMENSION = 1280;
+const CLIENT_OPTIMIZABLE_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp']);
 
 const formatFileSize = (bytes) => `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+
+const readJpegDimensions = (view) => {
+    if (view.byteLength < 4 || view.getUint16(0) !== 0xFFD8) return null;
+    let offset = 2;
+    while (offset + 9 < view.byteLength) {
+        if (view.getUint8(offset) !== 0xFF) {
+            offset += 1;
+            continue;
+        }
+        const marker = view.getUint8(offset + 1);
+        offset += 2;
+        if (marker === 0xD8 || marker === 0xD9) continue;
+        if (offset + 2 > view.byteLength) break;
+        const segmentLength = view.getUint16(offset);
+        const isStartOfFrame = [
+            0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7,
+            0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF
+        ].includes(marker);
+        if (isStartOfFrame && offset + 7 < view.byteLength) {
+            return {
+                width: view.getUint16(offset + 5),
+                height: view.getUint16(offset + 3)
+            };
+        }
+        if (segmentLength < 2) break;
+        offset += segmentLength;
+    }
+    return null;
+};
+
+const readImageDimensions = async (file) => {
+    // Leer solo el encabezado evita decodificar una foto enorme para conocer su tamaño.
+    const header = await file.slice(0, Math.min(file.size, 1024 * 1024)).arrayBuffer();
+    const view = new DataView(header);
+
+    if (file.type === 'image/jpeg' || file.type === 'image/jpg') {
+        return readJpegDimensions(view);
+    }
+    if (file.type === 'image/png' && view.byteLength >= 24) {
+        return { width: view.getUint32(16), height: view.getUint32(20) };
+    }
+    if (file.type === 'image/webp' && view.byteLength >= 30) {
+        const chunk = String.fromCharCode(...new Uint8Array(header, 12, 4));
+        if (chunk === 'VP8X') {
+            return {
+                width: 1 + view.getUint8(24) + (view.getUint8(25) << 8) + (view.getUint8(26) << 16),
+                height: 1 + view.getUint8(27) + (view.getUint8(28) << 8) + (view.getUint8(29) << 16)
+            };
+        }
+        if (chunk === 'VP8 ') {
+            return { width: view.getUint16(26, true) & 0x3FFF, height: view.getUint16(28, true) & 0x3FFF };
+        }
+        if (chunk === 'VP8L' && view.byteLength >= 25) {
+            const b1 = view.getUint8(21);
+            const b2 = view.getUint8(22);
+            const b3 = view.getUint8(23);
+            const b4 = view.getUint8(24);
+            return {
+                width: 1 + b1 + ((b2 & 0x3F) << 8),
+                height: 1 + (b2 >> 6) + (b3 << 2) + ((b4 & 0x0F) << 10)
+            };
+        }
+    }
+    return null;
+};
+
+const canvasToBlob = (canvas) => new Promise((resolve, reject) => {
+    canvas.toBlob(
+        (blob) => blob ? resolve(blob) : reject(new Error('No se pudo generar la imagen optimizada.')),
+        'image/webp',
+        0.84
+    );
+});
+
+const createOptimizedImage = async (file, dimensions) => {
+    if (!CLIENT_OPTIMIZABLE_TYPES.has(file.type) || typeof createImageBitmap !== 'function') return null;
+    const pixels = dimensions.width * dimensions.height;
+    if (pixels > MAX_SAFE_PREVIEW_PIXELS) return null;
+
+    const scale = Math.min(1, PREVIEW_MAX_DIMENSION / Math.max(dimensions.width, dimensions.height));
+    const width = Math.max(1, Math.round(dimensions.width * scale));
+    const height = Math.max(1, Math.round(dimensions.height * scale));
+    const bitmap = await createImageBitmap(file, {
+        imageOrientation: 'from-image',
+        resizeWidth: width,
+        resizeHeight: height,
+        resizeQuality: 'high'
+    });
+
+    try {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const context = canvas.getContext('2d', { alpha: false });
+        if (!context) throw new Error('El navegador no pudo preparar la imagen.');
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, width, height);
+        context.drawImage(bitmap, 0, 0, width, height);
+        const blob = await canvasToBlob(canvas);
+        const baseName = file.name.replace(/\.[^.]+$/, '') || 'comunicado';
+        return new File([blob], `${baseName}.webp`, { type: 'image/webp', lastModified: Date.now() });
+    } finally {
+        bitmap.close?.();
+    }
+};
 
 const Comunicados = () => {
     const [loading, setLoading] = useState(false);
@@ -41,6 +150,9 @@ const Comunicados = () => {
     const [remitente, setRemitente] = useState('');
     const [imagen, setImagen] = useState(null);
     const [imagenPreview, setImagenPreview] = useState('');
+    const [imagenOriginal, setImagenOriginal] = useState(null);
+    const [processingImage, setProcessingImage] = useState(false);
+    const [previewOmitted, setPreviewOmitted] = useState(false);
     const fileInputRef = useRef(null);
 
     // Destinatarios
@@ -158,10 +270,13 @@ const Comunicados = () => {
     const clearImage = () => {
         setImagen(null);
         setImagenPreview('');
+        setImagenOriginal(null);
+        setProcessingImage(false);
+        setPreviewOmitted(false);
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
-    const handleFileChange = (e) => {
+    const handleFileChange = async (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
@@ -182,8 +297,41 @@ const Comunicados = () => {
             return;
         }
 
-        setImagen(file);
-        setImagenPreview(URL.createObjectURL(file));
+        setProcessingImage(true);
+        setImagenOriginal(file);
+        setPreviewOmitted(false);
+        setImagenPreview('');
+
+        try {
+            const dimensions = CLIENT_OPTIMIZABLE_TYPES.has(file.type)
+                ? await readImageDimensions(file)
+                : null;
+            const pixels = dimensions ? dimensions.width * dimensions.height : 0;
+
+            if (pixels > MAX_SERVER_PIXELS) {
+                clearImage();
+                toast.error('La imagen tiene demasiada resolución. Recórtala o guárdala con menos de 40 megapíxeles.');
+                return;
+            }
+
+            const optimizedFile = dimensions ? await createOptimizedImage(file, dimensions) : null;
+            if (optimizedFile) {
+                setImagen(optimizedFile);
+                setImagenPreview(URL.createObjectURL(optimizedFile));
+                return;
+            }
+
+            // GIF conserva su animación y HEIC/AVIF se convierten en el servidor.
+            // Si el original es costoso de decodificar, no lo mostramos en la página.
+            setImagen(file);
+            setPreviewOmitted(true);
+        } catch (error) {
+            console.warn('No se pudo crear una vista previa segura:', error);
+            setImagen(file);
+            setPreviewOmitted(true);
+        } finally {
+            setProcessingImage(false);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -196,6 +344,11 @@ const Comunicados = () => {
 
         if (filtro !== 'todos' && !destinatarioId) {
             toast.error('Selecciona un destinatario');
+            return;
+        }
+
+        if (processingImage) {
+            toast.error('Espera a que termine la optimización de la imagen.');
             return;
         }
 
@@ -394,16 +547,24 @@ const Comunicados = () => {
                                             ref={fileInputRef}
                                             type="file"
                                             onChange={handleFileChange}
+                                            disabled={processingImage}
                                             className="file-input file-input-bordered w-full"
                                             accept=".jpg,.jpeg,.png,.webp,.gif,.heic,.heif,.avif,image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,image/avif"
                                         />
                                         <p className="label-text-alt text-gray-400 mt-1">
-                                            JPG, PNG, WebP, GIF, HEIC/HEIF y AVIF. Máximo 10 MB. Las fotos se optimizan automáticamente.
+                                            JPG, PNG, WebP, GIF, HEIC/HEIF y AVIF. Máximo 10 MB. Las fotos grandes se envían sin abrirlas en el navegador.
                                         </p>
 
-                                        {imagen && (
+                                        {processingImage && (
+                                            <div className="mt-3 flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-800">
+                                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-blue-300 border-t-blue-700" />
+                                                Preparando una copia liviana de la imagen...
+                                            </div>
+                                        )}
+
+                                        {imagen && !processingImage && (
                                             <div className="mt-3 overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
-                                                {!['image/heic', 'image/heif'].includes(imagen.type) ? (
+                                                {imagenPreview && !previewOmitted ? (
                                                     <img
                                                         src={imagenPreview}
                                                         alt="Vista previa de la imagen seleccionada"
@@ -412,13 +573,17 @@ const Comunicados = () => {
                                                 ) : (
                                                     <div className="flex h-36 flex-col items-center justify-center gap-2 bg-white text-gray-500">
                                                         <PhotoIcon className="h-10 w-10" />
-                                                        <span className="text-sm">La foto HEIC se convertirá al enviarla</span>
+                                                        <span className="px-4 text-center text-sm font-medium">Imagen lista para enviar</span>
+                                                        <span className="px-4 text-center text-xs">Se omitió la vista previa para evitar que el navegador se bloquee.</span>
                                                     </div>
                                                 )}
                                                 <div className="flex items-center justify-between gap-3 px-4 py-3">
                                                     <div className="min-w-0">
-                                                        <p className="truncate text-sm font-semibold text-gray-800">{imagen.name}</p>
-                                                        <p className="text-xs text-gray-500">{formatFileSize(imagen.size)}</p>
+                                                        <p className="truncate text-sm font-semibold text-gray-800">{imagenOriginal?.name || imagen.name}</p>
+                                                        <p className="text-xs text-gray-500">
+                                                            {formatFileSize(imagenOriginal?.size || imagen.size)}
+                                                            {imagenOriginal && imagen !== imagenOriginal ? ` · copia optimizada: ${formatFileSize(imagen.size)}` : ''}
+                                                        </p>
                                                     </div>
                                                     <button
                                                         type="button"
@@ -519,8 +684,8 @@ const Comunicados = () => {
                                     </span>
                                 </div>
 
-                                {imagen && (
-                                    !['image/heic', 'image/heif'].includes(imagen.type) ? (
+                                {imagen && !processingImage && (
+                                    imagenPreview && !previewOmitted ? (
                                         <img
                                             src={imagenPreview}
                                             alt="Imagen del comunicado"
@@ -529,7 +694,7 @@ const Comunicados = () => {
                                     ) : (
                                         <div className="flex h-32 flex-col items-center justify-center gap-2 bg-gray-50 text-gray-500">
                                             <PhotoIcon className="h-8 w-8" />
-                                            <span className="text-xs">Imagen HEIC seleccionada</span>
+                                            <span className="text-xs font-medium">Imagen adjunta lista para enviar</span>
                                         </div>
                                     )
                                 )}
