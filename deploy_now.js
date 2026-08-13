@@ -16,7 +16,7 @@ async function run() {
     };
 
     await exec(`git pull origin ${BRANCH}`, 'git pull');
-    await exec('docker compose up --build -d backend frontend', 'Reconstruyendo backend y frontend');
+    await exec('docker compose up --build -d nginx-proxy backend frontend', 'Reconstruyendo proxy, backend y frontend');
 
     console.log('⏳ Esperando 10s...');
     await new Promise(r => setTimeout(r, 10000));

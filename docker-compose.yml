@@ -16,6 +16,7 @@ services:
       - vhost:/etc/nginx/vhost.d
       - html:/usr/share/nginx/html
       - certs:/etc/nginx/certs:ro
+      - ./nginx/proxy-upload-size.conf:/etc/nginx/conf.d/10-upload-size.conf:ro
       - /var/run/docker.sock:/tmp/docker.sock:ro
     networks:
       - sds-network

@@ -1,43 +1,42 @@
 const express = require('express');
-const router = express.Router();
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const EquipoController = require('../../controllers/admin/equipo.controller');
 const { verifyToken, isAdmin } = require('../../middlewares/auth.middleware');
 const { cacheMiddleware, invalidateCache } = require('../../middlewares/cache.middleware');
+const optimizeImage = require('../../middlewares/imageOptimization.middleware');
 
-// Crear directorio si no existe
-// Esta ruta parte desde src/routes/admin. Los uploads persistentes y públicos
-// están en la raíz del backend, no dentro de src/.
-const uploadDir = path.join(__dirname, '../../../uploads/equipo');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
+const router = express.Router();
+const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
-// Multer: guardar directamente en disco en uploads/equipo/
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, uploadDir);
+const upload = multer({
+    storage: multer.memoryStorage(),
+    fileFilter: (_req, file, cb) => {
+        if (ALLOWED_IMAGE_TYPES.has(file.mimetype)) return cb(null, true);
+        cb(new Error('Solo se permiten imágenes JPG, PNG o WebP.'));
     },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = path.extname(file.originalname) || '.jpg';
-        cb(null, `equipo-${uniqueSuffix}${ext}`);
-    }
+    limits: { fileSize: 10 * 1024 * 1024 },
 });
 
-const upload = multer({ 
-    storage: storage,
-    limits: { fileSize: 15 * 1024 * 1024 } // 15MB limit
-});
+const optimizeTeamImage = optimizeImage('../../uploads/equipo', 'equipo', 1600);
 
-// Rutas Públicas
+const uploadTeamPhoto = (req, res, next) => {
+    upload.single('foto')(req, res, (error) => {
+        if (error) {
+            const message = error.code === 'LIMIT_FILE_SIZE'
+                ? 'La imagen supera el máximo permitido de 10 MB.'
+                : error.message;
+            return res.status(400).json({ success: false, message });
+        }
+        return optimizeTeamImage(req, res, next);
+    });
+};
+
+// Ruta pública: equipo visible en el sitio web.
 router.get('/', cacheMiddleware('equipo-list', 300), EquipoController.getAll);
 
-// Rutas Protegidas (Solo Admin)
-router.post('/', verifyToken, isAdmin, upload.single('foto'), invalidateCache('equipo-list'), EquipoController.create);
-router.put('/:id', verifyToken, isAdmin, upload.single('foto'), invalidateCache('equipo-list'), EquipoController.update);
+// Rutas protegidas: solo administradores.
+router.post('/', verifyToken, isAdmin, uploadTeamPhoto, invalidateCache('equipo-list'), EquipoController.create);
+router.put('/:id', verifyToken, isAdmin, uploadTeamPhoto, invalidateCache('equipo-list'), EquipoController.update);
 router.delete('/:id', verifyToken, isAdmin, invalidateCache('equipo-list'), EquipoController.delete);
 
 module.exports = router;

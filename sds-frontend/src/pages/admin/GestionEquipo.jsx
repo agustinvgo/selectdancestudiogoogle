@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { equipoAPI, getMediaUrl } from '../../services/api';
-import { Toaster, toast } from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 import { PlusIcon, PencilIcon, TrashIcon, XMarkIcon, PhotoIcon } from '@heroicons/react/24/outline';
 import Swal from 'sweetalert2';
 import { getPhotoCropStyle, parsePhotoPosition } from '../../utils/photoPosition';
+import { prepareTeamImage } from '../../utils/teamImageUpload';
 
 const getLivePreviewStyle = (x, y, zoom) => {
     return {
@@ -28,6 +29,14 @@ const GestionEquipo = () => {
     const [fotoPosY, setFotoPosY] = useState(50);
     const [fotoZoom, setFotoZoom] = useState(1);
     const [foto, setFoto] = useState(null);
+    const [processingImage, setProcessingImage] = useState(false);
+
+    const getSaveErrorMessage = (error, fallback) => {
+        if (error.response?.status === 413) {
+            return 'La imagen es demasiado pesada para subirla. Selecciona una foto JPG, PNG o WebP de hasta 10 MB.';
+        }
+        return error.response?.data?.message || error.message || fallback;
+    };
 
     // 1. Fetch Miembros
     const { data: miembrosData, isLoading } = useQuery({
@@ -54,8 +63,7 @@ const GestionEquipo = () => {
         },
         onError: (error) => {
             console.error(error);
-            const msg = error.response?.data?.message || 'Error al guardar';
-            toast.error(msg);
+            toast.error(getSaveErrorMessage(error, 'Error al guardar el integrante'));
         }
     });
 
@@ -68,8 +76,7 @@ const GestionEquipo = () => {
         },
         onError: (error) => {
             console.error(error);
-            const msg = error.response?.data?.message || 'Error al actualizar';
-            toast.error(msg);
+            toast.error(getSaveErrorMessage(error, 'Error al actualizar el integrante'));
         }
     });
 
@@ -86,45 +93,45 @@ const GestionEquipo = () => {
         }
     });
 
-    const handleFileChange = (e) => {
+    const handleFileChange = async (e) => {
         const file = e.target.files[0];
-        if (file) {
-            setFoto(file);
-            setPreviewUrl(URL.createObjectURL(file));
+        if (!file) return;
+
+        setProcessingImage(true);
+        try {
+            const preparedFile = await prepareTeamImage(file);
+            setFoto(preparedFile);
+            setPreviewUrl((current) => {
+                if (current?.startsWith('blob:')) URL.revokeObjectURL(current);
+                return URL.createObjectURL(preparedFile);
+            });
+        } catch (error) {
+            e.target.value = '';
+            toast.error(error.message || 'No se pudo preparar la imagen.');
+        } finally {
+            setProcessingImage(false);
         }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        const fotoPosicionStr = JSON.stringify({ x: fotoPosX, y: fotoPosY, zoom: fotoZoom });
+        if (processingImage) {
+            toast.error('Espera un momento mientras se prepara la imagen.');
+            return;
+        }
 
-        if (foto) {
-            const formData = new FormData();
-            formData.append('nombre', nombre);
-            formData.append('cargo', cargo);
-            formData.append('descripcion', descripcion);
-            formData.append('foto_posicion', fotoPosicionStr);
-            formData.append('foto', foto);
+        const formData = new FormData();
+        formData.append('nombre', nombre.trim());
+        formData.append('cargo', cargo.trim());
+        formData.append('descripcion', descripcion.trim());
+        formData.append('foto_posicion', JSON.stringify({ x: fotoPosX, y: fotoPosY, zoom: fotoZoom }));
+        if (foto) formData.append('foto', foto);
 
-            if (editingId) {
-                updateMutation.mutate({ id: editingId, data: formData });
-            } else {
-                createMutation.mutate(formData);
-            }
+        if (editingId) {
+            updateMutation.mutate({ id: editingId, data: formData });
         } else {
-            const payload = {
-                nombre,
-                cargo,
-                descripcion,
-                foto_posicion: fotoPosicionStr
-            };
-
-            if (editingId) {
-                updateMutation.mutate({ id: editingId, data: payload });
-            } else {
-                createMutation.mutate(payload);
-            }
+            createMutation.mutate(formData);
         }
     };
 
@@ -141,6 +148,7 @@ const GestionEquipo = () => {
         setFotoZoom(pos.zoom);
         setPreviewUrl(miembro.foto_url && miembro.foto_url !== 'null' ? getMediaUrl(miembro.foto_url) : null);
         setFoto(null);
+        setProcessingImage(false);
         setModalOpen(true);
     };
 
@@ -320,13 +328,15 @@ const GestionEquipo = () => {
                                                     <span>Seleccionar imagen</span>
                                                     <input
                                                         type="file"
-                                                        accept="image/*"
+                                                        accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                                                         onChange={handleFileChange}
                                                         className="sr-only"
                                                     />
                                                 </label>
                                             </div>
-                                            <p className="text-xs text-gray-500">PNG, JPG, WEBP hasta 10MB</p>
+                                            <p className="text-xs text-gray-500">
+                                                {processingImage ? 'Optimizando imagen...' : 'PNG, JPG o WEBP hasta 10 MB'}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -501,10 +511,14 @@ const GestionEquipo = () => {
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={createMutation.isPending || updateMutation.isPending}
+                                    disabled={processingImage || createMutation.isPending || updateMutation.isPending}
                                     className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors disabled:opacity-50 shadow-md"
                                 >
-                                    {createMutation.isPending || updateMutation.isPending ? 'Guardando...' : 'Guardar Cambios'}
+                                    {processingImage
+                                        ? 'Preparando imagen...'
+                                        : createMutation.isPending || updateMutation.isPending
+                                            ? 'Guardando...'
+                                            : 'Guardar Cambios'}
                                 </button>
                             </div>
                         </form>
