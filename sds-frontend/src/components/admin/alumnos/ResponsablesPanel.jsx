@@ -5,6 +5,7 @@ import { alumnosAPI } from '../../../services/api';
 import useToast from '../../../hooks/useToast';
 
 const initialForm = {
+    goal: 'parent',
     mode: 'existing',
     usuario_id: '',
     email: '',
@@ -13,7 +14,7 @@ const initialForm = {
     telefono: '',
     password: '',
     parentesco: 'Madre / Padre',
-    es_principal: true,
+    es_principal: false,
     recibe_notificaciones: true,
     puede_ver_pagos: true,
     puede_confirmar_asistencia: true,
@@ -34,11 +35,13 @@ const ResponsablesPanel = ({ alumnoId }) => {
     const { data: candidateAccounts = [], isLoading: loadingCandidates } = useQuery({
         queryKey: ['responsables-candidatos', alumnoId],
         queryFn: async () => (await alumnosAPI.getResponsablesCandidates(alumnoId)).data.data || [],
-        enabled: !!alumnoId && expanded && form.mode === 'existing',
+        enabled: !!alumnoId && expanded && (form.goal === 'siblings' || form.mode === 'existing'),
     });
 
     const availableAccounts = candidateAccounts.filter((account) => Number(account.ya_vinculado) !== 1);
-    const selectedAccount = availableAccounts.find((account) => String(account.usuario_id) === String(form.usuario_id));
+    const siblingAccounts = availableAccounts.filter((account) => Number(account.alumnos_vinculados) > 0);
+    const selectableAccounts = form.goal === 'siblings' ? siblingAccounts : availableAccounts;
+    const selectedAccount = selectableAccounts.find((account) => String(account.usuario_id) === String(form.usuario_id));
     const splitStudentNames = (value) => value ? value.split('||').filter(Boolean) : [];
 
     const refresh = () => {
@@ -89,7 +92,12 @@ const ResponsablesPanel = ({ alumnoId }) => {
 
     const submit = (event) => {
         event.preventDefault();
+        if (form.goal === 'siblings') {
+            mergeSelectedAccount();
+            return;
+        }
         const data = { ...form };
+        delete data.goal;
         delete data.mode;
         if (form.mode === 'existing') {
             if (!form.usuario_id) {
@@ -112,12 +120,29 @@ const ResponsablesPanel = ({ alumnoId }) => {
             toast.error('Selecciona la cuenta con la que deseas ingresar');
             return;
         }
-        const accountName = `${selectedAccount.nombre || ''} ${selectedAccount.apellido || ''}`.trim();
+        const children = splitStudentNames(selectedAccount.alumnos_nombres);
         const confirmed = window.confirm(
-            `¿Unificar los perfiles y conservar solamente el acceso de ${accountName || selectedAccount.email}?\n\n` +
-            `Se ingresará con ${selectedAccount.email}. La otra cuenta dejará de iniciar sesión, pero no se borrarán la alumna, sus pagos, clases ni asistencias.`
+            `¿Agrupar los perfiles en la cuenta ${selectedAccount.email}?\n\n` +
+            `${children.length ? `Esa cuenta ya permite ver a ${children.join(', ')}. ` : ''}` +
+            'El correo actual de esta ficha dejará de iniciar sesión. No se borrarán alumnas, pagos, clases ni asistencias.'
         );
         if (confirmed) mergeMutation.mutate(selectedAccount.usuario_id);
+    };
+
+    const chooseGoal = (goal) => {
+        setForm({
+            ...initialForm,
+            goal,
+            mode: 'existing',
+            es_principal: false,
+        });
+    };
+
+    const toggleExpanded = () => {
+        setExpanded((value) => {
+            if (value) setForm(initialForm);
+            return !value;
+        });
     };
 
     return (
@@ -128,14 +153,14 @@ const ResponsablesPanel = ({ alumnoId }) => {
                         <UserPlusIcon className="h-5 w-5 text-sds-red" />
                         Cuentas familiares con acceso
                     </h3>
-                    <p className="mt-1 text-xs text-gray-500">Una cuenta puede estar vinculada a varios hermanos y una alumna puede tener varios responsables.</p>
+                    <p className="mt-1 text-xs text-gray-500">Revisa quién puede ingresar y qué alumnas puede ver cada correo.</p>
                 </div>
                 <button
                     type="button"
-                    onClick={() => setExpanded((value) => !value)}
+                    onClick={toggleExpanded}
                     className="btn btn-primary btn-sm whitespace-nowrap"
                 >
-                    {expanded ? 'Cancelar' : 'Agregar cuenta'}
+                    {expanded ? 'Cancelar' : 'Configurar acceso'}
                 </button>
             </div>
 
@@ -146,14 +171,14 @@ const ResponsablesPanel = ({ alumnoId }) => {
                     <div key={responsable.usuario_id} className="rounded-xl border border-gray-200 p-3 sm:flex sm:items-center sm:justify-between gap-3">
                         <div>
                             <div className="flex items-center gap-2">
-                                <p className="font-semibold text-gray-900">{responsable.nombre} {responsable.apellido}</p>
+                                <p className="flex items-center gap-1 font-semibold text-gray-900"><EnvelopeIcon className="h-4 w-4" />{responsable.email}</p>
                                 {Number(responsable.es_principal) === 1 && (
                                     <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">
                                         <StarIcon className="h-3.5 w-3.5" /> Principal
                                     </span>
                                 )}
                             </div>
-                            <p className="mt-0.5 flex items-center gap-1 text-sm text-gray-500"><EnvelopeIcon className="h-4 w-4" />{responsable.email}</p>
+                            <p className="mt-0.5 text-sm text-gray-500">Cuenta registrada como {responsable.nombre} {responsable.apellido}</p>
                             <p className="mt-1 text-xs text-gray-500">
                                 {responsable.parentesco || 'Responsable'} · {Number(responsable.puede_ver_pagos) ? 've pagos' : 'sin acceso a pagos'} · {Number(responsable.recibe_notificaciones) ? 'recibe avisos' : 'sin avisos'}
                             </p>
@@ -192,49 +217,101 @@ const ResponsablesPanel = ({ alumnoId }) => {
                 )}
 
                 {expanded && (
-                    <form onSubmit={submit} className="mt-4 rounded-xl border border-sds-red/20 bg-red-50/30 p-4 space-y-4">
-                        <div className="flex flex-wrap gap-4 text-sm font-medium text-gray-700">
-                            <label className="flex items-center gap-2"><input type="radio" checked={form.mode === 'existing'} onChange={() => setForm((prev) => ({ ...prev, mode: 'existing' }))} /> Vincular una cuenta existente</label>
-                            <label className="flex items-center gap-2"><input type="radio" checked={form.mode === 'new'} onChange={() => setForm((prev) => ({ ...prev, mode: 'new' }))} /> Crear una cuenta nueva</label>
+                    <form onSubmit={submit} className="mt-4 space-y-5 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                        <div>
+                            <p className="text-sm font-semibold text-gray-900">1. ¿Qué necesitas hacer?</p>
+                            <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                                <button
+                                    type="button"
+                                    onClick={() => chooseGoal('parent')}
+                                    className={`rounded-xl border-2 p-4 text-left transition ${form.goal === 'parent' ? 'border-sds-red bg-red-50' : 'border-gray-200 bg-white hover:border-gray-300'}`}
+                                >
+                                    <span className="flex items-center gap-2 font-semibold text-gray-900">
+                                        <UserPlusIcon className="h-5 w-5 text-sds-red" />
+                                        Agregar otro padre o madre
+                                    </span>
+                                    <span className="mt-2 block text-xs leading-5 text-gray-600">
+                                        Cada adulto conserva su propio correo y ambos ven a esta misma alumna.
+                                    </span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => chooseGoal('siblings')}
+                                    className={`rounded-xl border-2 p-4 text-left transition ${form.goal === 'siblings' ? 'border-sds-red bg-red-50' : 'border-gray-200 bg-white hover:border-gray-300'}`}
+                                >
+                                    <span className="flex items-center gap-2 font-semibold text-gray-900">
+                                        <ArrowsPointingInIcon className="h-5 w-5 text-sds-red" />
+                                        Usar una cuenta para varios hermanos
+                                    </span>
+                                    <span className="mt-2 block text-xs leading-5 text-gray-600">
+                                        La familia entra con un solo correo y después elige qué hija desea consultar.
+                                    </span>
+                                </button>
+                            </div>
                         </div>
 
+                        {form.goal === 'parent' && (
+                            <div>
+                                <p className="text-sm font-semibold text-gray-900">2. Elige cómo agregar al responsable</p>
+                                <div className="mt-2 flex flex-wrap gap-4 text-sm font-medium text-gray-700">
+                                    <label className="flex items-center gap-2">
+                                        <input type="radio" checked={form.mode === 'existing'} onChange={() => setForm((prev) => ({ ...prev, mode: 'existing', usuario_id: '' }))} />
+                                        Ya tiene una cuenta
+                                    </label>
+                                    <label className="flex items-center gap-2">
+                                        <input type="radio" checked={form.mode === 'new'} onChange={() => setForm((prev) => ({ ...prev, mode: 'new', usuario_id: '' }))} />
+                                        Crear una cuenta nueva
+                                    </label>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            {form.mode === 'existing' ? (
+                            {(form.goal === 'siblings' || form.mode === 'existing') ? (
                                 <div className="sm:col-span-2">
-                                    <label className="text-sm font-medium text-gray-700">Cuenta existente</label>
+                                    <label className="text-sm font-semibold text-gray-900">
+                                        {form.goal === 'siblings' ? '2. Cuenta que ya utiliza la familia' : '3. Correo del segundo padre, madre o responsable'}
+                                    </label>
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        {form.goal === 'siblings'
+                                            ? 'Solo aparecen cuentas que ya tienen acceso a otra alumna.'
+                                            : 'Este correo mantendrá su contraseña y su acceso actual.'}
+                                    </p>
                                     <select
                                         required
                                         value={form.usuario_id}
                                         onChange={(e) => setForm((prev) => ({ ...prev, usuario_id: e.target.value }))}
-                                        className="input mt-1 w-full"
+                                        className="input mt-2 w-full"
                                         disabled={loadingCandidates}
                                     >
-                                        <option value="">{loadingCandidates ? 'Cargando cuentas...' : 'Selecciona por nombre o email'}</option>
-                                        {availableAccounts.map((account) => {
+                                        <option value="">{loadingCandidates ? 'Cargando cuentas...' : 'Selecciona una cuenta por correo'}</option>
+                                        {selectableAccounts.map((account) => {
                                             const children = splitStudentNames(account.alumnos_nombres);
+                                            const accountName = `${account.nombre || ''} ${account.apellido || ''}`.trim();
                                             return (
                                                 <option key={account.usuario_id} value={account.usuario_id}>
-                                                    {account.nombre} {account.apellido} — {account.email}{children.length ? ` — acceso a ${children.join(', ')}` : ''}
+                                                    {account.email}{children.length ? ` — actualmente ve a ${children.join(', ')}` : accountName ? ` — ${accountName}` : ''}
                                                 </option>
                                             );
                                         })}
                                     </select>
-                                    {!loadingCandidates && availableAccounts.length === 0 && (
+                                    {!loadingCandidates && selectableAccounts.length === 0 && (
                                         <p className="mt-2 rounded-lg bg-amber-50 p-3 text-xs text-amber-800">
-                                            No quedan otras cuentas activas para vincular. Puedes crear una cuenta nueva.
+                                            {form.goal === 'siblings'
+                                                ? 'No hay otra cuenta con alumnas vinculadas para agrupar.'
+                                                : 'No quedan otras cuentas activas. Puedes elegir “Crear una cuenta nueva”.'}
                                         </p>
                                     )}
                                     {selectedAccount && (
-                                        <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
-                                            <p className="font-semibold">Vas a dar acceso a {selectedAccount.nombre} {selectedAccount.apellido}</p>
-                                            <p className="mt-0.5 text-xs text-blue-700">{selectedAccount.email}</p>
+                                        <div className={`mt-3 rounded-lg border p-3 text-sm ${form.goal === 'siblings' ? 'border-amber-200 bg-amber-50 text-amber-950' : 'border-blue-200 bg-blue-50 text-blue-950'}`}>
+                                            <p className="font-semibold">Cuenta seleccionada: {selectedAccount.email}</p>
                                             {splitStudentNames(selectedAccount.alumnos_nombres).length > 0 && (
-                                                <p className="mt-1 text-xs">
-                                                    Esta cuenta ya ve a: {splitStudentNames(selectedAccount.alumnos_nombres).join(', ')}
-                                                </p>
+                                                <p className="mt-1 text-xs">Actualmente puede ver a: {splitStudentNames(selectedAccount.alumnos_nombres).join(', ')}</p>
                                             )}
-                                            <p className="mt-2 border-t border-blue-200 pt-2 text-xs font-medium text-blue-900">
-                                                Si eliges unificar, esta será la única cuenta para iniciar sesión y desde ella se podrán seleccionar ambas alumnas.
+                                            <p className="mt-2 border-t border-current/10 pt-2 text-xs font-medium">
+                                                {form.goal === 'siblings'
+                                                    ? 'Al confirmar, el correo actual de esta ficha dejará de iniciar sesión. Todos los registros y ambas alumnas se conservan.'
+                                                    : 'Al confirmar, se agregará como segundo acceso. La cuenta principal actual seguirá funcionando.'}
                                             </p>
                                         </div>
                                     )}
@@ -257,33 +334,37 @@ const ResponsablesPanel = ({ alumnoId }) => {
                                     <span className="mt-1 block text-xs font-normal text-gray-500">9+ caracteres, mayúscula, número y símbolo.</span>
                                 </label>
                             </>}
-                            <label className="text-sm font-medium text-gray-700 sm:col-span-2">Parentesco / relación
-                                <input value={form.parentesco} onChange={(e) => setForm((prev) => ({ ...prev, parentesco: e.target.value }))} className="input mt-1 w-full" placeholder="Madre, padre, tutor..." />
-                            </label>
                         </div>
 
-                        <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-gray-600">
-                            <label className="flex items-center gap-2"><input type="checkbox" checked={form.es_principal} onChange={(e) => setForm((prev) => ({ ...prev, es_principal: e.target.checked }))} /> <StarIcon className="h-4 w-4" /> Cuenta principal</label>
-                            <label className="flex items-center gap-2"><input type="checkbox" checked={form.recibe_notificaciones} onChange={(e) => setForm((prev) => ({ ...prev, recibe_notificaciones: e.target.checked }))} /> <BellAlertIcon className="h-4 w-4" /> Recibe avisos</label>
-                            <label className="flex items-center gap-2"><input type="checkbox" checked={form.puede_ver_pagos} onChange={(e) => setForm((prev) => ({ ...prev, puede_ver_pagos: e.target.checked }))} /> Puede ver pagos</label>
-                            <label className="flex items-center gap-2"><input type="checkbox" checked={form.puede_confirmar_asistencia} onChange={(e) => setForm((prev) => ({ ...prev, puede_confirmar_asistencia: e.target.checked }))} /> Puede confirmar asistencia</label>
-                        </div>
+                        {form.goal === 'parent' && (
+                            <>
+                                <label className="block text-sm font-medium text-gray-700">Parentesco / relación
+                                    <input value={form.parentesco} onChange={(e) => setForm((prev) => ({ ...prev, parentesco: e.target.value }))} className="input mt-1 w-full" placeholder="Madre, padre, tutor..." />
+                                </label>
+                                <div className="rounded-lg border border-gray-200 bg-white p-3">
+                                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Permisos del nuevo acceso</p>
+                                    <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-gray-600">
+                                        <label className="flex items-center gap-2"><input type="checkbox" checked={form.es_principal} onChange={(e) => setForm((prev) => ({ ...prev, es_principal: e.target.checked }))} /> <StarIcon className="h-4 w-4" /> Convertir en principal</label>
+                                        <label className="flex items-center gap-2"><input type="checkbox" checked={form.recibe_notificaciones} onChange={(e) => setForm((prev) => ({ ...prev, recibe_notificaciones: e.target.checked }))} /> <BellAlertIcon className="h-4 w-4" /> Recibe avisos</label>
+                                        <label className="flex items-center gap-2"><input type="checkbox" checked={form.puede_ver_pagos} onChange={(e) => setForm((prev) => ({ ...prev, puede_ver_pagos: e.target.checked }))} /> Puede ver pagos</label>
+                                        <label className="flex items-center gap-2"><input type="checkbox" checked={form.puede_confirmar_asistencia} onChange={(e) => setForm((prev) => ({ ...prev, puede_confirmar_asistencia: e.target.checked }))} /> Puede confirmar asistencia</label>
+                                    </div>
+                                </div>
+                            </>
+                        )}
 
-                        <div className="flex flex-wrap justify-end gap-2">
-                            {form.mode === 'existing' && (
-                                <button
-                                    disabled={mergeMutation.isPending || !selectedAccount}
-                                    className="btn btn-primary inline-flex items-center gap-2"
-                                    type="button"
-                                    onClick={mergeSelectedAccount}
-                                >
+                        <div className="flex justify-end">
+                            {form.goal === 'siblings' ? (
+                                <button disabled={mergeMutation.isPending || !selectedAccount} className="btn btn-primary inline-flex items-center gap-2" type="submit">
                                     <ArrowsPointingInIcon className="h-4 w-4" />
-                                    {mergeMutation.isPending ? 'Unificando...' : 'Unificar en una sola cuenta'}
+                                    {mergeMutation.isPending ? 'Agrupando...' : 'Agrupar hermanos en esta cuenta'}
+                                </button>
+                            ) : (
+                                <button disabled={addMutation.isPending || (form.mode === 'existing' && !selectedAccount)} className="btn btn-primary inline-flex items-center gap-2" type="submit">
+                                    <UserPlusIcon className="h-4 w-4" />
+                                    {addMutation.isPending ? 'Guardando...' : form.mode === 'new' ? 'Crear cuenta y dar acceso' : 'Dar acceso a esta alumna'}
                                 </button>
                             )}
-                            <button disabled={addMutation.isPending} className="btn btn-secondary" type="submit">
-                                {addMutation.isPending ? 'Guardando...' : form.mode === 'new' ? 'Crear y vincular cuenta' : 'Solo compartir acceso'}
-                            </button>
                         </div>
                     </form>
                 )}
