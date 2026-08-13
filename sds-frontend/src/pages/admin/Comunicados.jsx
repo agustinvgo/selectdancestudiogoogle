@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { notificacionesAPI, cursosAPI, alumnosAPI, getMediaUrl } from '../../services/api';
+import { notificacionesAPI, cursosAPI, eventosAPI, alumnosAPI, getMediaUrl } from '../../services/api';
 import useToast from '../../hooks/useToast';
 import useConfirm from '../../hooks/useConfirm';
 import ConfirmDialog from '../../components/ConfirmDialog';
@@ -158,11 +158,12 @@ const Comunicados = () => {
     const messageInputRef = useRef(null);
 
     // Destinatarios
-    const [filtro, setFiltro] = useState('todos'); // todos, rol, curso, usuario
+    const [filtro, setFiltro] = useState('todos'); // todos, rol, curso, evento, usuario
     const [destinatarioId, setDestinatarioId] = useState('');
 
     // Listas para selectores
     const [cursos, setCursos] = useState([]);
+    const [eventos, setEventos] = useState([]);
     const [usuarios, setUsuarios] = useState([]); // Alumnos o Profesores según necesidad
 
     const toast = useToast();
@@ -251,6 +252,11 @@ const Comunicados = () => {
                 setLoading(true);
                 const res = await cursosAPI.getAll();
                 setCursos(res.data.data || []);
+                setLoading(false);
+            } else if (filtro === 'evento') {
+                setLoading(true);
+                const res = await eventosAPI.getAll();
+                setEventos(res.data.data || []);
                 setLoading(false);
             } else if (filtro === 'usuario') {
                 setLoading(true);
@@ -483,6 +489,7 @@ const Comunicados = () => {
                                                 <option value="todos">Todos los Usuarios</option>
                                                 <option value="rol">Por Rol</option>
                                                 <option value="curso">Por Curso</option>
+                                                <option value="evento">Por Evento</option>
                                                 <option value="usuario">Usuario Específico</option>
                                             </select>
 
@@ -512,6 +519,29 @@ const Comunicados = () => {
                                                     {cursos.map(c => (
                                                         <option key={c.id} value={c.id}>{c.nombre}</option>
                                                     ))}
+                                                </select>
+                                            )}
+
+                                            {filtro === 'evento' && (
+                                                <select
+                                                    value={destinatarioId}
+                                                    onChange={(e) => setDestinatarioId(e.target.value)}
+                                                    className="input w-full"
+                                                    required
+                                                    disabled={loading}
+                                                >
+                                                    <option value="">{loading ? 'Cargando eventos...' : 'Selecciona Evento'}</option>
+                                                    {eventos.map(evento => {
+                                                        const fecha = String(evento.fecha || '').split('T')[0];
+                                                        const [anio, mes, dia] = fecha.split('-');
+                                                        const fechaLabel = anio && mes && dia ? ` · ${dia}/${mes}/${anio}` : '';
+                                                        const inscritos = Number(evento.inscritos || 0);
+                                                        return (
+                                                            <option key={evento.id} value={evento.id}>
+                                                                {evento.nombre}{fechaLabel} · {inscritos} {inscritos === 1 ? 'participante' : 'participantes'}
+                                                            </option>
+                                                        );
+                                                    })}
                                                 </select>
                                             )}
 

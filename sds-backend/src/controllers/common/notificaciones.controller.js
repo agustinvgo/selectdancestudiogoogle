@@ -189,6 +189,36 @@ const NotificacionesController = {
                     WHERE ic.curso_id = ? AND ic.activo = 1 AND u.activo = 1
                 `, [destinatarioId]);
                 usuariosDestino = users;
+            } else if (filtro === 'evento') {
+                // Cada participante puede tener una o varias cuentas familiares.
+                // Se respeta "recibe avisos" y UNION evita destinatarios duplicados.
+                const [users] = await db.query(`
+                    SELECT DISTINCT u.id, u.email, u.rol, u.activo
+                    FROM inscripciones_evento ie
+                    INNER JOIN alumnos a ON a.id = ie.alumno_id
+                    INNER JOIN responsables_alumnos ra ON ra.alumno_id = a.id
+                    INNER JOIN usuarios u ON u.id = ra.usuario_id
+                    WHERE ie.evento_id = ?
+                      AND COALESCE(a.activo, 1) = 1
+                      AND COALESCE(ra.recibe_notificaciones, 1) = 1
+                      AND u.activo = 1
+
+                    UNION
+
+                    SELECT DISTINCT u.id, u.email, u.rol, u.activo
+                    FROM inscripciones_evento ie
+                    INNER JOIN alumnos a ON a.id = ie.alumno_id
+                    INNER JOIN usuarios u ON u.id = a.usuario_id
+                    WHERE ie.evento_id = ?
+                      AND COALESCE(a.activo, 1) = 1
+                      AND u.activo = 1
+                      AND NOT EXISTS (
+                          SELECT 1
+                          FROM responsables_alumnos ra
+                          WHERE ra.alumno_id = a.id
+                      )
+                `, [destinatarioId, destinatarioId]);
+                usuariosDestino = users;
             } else if (filtro === 'usuario') {
                 // Single user (solo si está activo)
                 const [users] = await db.query('SELECT id, email, rol, activo FROM usuarios WHERE id = ? AND activo = 1', [destinatarioId]);
