@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { PlusIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import Loader from '../../components/Loader';
 import useConfirm from '../../hooks/useConfirm';
@@ -21,6 +21,7 @@ const GestionEventos = () => {
     const [eventoSeleccionado, setEventoSeleccionado] = useState(null);
     const [editando, setEditando] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const submitLockRef = useRef(false);
 
     const [formData, setFormData] = useState({
         nombre: '', descripcion: '', fecha: '', hora: '', lugar: '', ubicacion: '', 
@@ -89,8 +90,18 @@ const GestionEventos = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (editando) updateMutation.mutate({ id: editando.id, data: formData }, { onSuccess: cerrarModal });
-        else createMutation.mutate(formData, { onSuccess: cerrarModal });
+        if (submitLockRef.current || createMutation.isPending || updateMutation.isPending) return;
+
+        submitLockRef.current = true;
+        const mutationOptions = {
+            onSuccess: cerrarModal,
+            onSettled: () => {
+                submitLockRef.current = false;
+            }
+        };
+
+        if (editando) updateMutation.mutate({ id: editando.id, data: formData }, mutationOptions);
+        else createMutation.mutate(formData, mutationOptions);
     };
 
     const eliminarEvento = (id) => {
@@ -190,7 +201,8 @@ const GestionEventos = () => {
 
             <EventoFormModal 
                 isOpen={modalOpen} onClose={cerrarModal} onSubmit={handleSubmit} 
-                editando={editando} formData={formData} setFormData={setFormData} 
+                editando={editando} formData={formData} setFormData={setFormData}
+                isSubmitting={createMutation.isPending || updateMutation.isPending}
             />
 
             <InscripcionModal 

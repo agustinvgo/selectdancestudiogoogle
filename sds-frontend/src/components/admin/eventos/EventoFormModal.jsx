@@ -1,6 +1,6 @@
 import Modal from '../../Modal';
 
-const EventoFormModal = ({ isOpen, onClose, onSubmit, editando, formData, setFormData }) => {
+const EventoFormModal = ({ isOpen, onClose, onSubmit, editando, formData, setFormData, isSubmitting = false }) => {
     const totalCentavos = Math.max(0, Math.round((Number(formData.costo) || 0) * 100));
     const cantidadCuotas = Math.max(2, Number.parseInt(formData.cantidad_cuotas, 10) || 2);
     const cuotaBase = Math.floor(totalCentavos / cantidadCuotas);
@@ -74,6 +74,7 @@ const EventoFormModal = ({ isOpen, onClose, onSubmit, editando, formData, setFor
                             value={formData.lugar}
                             onChange={(e) => setFormData({ ...formData, lugar: e.target.value })}
                             className="input w-full"
+                            required
                         />
                     </div>
                 </div>
@@ -269,11 +270,11 @@ const EventoFormModal = ({ isOpen, onClose, onSubmit, editando, formData, setFor
                 </div>
 
                 <div className="flex justify-end space-x-3 pt-4">
-                    <button type="button" onClick={onClose} className="btn btn-secondary">
+                    <button type="button" onClick={onClose} className="btn btn-secondary" disabled={isSubmitting}>
                         Cancelar
                     </button>
-                    <button type="submit" className="btn btn-primary">
-                        {editando ? 'Guardar Cambios' : 'Crear Evento'}
+                    <button type="submit" className="btn btn-primary" disabled={isSubmitting} aria-busy={isSubmitting}>
+                        {isSubmitting ? 'Guardando...' : (editando ? 'Guardar Cambios' : 'Crear Evento')}
                     </button>
                 </div>
             </form>

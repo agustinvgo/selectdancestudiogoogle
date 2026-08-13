@@ -3,6 +3,12 @@ import { eventosAPI, alumnosAPI } from '../services/api';
 import useToast from './useToast';
 import useRequestQueue from './useRequestQueue';
 
+const getApiErrorMessage = (error, fallback) => {
+    const responseData = error.response?.data;
+    const validationMessage = responseData?.errors?.find((item) => item?.msg)?.msg;
+    return validationMessage || responseData?.message || fallback;
+};
+
 const useEventos = ({ expandedEventoId, eventoSeleccionado, modalDetalleOpen }) => {
     const queryClient = useQueryClient();
     const toast = useToast();
@@ -45,7 +51,7 @@ const useEventos = ({ expandedEventoId, eventoSeleccionado, modalDetalleOpen }) 
         },
         onError: (error) => {
             console.error('Error creating event:', error);
-            toast.error(error.response?.data?.message || 'Error al crear evento');
+            toast.error(getApiErrorMessage(error, 'Error al crear evento'));
         }
     });
 
@@ -57,7 +63,7 @@ const useEventos = ({ expandedEventoId, eventoSeleccionado, modalDetalleOpen }) 
         },
         onError: (error) => {
             console.error('Error updating event:', error);
-            toast.error(error.response?.data?.message || 'Error al actualizar evento');
+            toast.error(getApiErrorMessage(error, 'Error al actualizar evento'));
         }
     });
 
