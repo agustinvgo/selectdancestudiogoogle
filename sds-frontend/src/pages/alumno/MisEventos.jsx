@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { eventosAPI } from '../../services/api';
 import { CalendarIcon, MapPinIcon, CurrencyDollarIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import Loader from '../../components/Loader';
+import { formatDateOnly, getDateOnlyString, todayDateOnly } from '../../utils/dateOnly';
 
 const MisEventos = () => {
     const { alumnoActivo } = useAuth();
@@ -22,8 +23,8 @@ const MisEventos = () => {
 
     const eventos = eventosData || [];
 
-    const eventosProximos = eventos.filter(e => new Date(e.fecha) >= new Date());
-    const eventosPasados = eventos.filter(e => new Date(e.fecha) < new Date());
+    const eventosProximos = eventos.filter(e => getDateOnlyString(e.fecha) >= todayDateOnly());
+    const eventosPasados = eventos.filter(e => getDateOnlyString(e.fecha) < todayDateOnly());
 
     return (
         <div className="space-y-6">
@@ -82,7 +83,7 @@ const MisEventos = () => {
                                                     <div>
                                                         <p className="text-xs text-gray-500">Fecha</p>
                                                         <p className="text-gray-900 font-medium">
-                                                            {new Date(evento.fecha).toLocaleDateString('es-AR', {
+                                                            {formatDateOnly(evento.fecha, {
                                                                 weekday: 'long',
                                                                 year: 'numeric',
                                                                 month: 'long',
@@ -179,7 +180,7 @@ const MisEventos = () => {
                                                 <div>
                                                     <h3 className="text-lg font-semibold text-gray-900">{evento.nombre}</h3>
                                                     <p className="text-sm text-gray-500 mt-1">
-                                                        📅 {new Date(evento.fecha).toLocaleDateString('es-AR')} •
+                                                        📅 {formatDateOnly(evento.fecha)} •
                                                         📍 {evento.lugar}
                                                     </p>
                                                 </div>

@@ -1,4 +1,5 @@
 import { PencilIcon, TrashIcon, CalendarIcon, UserGroupIcon, XMarkIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { formatDateOnly, getDateOnlyString, todayDateOnly } from '../../../utils/dateOnly';
 
 const EventoCard = ({
     evento,
@@ -12,7 +13,7 @@ const EventoCard = ({
     getAlumnosDisponibles,
     inscribirAlumno
 }) => {
-    const esFuturo = new Date(evento.fecha) >= new Date();
+    const esFuturo = getDateOnlyString(evento.fecha) >= todayDateOnly();
 
     return (
         <div className={`card ${esFuturo ? 'border-blue-900' : 'border-gray-200'} `}>
@@ -49,7 +50,7 @@ const EventoCard = ({
                 <div className="flex items-center justify-between">
                     <div className="flex items-center text-gray-600">
                         <CalendarIcon className="h-5 w-5 mr-2 text-gray-500" />
-                        <span>{new Date(evento.fecha).toLocaleDateString('es-AR')} - {evento.hora}</span>
+                        <span>{formatDateOnly(evento.fecha)}{evento.hora ? ` - ${evento.hora}` : ''}</span>
                     </div>
                     {evento.costo_inscripcion > 0 ? (
                         <span className="px-3 py-1 bg-green-900 text-green-200 rounded-full text-sm font-bold">

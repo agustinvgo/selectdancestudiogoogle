@@ -189,7 +189,12 @@ export const exportEventos = async (eventos) => {
         'Nombre': evento.nombre,
         'Tipo': evento.tipo,
         'Descripción': evento.descripcion || '-',
-        'Fecha': new Date(evento.fecha).toLocaleDateString('es-AR'),
+        'Fecha': (() => {
+            const value = typeof evento.fecha === 'string' ? evento.fecha.split('T')[0] : '';
+            if (!value) return '-';
+            const [year, month, day] = value.split('-');
+            return `${day}/${month}/${year}`;
+        })(),
         'Hora': evento.hora || '-',
         'Lugar': evento.lugar || '-',
         'Costo': evento.costo ? `$${evento.costo}` : '-',

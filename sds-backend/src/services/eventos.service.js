@@ -4,6 +4,7 @@ const PagosModel = require('../models/pagos.model');
 const PagosService = require('./pagos.service');
 const ResponsablesAlumnosModel = require('../models/responsables-alumnos.model');
 const emailService = require('./email.service');
+const { getDateOnlyString } = require('../utils/dateOnly');
 
 class EventosService {
     
@@ -18,13 +19,13 @@ class EventosService {
 
         // Generar Facturación Automática
         const fechaVencimiento = evento.fecha
-            ? (typeof evento.fecha === 'string' ? evento.fecha.split('T')[0] : new Date(evento.fecha).toISOString().split('T')[0])
+            ? getDateOnlyString(evento.fecha)
             : new Date().toISOString().split('T')[0];
 
         // Bug #2 fix: parsear fecha local para evitar desfase UTC al extraer mes/año
         let mesEvento, anioEvento;
         if (evento.fecha) {
-            const fechaStr = typeof evento.fecha === 'string' ? evento.fecha.split('T')[0] : new Date(evento.fecha).toISOString().split('T')[0];
+            const fechaStr = getDateOnlyString(evento.fecha);
             const [y, m] = fechaStr.split('-').map(Number);
             mesEvento = m;
             anioEvento = y;

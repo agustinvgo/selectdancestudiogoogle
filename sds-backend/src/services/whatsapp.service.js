@@ -1,5 +1,6 @@
 const whatsappBot = require('./whatsappBot');
 const notifSettings = require('./notifSettings');
+const { formatDateOnly } = require('../utils/dateOnly');
 
 class WhatsAppService {
     constructor() {
@@ -37,7 +38,7 @@ class WhatsAppService {
         // Variables de evento
         if (datos.evento) mensajeProcesado = mensajeProcesado.replace(/{evento}/g, datos.evento);
         if (datos.fecha_evento) {
-            const fecha = new Date(datos.fecha_evento).toLocaleDateString('es-AR');
+            const fecha = formatDateOnly(datos.fecha_evento);
             mensajeProcesado = mensajeProcesado.replace(/{fecha_evento}/g, fecha);
         }
         if (datos.hora_evento) mensajeProcesado = mensajeProcesado.replace(/{hora_evento}/g, datos.hora_evento);
@@ -195,7 +196,7 @@ Select Dance Studio`;
     async enviarNotificacionEvento(alumno, evento) {
         const mensaje = `🎉 ¡Hola ${alumno.nombre}!
 
-Te recordamos que el evento *${evento.nombre}* es el *${new Date(evento.fecha).toLocaleDateString('es-AR')}* a las ${evento.hora}.
+Te recordamos que el evento *${evento.nombre}* es el *${formatDateOnly(evento.fecha)}* a las ${evento.hora}.
 
 📍 Lugar: ${evento.ubicacion || evento.lugar || 'A confirmar'}
 
@@ -216,7 +217,7 @@ Select Dance Studio`;
 
 Tu inscripción al evento *${evento.nombre}* fue confirmada.
 
-📅 Fecha: ${new Date(evento.fecha).toLocaleDateString('es-AR')}
+📅 Fecha: ${formatDateOnly(evento.fecha)}
 🕐 Hora: ${evento.hora}
 📍 Lugar: ${evento.ubicacion || evento.lugar}
 
@@ -437,12 +438,11 @@ ${curso.ubicacion ? `📍 ${curso.ubicacion}` : ''}
      * @returns {Promise<Object>}
      */
     async enviarRecordatorioEventoProximo(alumno, evento) {
-        const fechaEvento = new Date(evento.fecha);
         const mensaje = `¡Hola ${alumno.nombre}! 🎭
 
 Recordatorio: En 3 días tenemos el evento:
 🎉 ${evento.nombre}
-📅 ${fechaEvento.toLocaleDateString('es-AR')} ${evento.hora ? `a las ${evento.hora}` : ''}
+📅 ${formatDateOnly(evento.fecha)} ${evento.hora ? `a las ${evento.hora}` : ''}
 ${evento.lugar ? `📍 ${evento.lugar}` : ''}
 
 ¿Ya tienes todo listo? ✨`;

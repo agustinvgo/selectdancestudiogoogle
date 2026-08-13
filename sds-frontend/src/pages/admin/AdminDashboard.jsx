@@ -20,6 +20,7 @@ import SEO from '../../components/SEO';
 import NotificationFeed from '../../components/common/NotificationFeed';
 import WeeklyAgendaWidget from '../../components/Dashboard/WeeklyAgendaWidget';
 import AdminPushNotifications from '../../components/Dashboard/AdminPushNotifications';
+import { formatDateOnly, getDateOnlyString, parseDateOnly, todayDateOnly } from '../../utils/dateOnly';
 
 const AdminDashboard = () => {
     const { isAdmin, isProfesor } = useAuth();
@@ -151,15 +152,15 @@ const AdminDashboard = () => {
     const proximosEventos = useMemo(() => {
         const events = eventosData || [];
         // Bug #5 fix: comparar fechas locales para evitar que un evento del 1ro aparezca como el 31 del mes anterior
-        const hoyStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local
+        const hoyStr = todayDateOnly();
         return events
             .filter(e => {
-                const fechaStr = typeof e.fecha === 'string' ? e.fecha.split('T')[0] : new Date(e.fecha).toLocaleDateString('en-CA');
+                const fechaStr = getDateOnlyString(e.fecha);
                 return fechaStr >= hoyStr;
             })
             .sort((a, b) => {
-                const fa = typeof a.fecha === 'string' ? a.fecha.split('T')[0] : a.fecha;
-                const fb = typeof b.fecha === 'string' ? b.fecha.split('T')[0] : b.fecha;
+                const fa = getDateOnlyString(a.fecha);
+                const fb = getDateOnlyString(b.fecha);
                 return fa < fb ? -1 : fa > fb ? 1 : 0;
             })
             .slice(0, 4);
@@ -308,8 +309,8 @@ const AdminDashboard = () => {
                                             proximosEventos.map(evento => (
                                                 <div key={evento.id} className="flex items-center gap-4 p-4 bg-white border border-gray-100 rounded-xl hover:shadow-sm transition-all">
                                                     <div className="w-12 h-12 bg-zinc-50 text-zinc-900 rounded-lg flex flex-col items-center justify-center border border-zinc-100">
-                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{new Date(evento.fecha).toLocaleDateString('es-AR', { month: 'short' })}</span>
-                                                        <span className="text-lg font-bold leading-none">{new Date(evento.fecha).getDate()}</span>
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">{formatDateOnly(evento.fecha, { month: 'short' })}</span>
+                                                        <span className="text-lg font-bold leading-none">{parseDateOnly(evento.fecha)?.getDate()}</span>
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <h4 className="font-semibold text-zinc-900 text-sm truncate">{evento.nombre}</h4>

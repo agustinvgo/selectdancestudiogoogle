@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const { formatDateOnly } = require('../utils/dateOnly');
 const path = require('path');
 const fs = require('fs');
 const { formatPaymentPeriod } = require('../utils/paymentPeriod');
@@ -685,7 +686,7 @@ const enviarConfirmacionInscripcionEvento = async (email, nombre, nombreEvento, 
         <p>Hola <strong>${nombre}</strong>,<br>¡te has inscrito exitosamente al evento!</p>
         <div class="info-box">
             <h3>${nombreEvento}</h3>
-            <p><strong>Fecha:</strong> ${new Date(fecha).toLocaleDateString('es-AR')}</p>
+            <p><strong>Fecha:</strong> ${formatDateOnly(fecha)}</p>
             <p><strong>Lugar:</strong> ${lugar || '-'}</p>
         </div>
         <p>¡Te esperamos en el estudio para preparar todo junto!</p>
@@ -783,7 +784,7 @@ module.exports = {
         }, opts);
     },
     enviarNotificacionEvento: async (email, nombre, nombreEvento, fecha, lugar) => {
-        const content = `<h1>¡Evento Próximo! 🎭</h1><div class="info-box"><h3>${nombreEvento}</h3><p><strong>Fecha:</strong> ${new Date(fecha).toLocaleDateString('es-AR')}</p><p><strong>Lugar:</strong> ${lugar || '-'}</p></div>`;
+        const content = `<h1>¡Evento Próximo! 🎭</h1><div class="info-box"><h3>${nombreEvento}</h3><p><strong>Fecha:</strong> ${formatDateOnly(fecha)}</p><p><strong>Lugar:</strong> ${lugar || '-'}</p></div>`;
         return sendEmail({ from: `"Select Dance Studio" <${process.env.SMTP_USER}>`, to: email, subject: `Recordatorio: ${nombreEvento}`, html: emailTemplate('Evento', content) });
     }
 };

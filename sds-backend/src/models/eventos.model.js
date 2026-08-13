@@ -1,4 +1,14 @@
 const db = require('../config/db');
+const { getDateOnlyString } = require('../utils/dateOnly');
+
+const normalizeEventoDates = (evento) => {
+    if (!evento) return evento;
+    return {
+        ...evento,
+        fecha: getDateOnlyString(evento.fecha),
+        fecha_primera_cuota: getDateOnlyString(evento.fecha_primera_cuota)
+    };
+};
 
 const EventosModel = {
     // Listar todos los eventos
@@ -10,7 +20,7 @@ const EventosModel = {
         FROM eventos e
         ORDER BY e.fecha DESC
       `);
-            return rows;
+            return rows.map(normalizeEventoDates);
         } catch (error) {
             throw error;
         }
@@ -22,22 +32,7 @@ const EventosModel = {
             const [rows] = await db.query('SELECT * FROM eventos WHERE id = ?', [id]);
             if (rows.length === 0) return null;
 
-            const evento = rows[0];
-
-            // Formatear fecha a YYYY-MM-DD (sin desfase UTC)
-            if (evento.fecha) {
-                // Si es string con 'T', extraer la parte de fecha directamente
-                if (typeof evento.fecha === 'string') {
-                    evento.fecha = evento.fecha.split('T')[0];
-                } else {
-                    // Si es objeto Date de MySQL, extraer componentes locales
-                    const fecha = evento.fecha;
-                    const year = fecha.getFullYear();
-                    const month = String(fecha.getMonth() + 1).padStart(2, '0');
-                    const day = String(fecha.getDate()).padStart(2, '0');
-                    evento.fecha = `${year}-${month}-${day}`;
-                }
-            }
+            const evento = normalizeEventoDates(rows[0]);
 
             // Obtener alumnos inscritos
             const [inscritos] = await db.query(`
@@ -70,7 +65,7 @@ const EventosModel = {
         WHERE ie.alumno_id = ?
         ORDER BY e.fecha DESC
       `, [alumnoId]);
-            return rows;
+            return rows.map(normalizeEventoDates);
         } catch (error) {
             throw error;
         }
@@ -305,7 +300,7 @@ const EventosModel = {
         ORDER BY e.fecha ASC
         LIMIT 5
       `);
-            return rows;
+            return rows.map(normalizeEventoDates);
         } catch (error) {
             throw error;
         }

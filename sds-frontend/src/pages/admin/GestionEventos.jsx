@@ -11,6 +11,7 @@ import EventoCard from '../../components/admin/eventos/EventoCard';
 import EventoFormModal from '../../components/admin/eventos/EventoFormModal';
 import InscripcionModal from '../../components/admin/eventos/InscripcionModal';
 import ParticipantesModal from '../../components/admin/eventos/ParticipantesModal';
+import { getDateOnlyString, todayDateOnly } from '../../utils/dateOnly';
 
 const GestionEventos = () => {
     // 1. Local UI State
@@ -68,7 +69,7 @@ const GestionEventos = () => {
         if (evento) {
             setEditando(evento);
             setFormData({
-                nombre: evento.nombre, descripcion: evento.descripcion || '', fecha: evento.fecha || '',
+                nombre: evento.nombre, descripcion: evento.descripcion || '', fecha: getDateOnlyString(evento.fecha),
                 hora: evento.hora || '', lugar: evento.lugar || '', ubicacion: evento.ubicacion || '',
                 tipo: evento.tipo || 'Presentación', costo: evento.costo_inscripcion || evento.costo || '',
                 cupo_maximo: evento.cupo_maximo || '', vestimenta: evento.vestuario_requerido || evento.vestimenta || '',
@@ -77,9 +78,7 @@ const GestionEventos = () => {
                 costo_peinado: evento.costo_peinado || '',
                 modalidad_pago: evento.modalidad_pago === 'cuotas' ? 'cuotas' : 'unico',
                 cantidad_cuotas: Number(evento.cantidad_cuotas) >= 2 ? Number(evento.cantidad_cuotas) : 3,
-                fecha_primera_cuota: evento.fecha_primera_cuota
-                    ? String(evento.fecha_primera_cuota).split('T')[0]
-                    : ''
+                fecha_primera_cuota: getDateOnlyString(evento.fecha_primera_cuota)
             });
         } else {
             cerrarModal(); // Resets form
@@ -177,8 +176,8 @@ const GestionEventos = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="card"><div className="card-body"><p className="text-sm text-gray-500">Total de Eventos</p><p className="text-3xl font-bold text-gray-900 mt-2">{eventos.length}</p></div></div>
-                <div className="card border-blue-900"><div className="card-body"><p className="text-sm text-gray-500">Próximos Eventos</p><p className="text-3xl font-bold text-blue-500 mt-2">{eventos.filter(e => new Date(e.fecha) >= new Date()).length}</p></div></div>
-                <div className="card border-purple-900"><div className="card-body"><p className="text-sm text-gray-500">Eventos Pasados</p><p className="text-3xl font-bold text-purple-500 mt-2">{eventos.filter(e => new Date(e.fecha) < new Date()).length}</p></div></div>
+                <div className="card border-blue-900"><div className="card-body"><p className="text-sm text-gray-500">Próximos Eventos</p><p className="text-3xl font-bold text-blue-500 mt-2">{eventos.filter(e => getDateOnlyString(e.fecha) >= todayDateOnly()).length}</p></div></div>
+                <div className="card border-purple-900"><div className="card-body"><p className="text-sm text-gray-500">Eventos Pasados</p><p className="text-3xl font-bold text-purple-500 mt-2">{eventos.filter(e => getDateOnlyString(e.fecha) < todayDateOnly()).length}</p></div></div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
