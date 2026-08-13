@@ -8,7 +8,13 @@ const EquipoModel = {
                 SELECT id, nombre, rol_display as cargo, descripcion, foto_perfil as foto_url, foto_posicion, orden, activo, created_at, updated_at 
                 FROM usuarios 
                 WHERE rol = 'profesor' AND activo = 1 AND mostrar_en_web = 1
-                ORDER BY orden ASC, created_at DESC
+                ORDER BY
+                    CASE
+                        WHEN LOWER(TRIM(COALESCE(rol_display, ''))) LIKE 'directora%' THEN 0
+                        ELSE 1
+                    END ASC,
+                    orden ASC,
+                    created_at DESC
             `);
             return rows;
         } catch (error) {
