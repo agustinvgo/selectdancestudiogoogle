@@ -259,15 +259,69 @@ const AlumnosModel = {
 
     // Cambiar estado activo del alumno
     async setActivo(id, activo) {
+        let connection;
         try {
-            const alumno = await this.findById(id);
-            if (!alumno) return false;
+            connection = await db.getConnection();
+            await connection.beginTransaction();
 
-            const [result] = await db.query('UPDATE alumnos SET activo = ? WHERE id = ?', [activo ? 1 : 0, id]);
-            return result.affectedRows > 0;
+            const [rows] = await connection.query(`
+                SELECT a.id, a.usuario_id, u.rol, COALESCE(u.permite_login, 1) AS permite_login
+                FROM alumnos a
+                INNER JOIN usuarios u ON u.id = a.usuario_id
+                WHERE a.id = ?
+                FOR UPDATE
+            `, [id]);
+            const alumno = rows[0];
+            if (!alumno) {
+                await connection.rollback();
+                return false;
+            }
+
+            const nuevoEstado = activo ? 1 : 0;
+            await connection.query('UPDATE alumnos SET activo = ? WHERE id = ?', [nuevoEstado, id]);
+
+            if (nuevoEstado === 1) {
+                // Una cuenta desactivada por una unificaciÃ³n tiene
+                // permite_login=0 y no debe revivirse al activar la ficha.
+                await connection.query(`
+                    UPDATE usuarios
+                    SET activo = 1
+                    WHERE id = ?
+                      AND rol = 'alumno'
+                      AND COALESCE(permite_login, 1) = 1
+                `, [alumno.usuario_id]);
+
+                if (Number(alumno.permite_login) === 1) {
+                    await connection.query(`
+                        INSERT IGNORE INTO responsables_alumnos
+                            (usuario_id, alumno_id, parentesco, es_principal)
+                        VALUES (?, ?, 'Cuenta principal', 1)
+                    `, [alumno.usuario_id, id]);
+                }
+            } else if (alumno.rol === 'alumno' && Number(alumno.permite_login) === 1) {
+                // Si la cuenta tambiÃ©n representa a otra hija activa debe
+                // conservar el ingreso. Solo se desactiva cuando ya no tiene
+                // ningÃºn perfil activo accesible.
+                const [activeLinks] = await connection.query(`
+                    SELECT COUNT(*) AS total
+                    FROM responsables_alumnos ra
+                    INNER JOIN alumnos linked_student ON linked_student.id = ra.alumno_id
+                    WHERE ra.usuario_id = ?
+                      AND linked_student.activo = 1
+                `, [alumno.usuario_id]);
+                if (Number(activeLinks[0]?.total || 0) === 0) {
+                    await connection.query('UPDATE usuarios SET activo = 0 WHERE id = ?', [alumno.usuario_id]);
+                }
+            }
+
+            await connection.commit();
+            return true;
         } catch (error) {
+            if (connection) await connection.rollback();
             console.error('[setActivo] Error:', error);
             throw error;
+        } finally {
+            if (connection) connection.release();
         }
     },
 

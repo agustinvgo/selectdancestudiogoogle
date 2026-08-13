@@ -108,6 +108,14 @@ const dbInit = {
 
         if (!alumnoColumns.includes('activo')) {
             await db.query('ALTER TABLE alumnos ADD COLUMN activo TINYINT(1) NOT NULL DEFAULT 1 AFTER usuario_id');
+            // Antes de que existiera alumnos.activo, el estado se guardaba en
+            // usuarios.activo. Conservamos ese valor al migrar para no volver
+            // a mostrar como activas alumnas que ya estaban desactivadas.
+            await db.query(`
+                UPDATE alumnos a
+                INNER JOIN usuarios u ON u.id = a.usuario_id
+                SET a.activo = COALESCE(u.activo, 1)
+            `);
         }
 
         await db.query(`
