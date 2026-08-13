@@ -71,7 +71,7 @@ const GestionEventos = () => {
             setFormData({
                 nombre: evento.nombre, descripcion: evento.descripcion || '', fecha: getDateOnlyString(evento.fecha),
                 hora: evento.hora || '', lugar: evento.lugar || '', ubicacion: evento.ubicacion || '',
-                tipo: evento.tipo || 'Presentación', costo: evento.costo_inscripcion || evento.costo || '',
+                tipo: evento.tipo || 'Presentación', costo: evento.costo_inscripcion ?? evento.costo ?? '',
                 cupo_maximo: evento.cupo_maximo || '', vestimenta: evento.vestuario_requerido || evento.vestimenta || '',
                 costo_vestuario: evento.costo_vestuario || '', maquillaje: evento.maquillaje_instrucciones || evento.maquillaje || '',
                 costo_maquillaje: evento.costo_maquillaje || '', peinado: evento.peinado_instrucciones || evento.peinado || '',

@@ -14,6 +14,10 @@ const EventoCard = ({
     inscribirAlumno
 }) => {
     const esFuturo = getDateOnlyString(evento.fecha) >= todayDateOnly();
+    const costoDefinido = evento.costo_inscripcion !== null
+        && evento.costo_inscripcion !== undefined
+        && evento.costo_inscripcion !== '';
+    const costo = Number(evento.costo_inscripcion);
 
     return (
         <div className={`card ${esFuturo ? 'border-blue-900' : 'border-gray-200'} `}>
@@ -52,13 +56,17 @@ const EventoCard = ({
                         <CalendarIcon className="h-5 w-5 mr-2 text-gray-500" />
                         <span>{formatDateOnly(evento.fecha)}{evento.hora ? ` - ${evento.hora}` : ''}</span>
                     </div>
-                    {evento.costo_inscripcion > 0 ? (
+                    {costoDefinido && costo > 0 ? (
                         <span className="px-3 py-1 bg-green-900 text-green-200 rounded-full text-sm font-bold">
-                            💰 ${Math.round(evento.costo_inscripcion).toLocaleString('es-AR')}
+                            💰 ${Math.round(costo).toLocaleString('es-AR')}
                         </span>
-                    ) : (
+                    ) : costoDefinido && costo === 0 ? (
                         <span className="px-3 py-1 bg-blue-900 text-blue-200 rounded-full text-sm font-bold">
                             🎁 GRATIS
+                        </span>
+                    ) : (
+                        <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-bold">
+                            COSTO A CONFIRMAR
                         </span>
                     )}
                 </div>

@@ -1,6 +1,11 @@
 const EventosModel = require('../../models/eventos.model');
 const EventosService = require('../../services/eventos.service');
 
+const normalizarMontoOpcional = (value) => {
+    if (value === '' || value === null || value === undefined) return null;
+    return Number(value);
+};
+
 const normalizarPlanPago = (data) => {
     const modalidad = data.modalidad_pago === 'cuotas' ? 'cuotas' : 'unico';
     const cantidadCuotas = modalidad === 'cuotas' ? Number.parseInt(data.cantidad_cuotas, 10) : 1;
@@ -68,7 +73,7 @@ const EventosController = {
 
             const id = await EventosModel.create({
                 ...data, ...planPago, descripcion: data.descripcion || '', hora: data.hora || null, ubicacion: data.ubicacion || null,
-                tipo: data.tipo || 'Presentación', cupo_maximo: data.cupo_maximo || null, costo_inscripcion: data.costo || 0,
+                tipo: data.tipo || 'Presentación', cupo_maximo: data.cupo_maximo || null, costo_inscripcion: normalizarMontoOpcional(data.costo),
                 vestuario_requerido: data.vestimenta || null, maquillaje_instrucciones: data.maquillaje || null,
                 peinado_instrucciones: data.peinado || null, costo_vestuario: data.costo_vestuario || 0,
                 costo_maquillaje: data.costo_maquillaje || 0, costo_peinado: data.costo_peinado || 0
@@ -92,7 +97,7 @@ const EventosController = {
             const updated = await EventosModel.update(req.params.id, {
                 ...data, ...planPago, descripcion: data.descripcion || '', fecha: data.fecha || null, hora: data.hora || null,
                 ubicacion: data.ubicacion || null, tipo: data.tipo || 'Presentación', cupo_maximo: data.cupo_maximo || null,
-                costo_inscripcion: data.costo || 0, vestuario_requerido: data.vestimenta || null,
+                costo_inscripcion: normalizarMontoOpcional(data.costo), vestuario_requerido: data.vestimenta || null,
                 maquillaje_instrucciones: data.maquillaje || null, peinado_instrucciones: data.peinado || null,
                 costo_vestuario: data.costo_vestuario || 0, costo_maquillaje: data.costo_maquillaje || 0, costo_peinado: data.costo_peinado || 0
             });

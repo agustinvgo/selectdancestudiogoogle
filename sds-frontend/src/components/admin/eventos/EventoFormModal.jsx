@@ -91,7 +91,7 @@ const EventoFormModal = ({ isOpen, onClose, onSubmit, editando, formData, setFor
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-600 mb-2">Costo</label>
+                        <label className="block text-sm font-medium text-gray-600 mb-2">Costo (opcional)</label>
                         <input
                             type="number"
                             value={formData.costo}
@@ -106,7 +106,9 @@ const EventoFormModal = ({ isOpen, onClose, onSubmit, editando, formData, setFor
                             className="input w-full"
                             min="0"
                             step="0.01"
+                            placeholder="Déjalo vacío si está por definir"
                         />
+                        <p className="mt-1 text-xs text-gray-500">Vacío: costo a confirmar. Escribe 0 únicamente si el evento es gratis.</p>
                     </div>
 
                     <div>

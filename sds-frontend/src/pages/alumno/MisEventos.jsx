@@ -106,7 +106,11 @@ const MisEventos = () => {
                                                     <div>
                                                         <p className="text-xs text-gray-500">Costo</p>
                                                         <p className="text-gray-900 font-medium">
-                                                            ${parseFloat(evento.costo_inscripcion).toLocaleString()}
+                                                            {evento.costo_inscripcion === null || evento.costo_inscripcion === undefined || evento.costo_inscripcion === ''
+                                                                ? 'A confirmar'
+                                                                : Number(evento.costo_inscripcion) === 0
+                                                                    ? 'Gratis'
+                                                                    : `$${Number(evento.costo_inscripcion).toLocaleString('es-AR')}`}
                                                         </p>
                                                     </div>
                                                 </div>
