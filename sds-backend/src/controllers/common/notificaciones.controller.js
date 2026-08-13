@@ -1,9 +1,68 @@
 const db = require('../../config/db');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+const sharp = require('sharp');
 const NotificacionModel = require('../../models/notificacion.model');
 const EmailService = require('../../services/email.service');
 const ConsultasModel = require('../../models/consultas.model');
 const notifSettings = require('../../services/notifSettings');
+
+const notificationUploadDir = path.join(__dirname, '../../../uploads/notificaciones');
+
+const persistNotificationImage = async (file) => {
+    if (!file) return null;
+
+    await fs.promises.mkdir(notificationUploadDir, { recursive: true });
+    const isGif = file.mimetype === 'image/gif';
+    const suffix = `${Date.now()}-${crypto.randomBytes(6).toString('hex')}`;
+    const extension = isGif ? '.gif' : '.jpg';
+    const filename = `noti-${suffix}${extension}`;
+    const absolutePath = path.join(notificationUploadDir, filename);
+
+    try {
+        const image = sharp(file.buffer, {
+            animated: isGif,
+            failOn: 'error',
+            limitInputPixels: 40_000_000
+        });
+        await image.metadata();
+
+        if (isGif) {
+            await fs.promises.writeFile(absolutePath, file.buffer);
+        } else {
+            await image
+                .rotate()
+                .resize({
+                    width: 1800,
+                    height: 1800,
+                    fit: 'inside',
+                    withoutEnlargement: true
+                })
+                .flatten({ background: '#ffffff' })
+                .jpeg({ quality: 86, mozjpeg: true })
+                .toFile(absolutePath);
+        }
+
+        return {
+            url: `/uploads/notificaciones/${filename}`,
+            absolutePath
+        };
+    } catch (error) {
+        await fs.promises.unlink(absolutePath).catch(() => {});
+        throw new Error('No se pudo procesar la imagen. Prueba con JPG, PNG, WebP, GIF, HEIC o AVIF.');
+    }
+};
+
+const removeNotificationImage = async (imagePath) => {
+    if (!imagePath) return;
+    const filename = path.basename(imagePath);
+    await fs.promises.unlink(path.join(notificationUploadDir, filename)).catch(error => {
+        if (error.code !== 'ENOENT') {
+            console.warn('[Comunicados] No se pudo eliminar la imagen:', error.message);
+        }
+    });
+};
 
 const NotificacionesController = {
     // Obtener contadores para badge de notificaciones (legacy + nuevo)
@@ -100,11 +159,15 @@ const NotificacionesController = {
 
     // [ADMIN] Enviar notificación
     async sendNotification(req, res) {
+        let savedImage = null;
         try {
             const { titulo, mensaje, tipo, filtro, destinatarioId, enviarEmail, remitente } = req.body;
-            const imagen_url = req.file ? `/uploads/notificaciones/${req.file.filename}` : null;
             const batch_id = crypto.randomUUID();
             const shouldSendEmail = enviarEmail === 'true' || enviarEmail === true;
+
+            if (!titulo?.trim() || !mensaje?.trim()) {
+                return res.status(400).json({ success: false, message: 'Título y mensaje son obligatorios.' });
+            }
 
             // 1. Identificar destinatarios
             let usuariosDestino = [];
@@ -135,6 +198,16 @@ const NotificacionesController = {
             if (usuariosDestino.length === 0) {
                 return res.status(404).json({ success: false, message: 'No se encontraron destinatarios para los filtros seleccionados.' });
             }
+
+            if (req.file) {
+                try {
+                    savedImage = await persistNotificationImage(req.file);
+                } catch (imageError) {
+                    return res.status(400).json({ success: false, message: imageError.message });
+                }
+            }
+
+            const imagen_url = savedImage?.url || null;
 
             // 2. Preparar datos para Bulk Insert
             const notificationsData = usuariosDestino.map(u => ({
@@ -175,7 +248,7 @@ const NotificacionesController = {
                                 nombre,
                                 titulo,
                                 mensaje,
-                                { force: true }
+                                { force: true, imagePath: savedImage?.absolutePath || null }
                             );
                         } catch (emailError) {
                             console.error(`[Background] Error enviando email a ${user.email}:`, emailError.message);
@@ -192,6 +265,7 @@ const NotificacionesController = {
             });
 
         } catch (error) {
+            await removeNotificationImage(savedImage?.absolutePath);
             console.error('Error enviando notificación:', error);
             console.error('Stack trace:', error.stack);
             res.status(500).json({ success: false, message: 'Error interno al enviar notificación' });
@@ -225,7 +299,9 @@ const NotificacionesController = {
     async deleteBatch(req, res) {
         try {
             const { batch_id } = req.params;
+            const imageUrl = await NotificacionModel.getBatchImageUrl(batch_id);
             const deletedCount = await NotificacionModel.deleteBatch(batch_id);
+            await removeNotificationImage(imageUrl);
             res.json({ success: true, message: `Se eliminaron ${deletedCount} notificaciones` });
         } catch (error) {
             console.error('Error deleting batch:', error);

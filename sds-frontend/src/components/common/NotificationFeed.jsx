@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { notificacionesAPI } from '../../services/api';
+import { notificacionesAPI, getMediaUrl } from '../../services/api';
 import {
     BellIcon,
     ExclamationTriangleIcon,
@@ -9,7 +9,38 @@ import {
 } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-const API_URL = import.meta.env.VITE_API_URL;
+
+const NotificationImage = ({ imageUrl, title }) => {
+    const [hasError, setHasError] = useState(false);
+    const resolvedUrl = getMediaUrl(imageUrl);
+
+    if (hasError) {
+        return (
+            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                No se pudo cargar la imagen adjunta. Avísale a administración para que vuelva a subirla.
+            </div>
+        );
+    }
+
+    return (
+        <a
+            href={resolvedUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 block overflow-hidden rounded-xl border border-gray-200 bg-gray-50"
+            onClick={(event) => event.stopPropagation()}
+            title="Abrir imagen completa"
+        >
+            <img
+                src={resolvedUrl}
+                alt={`Imagen del comunicado: ${title}`}
+                className="mx-auto max-h-[32rem] w-full object-contain"
+                loading="lazy"
+                onError={() => setHasError(true)}
+            />
+        </a>
+    );
+};
 
 const NotificationFeed = () => {
     const [notifications, setNotifications] = useState([]);
@@ -151,14 +182,10 @@ const NotificationFeed = () => {
 
                             {/* Imagen Adjunta */}
                             {notification.imagen_url && (
-                                <div className="mt-4">
-                                    <img
-                                        src={`${API_URL}${notification.imagen_url}`}
-                                        alt="Adjunto"
-                                        className="w-full h-auto rounded-lg object-cover shadow-sm max-h-96"
-                                        onError={(e) => { e.target.style.display = 'none' }}
-                                    />
-                                </div>
+                                <NotificationImage
+                                    imageUrl={notification.imagen_url}
+                                    title={notification.titulo}
+                                />
                             )}
 
                             {/* Footer Actions */}

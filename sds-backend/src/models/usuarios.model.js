@@ -5,7 +5,7 @@ const UsuariosModel = {
     async findByEmail(email) {
         try {
             const [rows] = await db.query(
-                'SELECT * FROM usuarios WHERE email = ? AND activo = 1',
+                'SELECT * FROM usuarios WHERE email = ? AND activo = 1 AND COALESCE(permite_login, 1) = 1',
                 [email]
             );
             return rows[0];
@@ -31,7 +31,7 @@ const UsuariosModel = {
     async findById(id) {
         try {
             const [rows] = await db.query(
-                'SELECT id, email, rol, activo, primer_login, created_at, nombre, apellido, telefono, foto_perfil, rol_display, orden FROM usuarios WHERE id = ?',
+                'SELECT id, email, rol, activo, permite_login, primer_login, created_at, nombre, apellido, telefono, foto_perfil, rol_display, orden FROM usuarios WHERE id = ?',
                 [id]
             );
             return rows[0];
@@ -76,6 +76,10 @@ const UsuariosModel = {
             if (userData.activo !== undefined) {
                 fields.push('activo = ?');
                 values.push(userData.activo);
+            }
+            if (userData.permite_login !== undefined) {
+                fields.push('permite_login = ?');
+                values.push(userData.permite_login ? 1 : 0);
             }
             if (userData.primer_login !== undefined) {
                 fields.push('primer_login = ?');

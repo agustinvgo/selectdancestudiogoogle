@@ -33,6 +33,8 @@ router.post('/', isAdmin, profileUpload.single('foto_perfil'), compressImage, va
 
 // Responsables / familia. Siempre lo administra el equipo del estudio.
 router.get('/:id/responsables', isAdmin, ResponsablesAlumnosController.getAll);
+router.get('/:id/responsables-candidatos', isAdmin, ResponsablesAlumnosController.getCandidates);
+router.post('/:id/unificar-cuenta', isAdmin, ResponsablesAlumnosController.mergeAccounts);
 router.post('/:id/responsables', isAdmin, ResponsablesAlumnosController.createOrLink);
 router.put('/:id/responsables/:usuarioId', isAdmin, ResponsablesAlumnosController.update);
 router.delete('/:id/responsables/:usuarioId', isAdmin, ResponsablesAlumnosController.remove);

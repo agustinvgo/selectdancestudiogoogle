@@ -58,6 +58,7 @@ const NotificacionModel = {
                     MAX(mensaje) as mensaje, 
                     MAX(tipo) as tipo, 
                     MAX(remitente) as remitente,
+                    MAX(imagen_url) as imagen_url,
                     COUNT(*) as total_destinatarios,
                     SUM(CASE WHEN leido = 1 THEN 1 ELSE 0 END) as leidos
                 FROM notificaciones 
@@ -70,6 +71,14 @@ const NotificacionModel = {
         } catch (error) {
             throw error;
         }
+    },
+
+    async getBatchImageUrl(batch_id) {
+        const [rows] = await db.query(
+            'SELECT imagen_url FROM notificaciones WHERE batch_id = ? AND imagen_url IS NOT NULL LIMIT 1',
+            [batch_id]
+        );
+        return rows[0]?.imagen_url || null;
     },
 
     // Eliminar batch completo

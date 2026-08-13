@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const path = require('path');
+const fs = require('fs');
 const { formatPaymentPeriod } = require('../utils/paymentPeriod');
 const { formatSchedule } = require('../utils/formatters');
 const notifSettings = require('./notifSettings');
@@ -55,6 +56,15 @@ const capitalizeName = (str) => {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
 };
+
+const escapeHtml = (value) => String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+
+const formatPlainTextForEmail = (value) => escapeHtml(value).replace(/\r?\n/g, '<br>');
 
 /**
  * Template base para emails (Modo Dark Luxury Elite)
@@ -742,8 +752,33 @@ module.exports = {
     // Métodos alias para compatibilidad
     enviarEmailPersonalizado: async (email, nombre, asunto, mensaje, opts = {}) => {
         const nameFormatted = capitalizeName(nombre);
-        const content = `<h1>Hola <strong>${nameFormatted}</strong></h1><p>${mensaje}</p>`;
-        return sendEmail({ from: `"Select Dance Studio" <${process.env.SMTP_USER}>`, to: email, subject: asunto, html: emailTemplate(asunto, content) }, opts);
+        const attachments = [];
+        let imageContent = '';
+
+        if (opts.imagePath && fs.existsSync(opts.imagePath)) {
+            attachments.push({
+                filename: path.basename(opts.imagePath),
+                path: opts.imagePath,
+                cid: 'comunicado-imagen'
+            });
+            imageContent = `
+                <div style="margin-top: 24px; text-align: center;">
+                    <img src="cid:comunicado-imagen" alt="Imagen del comunicado" style="display: block; width: 100%; max-width: 620px; height: auto; margin: 0 auto; border-radius: 12px;" />
+                </div>`;
+        }
+
+        const content = `
+            <h1>Hola <strong>${escapeHtml(nameFormatted)}</strong></h1>
+            <p>${formatPlainTextForEmail(mensaje)}</p>
+            ${imageContent}`;
+
+        return sendEmail({
+            from: `"Select Dance Studio" <${process.env.SMTP_USER}>`,
+            to: email,
+            subject: asunto,
+            html: emailTemplate(escapeHtml(asunto), content),
+            attachments
+        }, opts);
     },
     enviarNotificacionEvento: async (email, nombre, nombreEvento, fecha, lugar) => {
         const content = `<h1>¡Evento Próximo! 🎭</h1><div class="info-box"><h3>${nombreEvento}</h3><p><strong>Fecha:</strong> ${new Date(fecha).toLocaleDateString('es-AR')}</p><p><strong>Lugar:</strong> ${lugar || '-'}</p></div>`;

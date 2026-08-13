@@ -75,6 +75,7 @@ const dbInit = {
             { name: 'mostrar_en_web', type: 'TINYINT(1) DEFAULT 0 AFTER orden' },
             { name: 'foto_perfil', type: 'VARCHAR(255) AFTER telefono' },
             { name: 'foto_posicion', type: "VARCHAR(255) DEFAULT 'center' AFTER foto_perfil" },
+            { name: 'permite_login', type: 'TINYINT(1) NOT NULL DEFAULT 1 AFTER activo' },
             { name: 'primer_login', type: 'TINYINT(1) DEFAULT 1 AFTER activo' },
             { name: 'nombre', type: 'VARCHAR(100) AFTER primer_login' },
             { name: 'apellido', type: 'VARCHAR(100) AFTER nombre' },
@@ -130,9 +131,11 @@ const dbInit = {
 
         await db.query(`
             INSERT IGNORE INTO responsables_alumnos (usuario_id, alumno_id, parentesco, es_principal)
-            SELECT usuario_id, id, 'Cuenta principal', 1
-            FROM alumnos
-            WHERE usuario_id IS NOT NULL
+            SELECT a.usuario_id, a.id, 'Cuenta principal', 1
+            FROM alumnos a
+            INNER JOIN usuarios u ON u.id = a.usuario_id
+            WHERE a.usuario_id IS NOT NULL
+              AND COALESCE(u.permite_login, 1) = 1
         `);
     },
 

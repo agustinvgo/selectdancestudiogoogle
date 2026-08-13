@@ -1,31 +1,32 @@
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
+const storage = multer.memoryStorage();
 
-// Ensure upload directory exists
-const uploadDir = path.join(__dirname, '../../uploads/notificaciones');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, uploadDir);
-    },
-    filename: function (req, file, cb) {
-        // Generate unique filename: noti-TIMESTAMP-RANDOM.ext
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = path.extname(file.originalname);
-        cb(null, `noti-${uniqueSuffix}${ext}`);
-    }
-});
+const ALLOWED_EXTENSIONS = new Set([
+    '.jpg', '.jpeg', '.png', '.webp', '.gif', '.heic', '.heif', '.avif'
+]);
+const ALLOWED_MIMETYPES = new Set([
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/webp',
+    'image/gif',
+    'image/heic',
+    'image/heif',
+    'image/avif'
+]);
 
 const fileFilter = (req, file, cb) => {
-    // Determine allowed file types
-    if (file.mimetype.startsWith('image/')) {
+    const extension = path.extname(file.originalname).toLowerCase();
+    const hasValidExtension = ALLOWED_EXTENSIONS.has(extension);
+    const hasValidMime = ALLOWED_MIMETYPES.has(file.mimetype)
+        || !file.mimetype
+        || file.mimetype === 'application/octet-stream';
+
+    if (hasValidExtension && hasValidMime) {
         cb(null, true);
     } else {
-        cb(new Error('Solo se permiten archivos de imagen.'), false);
+        cb(new Error('Formato no compatible. Usa JPG, PNG, WebP, GIF, HEIC/HEIF o AVIF.'), false);
     }
 };
 
@@ -33,7 +34,7 @@ const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
     limits: {
-        fileSize: 5 * 1024 * 1024 // 5MB limit
+        fileSize: 10 * 1024 * 1024
     }
 });
 

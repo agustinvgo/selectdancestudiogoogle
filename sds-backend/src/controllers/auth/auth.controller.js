@@ -210,6 +210,13 @@ const AuthController = {
                 });
             }
 
+            if (usuario.rol === 'alumno' && Number(usuario.permite_login) === 0) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Esta cuenta fue unificada. Ingresa con la cuenta familiar que se conservo.'
+                });
+            }
+
             let alumnoData = null;
             let alumnosData = [];
             if (usuario.rol === 'alumno') {

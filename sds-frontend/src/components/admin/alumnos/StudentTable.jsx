@@ -62,7 +62,7 @@ const StudentTable = ({ alumnos, isActivo, abrirModal, toggleEstadoAlumno, elimi
                                     className="flex-1 py-2 px-3 flex items-center justify-center gap-2 rounded-lg border border-gray-200 text-gray-700 font-medium text-sm hover:bg-gray-50 hover:border-gray-300 transition-all"
                                 >
                                     <EyeIcon className="h-4 w-4 text-gray-500" />
-                                    <span>Ver</span>
+                                    <span>Ficha / familia</span>
                                 </button>
                                 <button
                                     onClick={() => abrirModal(alumno)}
@@ -176,7 +176,7 @@ const StudentTable = ({ alumnos, isActivo, abrirModal, toggleEstadoAlumno, elimi
                                             <button
                                                 onClick={() => navigate(`/admin/alumnos/${alumno.id}`)}
                                                 className="text-blue-600 hover:text-blue-900"
-                                                title="Ver ficha"
+                                                title="Ver ficha y administrar familia"
                                             >
                                                 <EyeIcon className="h-5 w-5" />
                                             </button>

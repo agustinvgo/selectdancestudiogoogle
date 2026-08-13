@@ -83,6 +83,8 @@ export const alumnosAPI = {
     }),
     delete: (id) => api.delete(`/alumnos/${id}`),
     getResponsables: (id) => api.get(`/alumnos/${id}/responsables`),
+    getResponsablesCandidates: (id) => api.get(`/alumnos/${id}/responsables-candidatos`),
+    mergeFamilyAccount: (id, usuarioId) => api.post(`/alumnos/${id}/unificar-cuenta`, { usuario_id: usuarioId }),
     addResponsable: (id, data) => api.post(`/alumnos/${id}/responsables`, data),
     updateResponsable: (id, usuarioId, data) => api.put(`/alumnos/${id}/responsables/${usuarioId}`, data),
     removeResponsable: (id, usuarioId) => api.delete(`/alumnos/${id}/responsables/${usuarioId}`),

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { notificacionesAPI, cursosAPI, alumnosAPI } from '../../services/api';
+import { useState, useEffect, useRef } from 'react';
+import { notificacionesAPI, cursosAPI, alumnosAPI, getMediaUrl } from '../../services/api';
 import useToast from '../../hooks/useToast';
 import useConfirm from '../../hooks/useConfirm';
 import ConfirmDialog from '../../components/ConfirmDialog';
@@ -8,9 +8,26 @@ import {
     UserGroupIcon,
     AcademicCapIcon,
     UserIcon,
-    EnvelopeIcon
+    EnvelopeIcon,
+    PhotoIcon,
+    XMarkIcon
 } from '@heroicons/react/24/outline';
 import Loader from '../../components/Loader';
+
+const ALLOWED_IMAGE_TYPES = new Set([
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/webp',
+    'image/gif',
+    'image/heic',
+    'image/heif',
+    'image/avif'
+]);
+const ALLOWED_IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif', 'heic', 'heif', 'avif']);
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+
+const formatFileSize = (bytes) => `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 
 const Comunicados = () => {
     const [loading, setLoading] = useState(false);
@@ -23,6 +40,8 @@ const Comunicados = () => {
     const [enviarEmail, setEnviarEmail] = useState(false);
     const [remitente, setRemitente] = useState('');
     const [imagen, setImagen] = useState(null);
+    const [imagenPreview, setImagenPreview] = useState('');
+    const fileInputRef = useRef(null);
 
     // Destinatarios
     const [filtro, setFiltro] = useState('todos'); // todos, rol, curso, usuario
@@ -46,6 +65,12 @@ const Comunicados = () => {
     const [loadingRecipients, setLoadingRecipients] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all'); // all, read, unread
+
+    useEffect(() => {
+        return () => {
+            if (imagenPreview) URL.revokeObjectURL(imagenPreview);
+        };
+    }, [imagenPreview]);
 
     useEffect(() => {
         if (activeTab === 'historial') {
@@ -130,10 +155,35 @@ const Comunicados = () => {
         }
     };
 
+    const clearImage = () => {
+        setImagen(null);
+        setImagenPreview('');
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
     const handleFileChange = (e) => {
-        if (e.target.files[0]) {
-            setImagen(e.target.files[0]);
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const extension = file.name.split('.').pop()?.toLowerCase();
+        const hasValidType = ALLOWED_IMAGE_TYPES.has(file.type)
+            || !file.type
+            || file.type === 'application/octet-stream';
+
+        if (!ALLOWED_IMAGE_EXTENSIONS.has(extension) || !hasValidType) {
+            clearImage();
+            toast.error('Formato no compatible. Usa JPG, PNG, WebP, GIF, HEIC/HEIF o AVIF.');
+            return;
         }
+
+        if (file.size > MAX_IMAGE_SIZE) {
+            clearImage();
+            toast.error('La imagen supera el máximo permitido de 10 MB.');
+            return;
+        }
+
+        setImagen(file);
+        setImagenPreview(URL.createObjectURL(file));
     };
 
     const handleSubmit = async (e) => {
@@ -170,8 +220,7 @@ const Comunicados = () => {
             setTitulo('');
             setMensaje('');
             setRemitente('');
-            setImagen(null);
-            // Reset file input manually if needed or via ref, but for now just state
+            clearImage();
             setPaginaDefault();
         } catch (error) {
             console.error('Error enviando comunicado:', error);
@@ -321,6 +370,10 @@ const Comunicados = () => {
                                             placeholder="Escribe el contenido del comunicado aquí..."
                                             required
                                         ></textarea>
+                                        <div className="mt-1 flex items-center justify-between text-xs text-gray-400">
+                                            <span>Se respetan los saltos de línea y las listas con •.</span>
+                                            <span>{mensaje.length} caracteres</span>
+                                        </div>
                                     </div>
 
                                     {/* Remitente e Imagen */}
@@ -338,14 +391,46 @@ const Comunicados = () => {
                                     <div>
                                         <label className="label">Adjuntar Imagen (Opcional)</label>
                                         <input
+                                            ref={fileInputRef}
                                             type="file"
                                             onChange={handleFileChange}
                                             className="file-input file-input-bordered w-full"
-                                            accept="image/*"
+                                            accept=".jpg,.jpeg,.png,.webp,.gif,.heic,.heif,.avif,image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,image/avif"
                                         />
-                                        <label className="label-text-alt text-gray-400 mt-1">
-                                            Formatos: JPG, PNG, GIF. Máx 5MB.
-                                        </label>
+                                        <p className="label-text-alt text-gray-400 mt-1">
+                                            JPG, PNG, WebP, GIF, HEIC/HEIF y AVIF. Máximo 10 MB. Las fotos se optimizan automáticamente.
+                                        </p>
+
+                                        {imagen && (
+                                            <div className="mt-3 overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
+                                                {!['image/heic', 'image/heif'].includes(imagen.type) ? (
+                                                    <img
+                                                        src={imagenPreview}
+                                                        alt="Vista previa de la imagen seleccionada"
+                                                        className="h-52 w-full object-contain bg-white"
+                                                    />
+                                                ) : (
+                                                    <div className="flex h-36 flex-col items-center justify-center gap-2 bg-white text-gray-500">
+                                                        <PhotoIcon className="h-10 w-10" />
+                                                        <span className="text-sm">La foto HEIC se convertirá al enviarla</span>
+                                                    </div>
+                                                )}
+                                                <div className="flex items-center justify-between gap-3 px-4 py-3">
+                                                    <div className="min-w-0">
+                                                        <p className="truncate text-sm font-semibold text-gray-800">{imagen.name}</p>
+                                                        <p className="text-xs text-gray-500">{formatFileSize(imagen.size)}</p>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={clearImage}
+                                                        className="btn btn-sm btn-ghost text-red-600"
+                                                    >
+                                                        <XMarkIcon className="h-4 w-4" />
+                                                        Quitar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
 
@@ -419,6 +504,50 @@ const Comunicados = () => {
 
                     {/* Previsualización / Info */}
                     <div className="lg:col-span-1 space-y-6">
+                        <div className="card overflow-hidden border-gray-200 bg-white">
+                            <div className="card-body p-0">
+                                <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+                                    <h3 className="font-bold text-gray-900">Vista previa</h3>
+                                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                                        tipo === 'importante'
+                                            ? 'bg-red-100 text-red-700'
+                                            : tipo === 'aviso'
+                                                ? 'bg-yellow-100 text-yellow-700'
+                                                : 'bg-blue-100 text-blue-700'
+                                    }`}>
+                                        {tipo === 'importante' ? 'Importante' : tipo === 'aviso' ? 'Aviso' : 'Información'}
+                                    </span>
+                                </div>
+
+                                {imagen && (
+                                    !['image/heic', 'image/heif'].includes(imagen.type) ? (
+                                        <img
+                                            src={imagenPreview}
+                                            alt="Imagen del comunicado"
+                                            className="max-h-64 w-full object-contain bg-gray-50"
+                                        />
+                                    ) : (
+                                        <div className="flex h-32 flex-col items-center justify-center gap-2 bg-gray-50 text-gray-500">
+                                            <PhotoIcon className="h-8 w-8" />
+                                            <span className="text-xs">Imagen HEIC seleccionada</span>
+                                        </div>
+                                    )
+                                )}
+
+                                <div className="px-5 py-5">
+                                    <p className="mb-1 text-xs font-bold uppercase tracking-wide text-gray-400">
+                                        {remitente.trim() || 'Select Dance Studio'}
+                                    </p>
+                                    <h4 className="text-lg font-bold text-gray-900">
+                                        {titulo.trim() || 'Título del comunicado'}
+                                    </h4>
+                                    <p className={`mt-3 whitespace-pre-line text-sm leading-relaxed ${mensaje ? 'text-gray-600' : 'text-gray-400'}`}>
+                                        {mensaje || 'Aquí podrás revisar cómo se verá el mensaje antes de enviarlo.'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="card bg-gray-50 border-gray-200">
                             <div className="card-body">
                                 <h3 className="font-bold text-gray-800 mb-2 flex items-center">
@@ -486,9 +615,21 @@ const Comunicados = () => {
                                                     {new Date(batch.fecha).toLocaleString()}
                                                 </td>
                                                 <td>
-                                                    <div className="font-bold">{batch.titulo}</div>
-                                                    <div className="text-xs text-gray-500 truncate max-w-xs">{batch.mensaje}</div>
-                                                    {batch.remitente && <span className="badge badge-xs badge-ghost mt-1">{batch.remitente}</span>}
+                                                    <div className="flex items-start gap-3">
+                                                        {batch.imagen_url && (
+                                                            <img
+                                                                src={getMediaUrl(batch.imagen_url)}
+                                                                alt="Adjunto"
+                                                                className="h-12 w-12 flex-none rounded-lg border border-gray-200 bg-gray-50 object-cover"
+                                                                loading="lazy"
+                                                            />
+                                                        )}
+                                                        <div className="min-w-0">
+                                                            <div className="font-bold">{batch.titulo}</div>
+                                                            <div className="text-xs text-gray-500 truncate max-w-xs">{batch.mensaje}</div>
+                                                            {batch.remitente && <span className="badge badge-xs badge-ghost mt-1">{batch.remitente}</span>}
+                                                        </div>
+                                                    </div>
                                                 </td>
                                                 <td>
                                                     <button
