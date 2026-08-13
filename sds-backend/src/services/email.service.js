@@ -64,7 +64,9 @@ const escapeHtml = (value) => String(value || '')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 
-const formatPlainTextForEmail = (value) => escapeHtml(value).replace(/\r?\n/g, '<br>');
+const formatPlainTextForEmail = (value) => escapeHtml(value)
+    .replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\r?\n/g, '<br>');
 
 /**
  * Template base para emails (Modo Dark Luxury Elite)

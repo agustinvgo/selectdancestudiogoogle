@@ -13,6 +13,7 @@ import {
     XMarkIcon
 } from '@heroicons/react/24/outline';
 import Loader from '../../components/Loader';
+import FormattedMessage, { stripMessageFormatting } from '../../components/common/FormattedMessage';
 
 const ALLOWED_IMAGE_TYPES = new Set([
     'image/jpeg',
@@ -154,6 +155,7 @@ const Comunicados = () => {
     const [processingImage, setProcessingImage] = useState(false);
     const [previewOmitted, setPreviewOmitted] = useState(false);
     const fileInputRef = useRef(null);
+    const messageInputRef = useRef(null);
 
     // Destinatarios
     const [filtro, setFiltro] = useState('todos'); // todos, rol, curso, usuario
@@ -383,6 +385,36 @@ const Comunicados = () => {
         }
     };
 
+    const toggleBoldSelection = () => {
+        const input = messageInputRef.current;
+        if (!input) return;
+
+        const start = input.selectionStart;
+        const end = input.selectionEnd;
+
+        if (start === end) {
+            toast.error('Selecciona primero la frase que quieres poner en negrita.');
+            input.focus();
+            return;
+        }
+
+        const selectedText = mensaje.slice(start, end);
+        const prefix = mensaje.slice(0, start);
+        const suffix = mensaje.slice(end);
+        const isAlreadyBold = prefix.endsWith('**') && suffix.startsWith('**');
+        const nextMessage = isAlreadyBold
+            ? `${prefix.slice(0, -2)}${selectedText}${suffix.slice(2)}`
+            : `${prefix}**${selectedText}**${suffix}`;
+        const nextStart = isAlreadyBold ? start - 2 : start + 2;
+        const nextEnd = isAlreadyBold ? end - 2 : end + 2;
+
+        setMensaje(nextMessage);
+        requestAnimationFrame(() => {
+            input.focus();
+            input.setSelectionRange(nextStart, nextEnd);
+        });
+    };
+
     const setPaginaDefault = () => {
         setFiltro('todos');
         setDestinatarioId('');
@@ -515,16 +547,35 @@ const Comunicados = () => {
 
                                     <div>
                                         <label className="label">Mensaje</label>
+                                        <div className="mb-2 flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 p-2">
+                                            <button
+                                                type="button"
+                                                onClick={toggleBoldSelection}
+                                                className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-bold text-gray-900 shadow-sm transition-colors hover:border-gray-400 hover:bg-gray-100"
+                                                title="Aplicar o quitar negrita (Ctrl+B)"
+                                            >
+                                                <span className="text-base font-black">B</span>
+                                                Negrita
+                                            </button>
+                                            <span className="text-xs text-gray-500">Selecciona una frase y presiona Negrita.</span>
+                                        </div>
                                         <textarea
+                                            ref={messageInputRef}
                                             value={mensaje}
                                             onChange={(e) => setMensaje(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+                                                    e.preventDefault();
+                                                    toggleBoldSelection();
+                                                }
+                                            }}
                                             className="input w-full"
                                             rows="6"
                                             placeholder="Escribe el contenido del comunicado aquí..."
                                             required
                                         ></textarea>
                                         <div className="mt-1 flex items-center justify-between text-xs text-gray-400">
-                                            <span>Se respetan los saltos de línea y las listas con •.</span>
+                                            <span>Se respetan saltos de línea, listas con • y frases en negrita.</span>
                                             <span>{mensaje.length} caracteres</span>
                                         </div>
                                     </div>
@@ -706,9 +757,11 @@ const Comunicados = () => {
                                     <h4 className="text-lg font-bold text-gray-900">
                                         {titulo.trim() || 'Título del comunicado'}
                                     </h4>
-                                    <p className={`mt-3 whitespace-pre-line text-sm leading-relaxed ${mensaje ? 'text-gray-600' : 'text-gray-400'}`}>
-                                        {mensaje || 'Aquí podrás revisar cómo se verá el mensaje antes de enviarlo.'}
-                                    </p>
+                                    <FormattedMessage
+                                        as="p"
+                                        text={mensaje || 'Aquí podrás revisar cómo se verá el mensaje antes de enviarlo.'}
+                                        className={`mt-3 text-sm leading-relaxed ${mensaje ? 'text-gray-600' : 'text-gray-400'}`}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -791,7 +844,7 @@ const Comunicados = () => {
                                                         )}
                                                         <div className="min-w-0">
                                                             <div className="font-bold">{batch.titulo}</div>
-                                                            <div className="text-xs text-gray-500 truncate max-w-xs">{batch.mensaje}</div>
+                                                            <div className="text-xs text-gray-500 truncate max-w-xs">{stripMessageFormatting(batch.mensaje)}</div>
                                                             {batch.remitente && <span className="badge badge-xs badge-ghost mt-1">{batch.remitente}</span>}
                                                         </div>
                                                     </div>

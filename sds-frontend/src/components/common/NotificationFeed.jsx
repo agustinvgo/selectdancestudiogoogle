@@ -9,6 +9,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import FormattedMessage from './FormattedMessage';
 
 const NotificationImage = ({ imageUrl, title }) => {
     const [hasError, setHasError] = useState(false);
@@ -176,9 +177,10 @@ const NotificationFeed = () => {
                                 )}
                             </div>
 
-                            <div className="mt-4 prose prose-sm max-w-none text-gray-600 leading-relaxed whitespace-pre-line">
-                                {notification.mensaje}
-                            </div>
+                            <FormattedMessage
+                                text={notification.mensaje}
+                                className="mt-4 prose prose-sm max-w-none text-gray-600 leading-relaxed"
+                            />
 
                             {/* Imagen Adjunta */}
                             {notification.imagen_url && (
