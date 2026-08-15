@@ -9,6 +9,7 @@ const dbInit = {
             // 1. Verificar/Reparar tablas críticas (Idempotente)
             await this.repairClasesPrueba();
             await this.repairUsuarios();
+            await this.ensureEquipoWeb();
             await this.ensureResponsablesAlumnos();
             await this.repairCursos();
             await this.ensureCursoProfesores();
@@ -95,6 +96,82 @@ const dbInit = {
         } catch (e) {
             // Ignorar si la tabla recién se creó o no aplica
         }
+    },
+
+    /**
+     * Mantiene los perfiles públicos del equipo separados de las cuentas con
+     * acceso al sistema. Antes cada integrante se creaba como un usuario
+     * profesor con credenciales ficticias.
+     */
+    async ensureEquipoWeb() {
+        const usuariosColumns = await this.getTableColumns('usuarios');
+        if (!usuariosColumns) return;
+
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS equipo_web (
+                id INT NOT NULL AUTO_INCREMENT,
+                usuario_origen_id INT DEFAULT NULL,
+                nombre VARCHAR(150) NOT NULL,
+                cargo VARCHAR(150) DEFAULT NULL,
+                descripcion TEXT NULL,
+                foto_url VARCHAR(500) DEFAULT NULL,
+                foto_posicion VARCHAR(255) NOT NULL DEFAULT 'center',
+                orden INT NOT NULL DEFAULT 0,
+                activo TINYINT(1) NOT NULL DEFAULT 1,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                UNIQUE KEY uq_equipo_web_usuario_origen (usuario_origen_id),
+                KEY idx_equipo_web_activo_orden (activo, orden)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+        `);
+
+        // Copia una sola vez los integrantes existentes. INSERT IGNORE evita
+        // sobrescribir cambios posteriores hechos desde la gestión de Equipo.
+        await db.query(`
+            INSERT IGNORE INTO equipo_web (
+                usuario_origen_id,
+                nombre,
+                cargo,
+                descripcion,
+                foto_url,
+                foto_posicion,
+                orden,
+                activo,
+                created_at,
+                updated_at
+            )
+            SELECT
+                id,
+                COALESCE(NULLIF(TRIM(nombre), ''), CONCAT('Integrante ', id)),
+                rol_display,
+                descripcion,
+                foto_perfil,
+                COALESCE(NULLIF(foto_posicion, ''), 'center'),
+                COALESCE(orden, 0),
+                COALESCE(activo, 1),
+                created_at,
+                updated_at
+            FROM usuarios
+            WHERE mostrar_en_web = 1
+              AND rol = 'profesor'
+        `);
+
+        // Desactiva únicamente las cuentas sintéticas creadas por el antiguo
+        // formulario. Los profesores reales mantienen su acceso normal.
+        await db.query(`
+            UPDATE usuarios
+            SET activo = 0,
+                permite_login = 0,
+                mostrar_en_web = 0
+            WHERE rol = 'profesor'
+              AND mostrar_en_web = 1
+              AND password_hash IN (
+                  'dummy_hash',
+                  '$2b$10$X7.X.X.X.X.X.X.X.X.X.X'
+              )
+              AND email LIKE 'staff_%@selectdance.com'
+        `);
     },
 
     /**

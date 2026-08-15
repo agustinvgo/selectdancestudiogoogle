@@ -29,6 +29,7 @@ const GestionAlumnos = () => {
     // Filters State
     const [activeTab, setActiveTab] = useState('activos');
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
 
     // Modal State
     const [modalOpen, setModalOpen] = useState(false);
@@ -74,18 +75,20 @@ const GestionAlumnos = () => {
     // --- React Query ---
     // 1. Fetch Alumnos
     const { data: alumnosData, isLoading: loadingAlumnos } = useQuery({
-        queryKey: ['alumnos', { page, pageSize, searchTerm, activeTab }],
+        queryKey: ['alumnos', { page, pageSize, searchTerm: debouncedSearchTerm, activeTab }],
         queryFn: async () => {
             const params = {
                 page,
                 limit: pageSize,
-                search: searchTerm,
+                search: debouncedSearchTerm,
                 activo: activeTab
             };
             const response = await alumnosAPI.getAll(params);
             return response.data;
         },
-        keepPreviousData: true,
+        // React Query 5 reemplazó keepPreviousData. Conservar la respuesta
+        // evita desmontar el buscador mientras llega la siguiente página.
+        placeholderData: (previousData) => previousData,
     });
 
     const alumnos = alumnosData?.data || [];
@@ -110,10 +113,19 @@ const GestionAlumnos = () => {
 
     const loading = loadingAlumnos;
 
+    // Esperar brevemente antes de consultar para no recargar por cada tecla.
+    useEffect(() => {
+        const timeoutId = window.setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm.trim());
+        }, 350);
+
+        return () => window.clearTimeout(timeoutId);
+    }, [searchTerm]);
+
     // Reset page when filters change
     useEffect(() => {
         setPage(1);
-    }, [searchTerm, activeTab]);
+    }, [debouncedSearchTerm, activeTab]);
 
 
 

@@ -22,7 +22,9 @@ const UsuariosController = {
                         THEN 1 ELSE 0
                     END AS requiere_configurar_acceso
                 FROM usuarios
-                WHERE rol = 'profesor' AND activo = 1
+                WHERE rol = 'profesor'
+                  AND activo = 1
+                  AND COALESCE(permite_login, 1) = 1
             `);
             res.json({
                 success: true,
@@ -67,7 +69,7 @@ const UsuariosController = {
                     // Si existe pero está inactivo, lo reactivamos
                     const password_hash = await bcrypt.hash(password, 10);
                     await db.query(
-                        'UPDATE usuarios SET password_hash = ?, nombre = ?, apellido = ?, rol = ?, activo = 1 WHERE id = ?',
+                        'UPDATE usuarios SET password_hash = ?, nombre = ?, apellido = ?, rol = ?, activo = 1, permite_login = 1 WHERE id = ?',
                         [password_hash, nombreNormalizado, apellidoNormalizado, 'profesor', existingUser.id]
                     );
 

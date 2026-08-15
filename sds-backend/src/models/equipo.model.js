@@ -1,112 +1,82 @@
 const db = require('../config/db');
 
 const EquipoModel = {
-    // Listar todos los miembros activos que deben mostrarse en la web
+    // Listar los perfiles públicos activos del equipo.
     async findAll() {
-        try {
-            const [rows] = await db.query(`
-                SELECT id, nombre, rol_display as cargo, descripcion, foto_perfil as foto_url, foto_posicion, orden, activo, created_at, updated_at 
-                FROM usuarios 
-                WHERE rol = 'profesor' AND activo = 1 AND mostrar_en_web = 1
-                ORDER BY
-                    CASE
-                        WHEN LOWER(TRIM(COALESCE(rol_display, ''))) LIKE 'directora%' THEN 0
-                        ELSE 1
-                    END ASC,
-                    orden ASC,
-                    created_at DESC
-            `);
-            return rows;
-        } catch (error) {
-            throw error;
-        }
+        const [rows] = await db.query(`
+            SELECT id, nombre, cargo, descripcion, foto_url, foto_posicion,
+                   orden, activo, created_at, updated_at
+            FROM equipo_web
+            WHERE activo = 1
+            ORDER BY
+                CASE
+                    WHEN LOWER(TRIM(COALESCE(cargo, ''))) LIKE 'directora%' THEN 0
+                    ELSE 1
+                END ASC,
+                orden ASC,
+                created_at DESC
+        `);
+        return rows;
     },
 
-    // Obtener miembro por ID
     async findById(id) {
-        try {
-            const [rows] = await db.query(`
-                SELECT id, nombre, rol_display as cargo, descripcion, foto_perfil as foto_url, foto_posicion, orden, activo, created_at, updated_at 
-                FROM usuarios 
-                WHERE id = ? AND rol = 'profesor' AND mostrar_en_web = 1
-            `, [id]);
-            return rows[0];
-        } catch (error) {
-            throw error;
-        }
+        const [rows] = await db.query(`
+            SELECT id, nombre, cargo, descripcion, foto_url, foto_posicion,
+                   orden, activo, created_at, updated_at
+            FROM equipo_web
+            WHERE id = ?
+        `, [id]);
+        return rows[0];
     },
 
-    // Crear miembro (específicamente destinado a mostrarse en la web)
+    // Crear un perfil público. No genera credenciales ni una cuenta de profesor.
     async create(data) {
-        try {
-            const { nombre, cargo, descripcion, foto_url, foto_posicion } = data;
-            const [result] = await db.query(
-                `INSERT INTO usuarios (nombre, rol_display, descripcion, foto_perfil, foto_posicion, email, password_hash, rol, activo, mostrar_en_web) 
-                 VALUES (?, ?, ?, ?, ?, CONCAT('staff_', UUID(), '@selectdance.com'), 'dummy_hash', 'profesor', 1, 1)`,
-                [nombre, cargo || null, descripcion || null, foto_url || null, foto_posicion || 'center']
-            );
-            return result.insertId;
-        } catch (error) {
-            throw error;
-        }
+        const { nombre, cargo, descripcion, foto_url, foto_posicion } = data;
+        const [result] = await db.query(
+            `INSERT INTO equipo_web (nombre, cargo, descripcion, foto_url, foto_posicion, activo)
+             VALUES (?, ?, ?, ?, ?, 1)`,
+            [nombre, cargo || null, descripcion || null, foto_url || null, foto_posicion || 'center']
+        );
+        return result.insertId;
     },
 
-    // Actualizar miembro
     async update(id, data) {
-        try {
-            const fields = [];
-            const params = [];
+        const fields = [];
+        const params = [];
+        const allowedMapping = {
+            nombre: 'nombre',
+            cargo: 'cargo',
+            descripcion: 'descripcion',
+            foto_url: 'foto_url',
+            foto_posicion: 'foto_posicion',
+            activo: 'activo',
+            orden: 'orden'
+        };
 
-            // Campos permitidos para actualización (mapeados a la DB real)
-            const allowedMapping = {
-                'nombre': 'nombre',
-                'cargo': 'rol_display',
-                'descripcion': 'descripcion',
-                'foto_url': 'foto_perfil',
-                'foto_posicion': 'foto_posicion',
-                'activo': 'activo',
-                'orden': 'orden' // si el order existía en el body anterior
-            };
-
-            Object.keys(allowedMapping).forEach(frontField => {
-                if (data[frontField] !== undefined) {
-                    fields.push(`${allowedMapping[frontField]} = ?`);
-                    params.push(data[frontField]);
-                }
-            });
-
-            if (fields.length === 0) {
-                console.warn('[EquipoModel.update] No fields to update for id:', id);
-                return false;
+        Object.keys(allowedMapping).forEach((frontField) => {
+            if (data[frontField] !== undefined) {
+                fields.push(`${allowedMapping[frontField]} = ?`);
+                params.push(data[frontField]);
             }
+        });
 
-            params.push(id);
-            const query = `UPDATE usuarios SET ${fields.join(', ')} WHERE id = ?`;
-            console.log('[EquipoModel.update] Query:', query, params);
+        if (fields.length === 0) return false;
 
-            const [result] = await db.query(query, params);
-            return true;
-        } catch (error) {
-            console.error('[EquipoModel.update] Error:', error);
-            throw error;
-        }
+        params.push(id);
+        const [result] = await db.query(
+            `UPDATE equipo_web SET ${fields.join(', ')} WHERE id = ?`,
+            params
+        );
+        return result.affectedRows > 0;
     },
 
-    // Eliminar miembro (soft delete) - Protege administradores
+    // Ocultar el perfil público sin modificar ninguna cuenta del sistema.
     async delete(id) {
-        try {
-            const [result] = await db.query("UPDATE usuarios SET activo = 0 WHERE id = ? AND rol != 'admin'", [id]);
-            if (result.affectedRows === 0) {
-                // Verificamos si realmente no existe o si es administrador
-                const [check] = await db.query("SELECT rol FROM usuarios WHERE id = ?", [id]);
-                if (check.length > 0 && check[0].rol === 'admin') {
-                    throw new Error('PROTECTED_ADMIN');
-                }
-            }
-            return result.affectedRows > 0;
-        } catch (error) {
-            throw error;
-        }
+        const [result] = await db.query(
+            'UPDATE equipo_web SET activo = 0 WHERE id = ?',
+            [id]
+        );
+        return result.affectedRows > 0;
     }
 };
 
