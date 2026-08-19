@@ -15,6 +15,7 @@ const dbInit = {
             await this.ensureCursoProfesores();
             await this.ensureAgendaConfirmaciones();
             await this.ensurePushNotifications();
+            await this.ensureStreamConfig();
             await this.ensureInventarioVentas();
             await this.repairPagos();
             await this.repairEventos();
@@ -221,6 +222,24 @@ const dbInit = {
             INNER JOIN usuarios u ON u.id = a.usuario_id
             WHERE a.usuario_id IS NOT NULL
               AND COALESCE(u.permite_login, 1) = 1
+        `);
+    },
+
+    /**
+     * Conserva la última IP pública de cámara validada desde el panel admin.
+     * Las credenciales RTSP permanecen en variables de entorno y nunca se
+     * guardan en la base de datos.
+     */
+    async ensureStreamConfig() {
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS stream_config (
+                id TINYINT UNSIGNED NOT NULL,
+                camera_ip VARCHAR(45) NOT NULL,
+                updated_by INT DEFAULT NULL,
+                updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                KEY idx_stream_config_updated_by (updated_by)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
         `);
     },
 

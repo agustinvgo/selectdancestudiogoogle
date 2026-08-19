@@ -67,7 +67,10 @@ app.use(helmet({
 // Trust proxy ANTES del rate limiter (Bug #4 fix):
 // Sin esto, req.ip es siempre la IP del contenedor Nginx y el rate limiter
 // trata a todos los usuarios como la misma IP — un solo usuario puede bloquear a todos.
-app.set('trust proxy', 1);
+// Producción tiene dos saltos internos: nginx-proxy (HTTPS) -> nginx frontend
+// -> backend. Confiar exactamente esos dos saltos permite obtener la IP real
+// del administrador sin aceptar encabezados arbitrarios del navegador.
+app.set('trust proxy', process.env.NODE_ENV === 'production' ? 2 : 1);
 
 // =============================================================
 // Rate Limiting por niveles
@@ -278,9 +281,10 @@ app.use((req, res) => {
 // Iniciar servidor
 const BackupService = require('./services/backup.service');
 const dbInit = require('./config/dbInit');
+const cameraConnectionService = require('./services/camera-connection.service');
 
 // Initialize Database Sync/Repair
-dbInit.initialize();
+dbInit.initialize().then(() => cameraConnectionService.initPersistence());
 
 // Initialize Backup Scheduler
 BackupService.init();
@@ -297,6 +301,7 @@ const server = app.listen(PORT, () => {
 // 🛑 Graceful Shutdown (para PM2, Docker, CTRL+C)
 const gracefulShutdown = (signal) => {
     console.log(`\n⚠️ Señal ${signal} recibida. Cerrando servidor...`);
+    cameraConnectionService.stopPersistence();
     server.close(() => {
         console.log('✅ Servidor HTTP cerrado.');
         db.end(() => {

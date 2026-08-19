@@ -1,10 +1,10 @@
 # Transmisión en vivo — Guía de despliegue (VPS)
 
-> **Actualización:** El sistema ahora usa una **cámara IP Oryx/YCC365Plus** con pull RTSP automático
-> en vez de celular con push RTMP. MediaMTX se conecta a la cámara solo — no hay nada que configurar
-> en la cámara misma.
+> **Actualización:** El sistema usa una **cámara IP Oryx/YCC365Plus** con pull RTSP. Si la IP pública
+> del Wi-Fi cambia, un administrador puede abrir **Admin → Transmisiones** desde esa red y pulsar
+> **Reconectar cámaras**. El servidor valida el puerto y el video antes de guardar el cambio.
 
-Cómo poner en producción la transmisión en vivo de clases. **Nada de esto está deployado todavía** — es la guía para hacerlo cuando se decida.
+Cómo mantener en producción la transmisión en vivo de clases.
 
 ## Qué se agregó
 
@@ -36,6 +36,9 @@ Padres (portal HTTPS) <--nginx /live + auth_request-- HLS :8888
 MEDIAMTX_PUBLISH_PASS=<contraseña-larga-y-secreta>
 # Dirección pública RTMP a la que apunta la cámara (dominio o IP del VPS)
 MEDIAMTX_RTMP_BASE=rtmp://selectdancestudio.com:1935
+# URL RTSP privada usada como plantilla. El panel solo reemplaza el hostname.
+CAMERA_RTSP_URL=rtsp://usuario:<contraseña-cámara>@IP_ACTUAL:554/live/ch00_1
+CAMERA_RTSP_PORT=554
 ```
 
 ### 2. Firewall del VPS
@@ -66,6 +69,8 @@ Se configura **una sola vez** en la app del celular (o la cámara). Recomendado:
 - [ ] Un padre inscripto, durante el horario de la clase, ve el video en el portal.
 - [ ] Un padre NO inscripto ve "no hay clase en vivo".
 - [ ] Abrir `https://selectdancestudio.com/live/estudio/index.m3u8` **sin sesión** debe dar 401/403.
+- [ ] Desde el Wi-Fi del estudio, **Admin → Transmisiones → Reconectar cámaras** detecta la IP y confirma video.
+- [ ] Reiniciar MediaMTX conserva la última IP validada (el backend la restaura desde `stream_config`).
 
 ## ⚠️ Antes de transmitir menores (obligatorio)
 Conseguir **consentimiento firmado de todas las familias** cuyos hijos aparezcan en cámara (Ley 25.326 / derecho de imagen). No es código, pero es requisito para operar.

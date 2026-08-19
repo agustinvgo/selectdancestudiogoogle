@@ -138,6 +138,10 @@ services:
       - MEDIAMTX_STREAM_KEY=live/estudio
       - MEDIAMTX_PUBLISH_USER=camara
       - MEDIAMTX_PUBLISH_PASS=${MEDIAMTX_PUBLISH_PASS}
+      # Plantilla RTSP privada: el backend solo reemplaza el hostname luego de
+      # validar la red actual del administrador.
+      - CAMERA_RTSP_URL=${CAMERA_RTSP_URL}
+      - CAMERA_RTSP_PORT=${CAMERA_RTSP_PORT:-554}
     expose:
       - "5000"
     depends_on:

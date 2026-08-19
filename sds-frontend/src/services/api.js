@@ -65,6 +65,8 @@ export const authAPI = {
 export const transmisionesAPI = {
     enVivo: (alumnoId) => api.get('/transmisiones/en-vivo', { params: alumnoId ? { alumno_id: alumnoId } : undefined }),
     listAdmin: () => api.get('/transmisiones'),             // admin: todos los cursos + estado
+    estadoCamara: () => api.get('/transmisiones/camara'),
+    reconectarCamara: () => api.post('/transmisiones/camara/reconectar'),
     iniciar: (cursoId) => api.post(`/transmisiones/${cursoId}/iniciar`),
     detener: (cursoId) => api.post(`/transmisiones/${cursoId}/detener`),
 };

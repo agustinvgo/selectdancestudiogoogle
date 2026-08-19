@@ -1,6 +1,7 @@
 const db = require('../../config/db');
 const jwt = require('jsonwebtoken');
 const svc = require('../../services/transmision.service');
+const cameraConnectionService = require('../../services/camera-connection.service');
 const ResponsablesAlumnosModel = require('../../models/responsables-alumnos.model');
 
 // GET /api/transmisiones/authorize — usado por nginx (auth_request) antes de servir el video.
@@ -130,5 +131,41 @@ exports.detener = async (req, res) => {
     } catch (error) {
         console.error('[detener transmision]', error);
         res.status(500).json({ success: false, message: 'Error al detener transmisión' });
+    }
+};
+
+// GET /api/transmisiones/camara — estado de la conexión desde donde se abrió
+// el panel. Nunca devuelve la URL RTSP ni las credenciales de la cámara.
+exports.estadoCamara = async (req, res) => {
+    try {
+        const data = await cameraConnectionService.getStatus(req.ip);
+        res.json({ success: true, data });
+    } catch (error) {
+        console.error('[estado camara]', error);
+        res.status(error.statusCode || 500).json({
+            success: false,
+            message: 'No se pudo consultar la conexión de la cámara',
+        });
+    }
+};
+
+// POST /api/transmisiones/camara/reconectar — toma exclusivamente la IP
+// pública de esta petición. No acepta una IP elegida por el usuario para evitar
+// que el endpoint pueda usarse para consultar otros servidores.
+exports.reconectarCamara = async (req, res) => {
+    try {
+        const data = await cameraConnectionService.reconnectFromClientIp(req.ip, req.user.id);
+        res.json({
+            success: true,
+            message: 'Cámaras conectadas correctamente desde este Wi-Fi',
+            data,
+        });
+    } catch (error) {
+        console.error(`[reconectar camara] ${error.code || 'ERROR'}: ${error.message}`);
+        res.status(error.statusCode || 500).json({
+            success: false,
+            message: error.message || 'No se pudieron reconectar las cámaras',
+            code: error.code || 'CAMERA_ERROR',
+        });
     }
 };
