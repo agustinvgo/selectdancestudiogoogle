@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { equipoAPI, getMediaUrl } from '../../services/api';
 import PageSEO from '../../components/SEO/PageSEO';
-import SchemaBreadcrumb from '../../components/SEO/SchemaBreadcrumb';
 import { getPhotoCropStyle } from '../../utils/photoPosition';
 
 const QuienesSomos = () => {
@@ -26,18 +25,14 @@ const QuienesSomos = () => {
     return (
         <div className="min-h-screen pt-24">
             <PageSEO
-                title="Quiénes Somos"
+                title="Equipo y método de enseñanza en danza"
                 description="Conocé al equipo de profesoras de Select Dance Studio Palermo. Profesionales formadas en danza clásica, jazz y contemporáneo con trayectoria nacional e internacional."
                 canonical="/nosotros"
             />
-            <SchemaBreadcrumb items={[
-                { name: 'Inicio', url: '/' },
-                { name: 'Quiénes Somos', url: '/nosotros' },
-            ]} />
             {/* Hero Section */}
             <div className="container mx-auto px-6 py-12 text-center">
                 <h1 className="text-4xl md:text-6xl font-bold tracking-tighter mb-6 uppercase">
-                    Quiénes <span className="text-gray-500 dark:text-gray-400 font-light">Somos</span>
+                    Equipo de <span className="text-gray-500 dark:text-gray-400 font-light">Select Dance Studio</span>
                 </h1>
                 <p className="text-gray-500 dark:text-gray-400 text-lg md:text-xl font-light max-w-2xl mx-auto leading-relaxed">
                     Conoce al equipo de profesionales apasionados que hacen de Select Dance Studio un lugar único para el arte y el movimiento.

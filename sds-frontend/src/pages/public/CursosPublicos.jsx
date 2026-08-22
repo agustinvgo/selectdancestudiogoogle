@@ -4,7 +4,6 @@ import { cursosAPI } from '../../services/api.js';
 import WeeklyPlanner from '../../components/WeeklyPlanner.jsx';
 import { Toaster } from 'react-hot-toast';
 import PageSEO from '../../components/SEO/PageSEO.jsx';
-import SchemaBreadcrumb from '../../components/SEO/SchemaBreadcrumb.jsx';
 import { motion } from 'framer-motion';
 import { buildWhatsAppUrl, trackWhatsAppClick } from '../../utils/whatsapp.js';
 
@@ -179,14 +178,14 @@ const CursosPublicos = () => {
             transition={{ duration: 0.35, ease: 'easeOut' }}
         >
             <PageSEO
-                title="Cursos de Danza en Palermo — Horarios y Niveles"
-                description="Descubrí nuestros cursos de ballet, jazz, danza contemporánea y acrobacia en Palermo. Consultá niveles, horarios, vacantes y aranceles por WhatsApp."
+                title="Cursos de danza en Palermo, CABA"
+                description="Cursos de ballet, jazz, danza contemporánea, Acro Dance y gimnasia acrobática en Palermo, CABA. Consultá horarios, vacantes y aranceles."
                 canonical="/cursos"
+                ogImage="/optimized/home/junior-1280.webp"
+                ogImageAlt="Cursos de danza por edades y niveles en Select Dance Studio Palermo"
+                ogImageWidth={1280}
+                ogImageHeight={1943}
             />
-            <SchemaBreadcrumb items={[
-                { name: 'Inicio', url: '/' },
-                { name: 'Cursos', url: '/cursos' },
-            ]} />
             <Toaster position="bottom-right" />
             <div className="max-w-7xl mx-auto">
                 <CoursesHero onContact={() => handleWhatsAppContact()} />

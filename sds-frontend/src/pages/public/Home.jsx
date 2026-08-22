@@ -1,7 +1,5 @@
 import { Toaster } from 'react-hot-toast';
 import PageSEO from '../../components/SEO/PageSEO.jsx';
-import SchemaLocalBusiness from '../../components/SEO/SchemaLocalBusiness.jsx';
-import SchemaBreadcrumb from '../../components/SEO/SchemaBreadcrumb.jsx';
 
 // Modular Components
 import HeroSection from '../../components/home/HeroSection.jsx';
@@ -15,12 +13,10 @@ const Home = () => {
     return (
         <div className="bg-transparent text-inherit w-full">
             <PageSEO
-                title="Select Dance Studio"
-                description="Select Dance Studio: clases de ballet, jazz, contemporáneo y gimnasia acrobática para niñas en Palermo, CABA. Alquiler de salas profesionales para clases, ensayos y workshops."
+                title="Academia de danza en Palermo, CABA"
+                description="Clases de danza para niñas desde los 3 años, adolescentes y adultos en Palermo, CABA. Ballet, jazz, contemporáneo, Acro Dance y gimnasia acrobática."
                 canonical="/"
             />
-            <SchemaLocalBusiness />
-            <SchemaBreadcrumb items={[{ name: 'Inicio', url: '/' }]} />
             <Toaster />
 
             <HeroSection />

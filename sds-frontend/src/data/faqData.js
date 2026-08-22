@@ -1,7 +1,7 @@
 export const FAQ_ITEMS = [
     {
         question: '¿Desde qué edad pueden empezar los niños a bailar en Select Dance Studio?',
-        answer: 'En Select Dance Studio recibimos niñas desde los 2 años en nuestro programa Baby Dance, que combina movimiento y expresión a través del juego. A partir de los 5 años comienza el programa Mini, con técnica inicial de danza.',
+        answer: 'En Select Dance Studio recibimos niñas desde los 3 años en nuestro programa Baby Dance, que combina movimiento y expresión a través del juego. De 6 a 8 años continúa el programa Mini, con técnica inicial de danza.',
     },
     {
         question: '¿Dónde está ubicada la academia de danza Select Dance Studio?',

@@ -1,6 +1,5 @@
 import CompetitionGallery from '../../components/home/CompetitionGallery';
 import PageSEO from '../../components/SEO/PageSEO';
-import SchemaBreadcrumb from '../../components/SEO/SchemaBreadcrumb';
 import { motion } from 'framer-motion';
 import { buildWhatsAppUrl, trackWhatsAppClick } from '../../utils/whatsapp.js';
 
@@ -22,18 +21,14 @@ const Competition = () => {
     return (
         <div className="bg-black text-white min-h-screen">
             <PageSEO
-                title="Equipo de Competición de Danza — Palermo Buenos Aires"
-                description="El equipo de competición de Select Dance Studio participa en torneos y festivales de danza a nivel nacional. Conocé nuestro Salón de la Fama."
+                title="Danza competitiva en Palermo, CABA"
+                description="Equipo de competición de danza de Select Dance Studio en Palermo, CABA. Formación técnica, preparación escénica y participación en torneos."
                 canonical="/competencia-danza-palermo"
                 ogImage="/optimized/competition/hero-1280.webp"
                 ogImageWidth={1280}
                 ogImageHeight={853}
                 ogImageAlt="Equipo de competición de Select Dance Studio"
             />
-            <SchemaBreadcrumb items={[
-                { name: 'Inicio', url: '/' },
-                { name: 'Equipo de Competición', url: '/competencia-danza-palermo' },
-            ]} />
 
             {/* Hero — parallax solo CSS, sin JS scroll listeners */}
             <div className="relative h-screen w-full overflow-hidden bg-black flex items-center justify-center">
@@ -73,11 +68,14 @@ const Competition = () => {
                     transition={{ duration: 0.9, ease: 'easeOut' }}
                     className="relative z-20 text-center px-4 w-full"
                 >
-                    <h1 className="text-7xl md:text-9xl lg:text-[10rem] font-black tracking-tighter uppercase text-white cursor-default select-none mb-2" style={{ textShadow: '0 0 40px rgba(220, 38, 38, 0.8), 0 0 80px rgba(220, 38, 38, 0.4)' }}>
+                    <p aria-hidden="true" className="text-7xl md:text-9xl lg:text-[10rem] font-black tracking-tighter uppercase text-white cursor-default select-none mb-2" style={{ textShadow: '0 0 40px rgba(220, 38, 38, 0.8), 0 0 80px rgba(220, 38, 38, 0.4)' }}>
                         BUILT DIFFERENT
+                    </p>
+                    <h1 className="mx-auto max-w-4xl text-xl font-bold uppercase tracking-[0.12em] text-zinc-200 md:text-3xl">
+                        Equipo de competición de danza en Palermo, CABA
                     </h1>
-                    <p className="text-xl md:text-3xl font-light text-zinc-300 max-w-3xl mx-auto tracking-wide">
-                        Pasión, disciplina y excelencia en cada escenario.
+                    <p className="mx-auto mt-3 max-w-3xl text-base font-light tracking-wide text-zinc-400 md:text-xl">
+                        Formación técnica, preparación escénica y excelencia en cada escenario.
                     </p>
 
                     <div className="flex items-center justify-center mt-8 gap-4 opacity-50">

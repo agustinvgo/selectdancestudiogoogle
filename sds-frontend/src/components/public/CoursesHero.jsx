@@ -6,13 +6,14 @@ const CoursesHero = ({ onContact }) => {
             <div>
                 <span className="block text-xs font-bold text-gray-400 tracking-[0.2em] mb-4 uppercase">Explora</span>
                 <h1 className="text-5xl md:text-7xl font-bold text-white tracking-tighter">
-                    CURSOS
+                    CURSOS DE DANZA
+                    <span className="mt-2 block text-lg font-light tracking-[0.12em] text-gray-400 md:text-2xl">PALERMO, CABA</span>
                 </h1>
             </div>
 
             <div className="flex flex-col items-end gap-6 mt-6 md:mt-0">
                 <p className="text-gray-400 text-sm md:text-base max-w-sm leading-relaxed font-light text-right">
-                    Selección exclusiva de estilos. Eleva tu técnica con nuestros programas especializados.
+                    Consultá clases por edad, nivel y disciplina, con horarios y vacantes actualizados.
                 </p>
                 <button
                     onClick={onContact}

@@ -6,20 +6,15 @@ Allow: /danza-infantil-palermo
 Allow: /acro-dance-palermo
 Allow: /gimnasia-acrobatica-palermo
 Allow: /ballet-jazz-palermo
+Allow: /clases-danza-adultos-palermo
+Allow: /clases-particulares-danza-palermo
 Allow: /alquiler-sala-danza-palermo
 Allow: /nosotros
 Allow: /faq
 Allow: /contacto
 
-Disallow: /admin
-Disallow: /alumno
-Disallow: /login
-Disallow: /reset-password
-Disallow: /forgot-password
-Disallow: /cambiar-password
-Disallow: /pago-exitoso
-Disallow: /pago-fallido
-Disallow: /pago-pendiente
+# Las rutas privadas envían X-Robots-Tag: noindex desde Nginx. Se permite su
+# rastreo para que los buscadores puedan leer esa directiva y excluirlas.
 Disallow: /api/
 
 # Crawl delay for secondary crawlers

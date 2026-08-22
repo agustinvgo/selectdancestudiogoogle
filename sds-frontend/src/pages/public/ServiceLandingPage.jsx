@@ -10,8 +10,6 @@ import {
     ChevronDownIcon,
 } from '@heroicons/react/24/outline';
 import PageSEO from '../../components/SEO/PageSEO.jsx';
-import SchemaBreadcrumb from '../../components/SEO/SchemaBreadcrumb.jsx';
-import SchemaService from '../../components/SEO/SchemaService.jsx';
 import WhatsAppCTA from '../../components/public/WhatsAppCTA.jsx';
 import { SERVICE_LANDING_PAGES, SERVICE_PAGE_LIST } from '../../data/serviceLandingPages.js';
 
@@ -25,7 +23,7 @@ const QUICK_FACTS = [
     { label: 'Orientación', value: 'Por edad, nivel y objetivo', icon: SparklesIcon },
 ];
 
-const STEPS = [
+const DEFAULT_STEPS = [
     ['Contanos sobre la alumna', 'Edad, experiencia previa, disciplina de interés y disponibilidad horaria.'],
     ['Recibí una recomendación', 'El equipo identifica el grupo y nivel más adecuado para comenzar o continuar.'],
     ['Confirmá la vacante', 'Te informamos horarios vigentes, disponibilidad y aranceles directamente por WhatsApp.'],
@@ -181,6 +179,7 @@ const RelatedCard = ({ item }) => (
 const ServiceLandingPage = ({ serviceKey }) => {
     const page = SERVICE_LANDING_PAGES[serviceKey];
     const relatedPages = SERVICE_PAGE_LIST.filter((item) => item.canonical !== page.canonical);
+    const steps = page.steps || DEFAULT_STEPS;
 
     return (
         <div className="min-h-screen overflow-hidden bg-[#080808] text-white">
@@ -190,29 +189,20 @@ const ServiceLandingPage = ({ serviceKey }) => {
                 canonical={page.canonical}
                 ogImage={page.image}
                 ogImageAlt={page.imageAlt}
+                ogImageWidth={page.imageWidth}
+                ogImageHeight={page.imageHeight}
             />
-            <SchemaBreadcrumb items={[
-                { name: 'Inicio', url: '/' },
-                { name: page.heading, url: page.canonical },
-            ]} />
-            <SchemaService
-                name={page.heading}
-                description={page.description}
-                canonical={page.canonical}
-                audience={page.audience}
-            />
-
             {/* ── HERO ── */}
             <header className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black">
                 <picture className="absolute inset-0">
                     <source
                         type="image/avif"
-                        srcSet={`${responsiveImage(page.image, 480, 'avif')} 480w, ${responsiveImage(page.image, 768, 'avif')} 768w, ${responsiveImage(page.image, 1280, 'avif')} 1280w`}
+                        srcSet={`${responsiveImage(page.image, 480, 'avif')} 480w, ${responsiveImage(page.image, 768, 'avif')} 768w, ${responsiveImage(page.image, 1280, 'avif')} ${page.imageWidth}w`}
                         sizes="100vw"
                     />
                     <img
                         src={page.image}
-                        srcSet={`${responsiveImage(page.image, 480)} 480w, ${responsiveImage(page.image, 768)} 768w, ${page.image} 1280w`}
+                        srcSet={`${responsiveImage(page.image, 480)} 480w, ${responsiveImage(page.image, 768)} 768w, ${page.image} ${page.imageWidth}w`}
                         sizes="100vw"
                         alt={page.imageAlt}
                         fetchPriority="high"
@@ -334,7 +324,9 @@ const ServiceLandingPage = ({ serviceKey }) => {
                         {/* ── HIGHLIGHTS HEADER ── */}
                         <Section className="mb-20 text-center">
                             <p className="text-xs font-bold uppercase tracking-[0.35em] text-red-500">La propuesta</p>
-                            <h2 className="mt-4 text-4xl font-black uppercase tracking-tighter sm:text-5xl">New generation of movement</h2>
+                            <h2 className="mt-4 text-4xl font-black uppercase tracking-tighter sm:text-5xl">
+                                {page.proposalHeading}
+                            </h2>
                             <p className="mx-auto mt-5 max-w-2xl font-light leading-relaxed text-zinc-400">
                                 Cada programa combina objetivos técnicos, acompañamiento docente y una progresión adecuada para sostener el aprendizaje.
                             </p>
@@ -385,7 +377,7 @@ const ServiceLandingPage = ({ serviceKey }) => {
                                     <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Una orientación simple y personalizada</h2>
                                 </div>
                                 <ol className="grid md:grid-cols-3 md:divide-x md:divide-white/10">
-                                    {STEPS.map(([title, text], index) => (
+                                    {steps.map(([title, text], index) => (
                                         <TimelineStep key={title} title={title} text={text} index={index} />
                                     ))}
                                 </ol>

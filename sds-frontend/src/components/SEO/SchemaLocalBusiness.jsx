@@ -1,4 +1,5 @@
 import { absoluteUrl, SITE } from '../../config/site.js';
+import StructuredDataScript from './StructuredDataScript.jsx';
 
 const SchemaLocalBusiness = () => {
     const schema = {
@@ -6,8 +7,8 @@ const SchemaLocalBusiness = () => {
         '@type': ['LocalBusiness', 'EducationalOrganization'],
         '@id': `${SITE.url}/#organization`,
         name: SITE.name,
-        alternateName: 'Select Dance Studio Palermo',
-        description: 'Academia de danza en Palermo, Buenos Aires. Clases de ballet, jazz, contemporáneo y gimnasia acrobática para niñas y adolescentes.',
+        alternateName: ['Select Dance Studio Palermo', 'SDS'],
+        description: 'Academia de danza en Palermo, Buenos Aires. Clases de ballet, jazz, contemporáneo, Acro Dance y gimnasia acrobática desde los 3 años y para personas adultas.',
         url: SITE.url,
         logo: {
             '@type': 'ImageObject',
@@ -20,6 +21,7 @@ const SchemaLocalBusiness = () => {
         telephone: SITE.phone,
         priceRange: '$$',
         currenciesAccepted: 'ARS',
+        foundingDate: '2024',
         address: {
             '@type': 'PostalAddress',
             ...SITE.address,
@@ -35,21 +37,24 @@ const SchemaLocalBusiness = () => {
             email: SITE.email,
             telephone: SITE.phone,
             url: SITE.whatsapp,
-            availableLanguage: 'Spanish',
+            availableLanguage: ['Spanish', 'English', 'Portuguese'],
         },
+        openingHoursSpecification: [
+            {
+                '@type': 'OpeningHoursSpecification',
+                dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+                opens: '09:00',
+                closes: '22:00',
+            },
+        ],
         hasMap: SITE.maps,
         areaServed: {
             '@type': 'AdministrativeArea',
-            name: 'Palermo y Ciudad Autónoma de Buenos Aires',
+            name: 'Palermo, Ciudad Autónoma de Buenos Aires',
         },
     };
 
-    return (
-        <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-        />
-    );
+    return <StructuredDataScript id="seo-local-business" schema={schema} />;
 };
 
 export default SchemaLocalBusiness;

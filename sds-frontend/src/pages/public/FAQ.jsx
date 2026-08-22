@@ -1,6 +1,5 @@
 import { ChevronDown } from 'lucide-react';
 import PageSEO from '../../components/SEO/PageSEO.jsx';
-import SchemaBreadcrumb from '../../components/SEO/SchemaBreadcrumb.jsx';
 import SchemaFAQ from '../../components/SEO/SchemaFAQ.jsx';
 import { FAQ_ITEMS } from '../../data/faqData.js';
 
@@ -12,10 +11,6 @@ const FAQ = () => (
             canonical="/faq"
         />
         <SchemaFAQ />
-        <SchemaBreadcrumb items={[
-            { name: 'Inicio', url: '/' },
-            { name: 'Preguntas frecuentes', url: '/faq' },
-        ]} />
 
         <section className="mx-auto max-w-4xl">
             <p className="mb-4 text-xs font-bold uppercase tracking-[0.25em] text-red-500">Información útil</p>
@@ -42,4 +37,3 @@ const FAQ = () => (
 );
 
 export default FAQ;
-

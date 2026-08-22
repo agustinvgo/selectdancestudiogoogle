@@ -6,14 +6,26 @@ import WhatsAppCTA from '../components/public/WhatsAppCTA.jsx';
 import { WHATSAPP_MESSAGES } from '../utils/whatsapp.js';
 import { SITE } from '../config/site.js';
 import { trackPhoneClick } from '../utils/contactTracking.js';
+import SchemaLocalBusiness from '../components/SEO/SchemaLocalBusiness.jsx';
+import SchemaWebSite from '../components/SEO/SchemaWebSite.jsx';
+import SchemaWebPage from '../components/SEO/SchemaWebPage.jsx';
+import SchemaBreadcrumb from '../components/SEO/SchemaBreadcrumb.jsx';
+import SchemaService from '../components/SEO/SchemaService.jsx';
+import { PUBLIC_SEO_ROUTES } from '../config/publicSeoRoutes.js';
 
 const PublicLayout = () => {
     const location = useLocation();
     const isHome = location.pathname === '/';
+    const normalizedPath = location.pathname !== '/'
+        ? location.pathname.replace(/\/+$/, '')
+        : '/';
+    const seoRoute = PUBLIC_SEO_ROUTES.find((route) => route.canonical === normalizedPath);
+    const usesServiceSchema = seoRoute && !['/', '/nosotros', '/faq', '/contacto'].includes(seoRoute.canonical);
     const darkPages = [
         '/', '/cursos', '/competencia-danza-palermo', '/nosotros', '/faq', '/contacto',
         '/danza-infantil-palermo', '/acro-dance-palermo', '/gimnasia-acrobatica-palermo', '/gimnasia-artistica-palermo',
-        '/ballet-jazz-palermo', '/alquiler-sala-danza-palermo'
+        '/ballet-jazz-palermo', '/alquiler-sala-danza-palermo', '/clases-danza-adultos-palermo',
+        '/clases-particulares-danza-palermo'
     ];
     const isDarkPage = darkPages.includes(location.pathname);
     const [isScrolled, setIsScrolled] = useState(false);
@@ -51,11 +63,33 @@ const PublicLayout = () => {
 
     return (
         <div className={`min-h-[100dvh] flex flex-col font-sans transition-colors duration-500`}>
+            <SchemaLocalBusiness />
+            {seoRoute && (
+                <>
+                    <SchemaWebPage route={seoRoute} />
+                    {isHome && <SchemaWebSite />}
+                    <SchemaBreadcrumb items={seoRoute.canonical === '/'
+                        ? [{ name: 'Inicio', url: '/' }]
+                        : [
+                            { name: 'Inicio', url: '/' },
+                            { name: seoRoute.heading, url: seoRoute.canonical },
+                        ]}
+                    />
+                    {usesServiceSchema && (
+                        <SchemaService
+                            name={seoRoute.heading}
+                            description={seoRoute.description}
+                            canonical={seoRoute.canonical}
+                            audience={seoRoute.audience}
+                        />
+                    )}
+                </>
+            )}
             {/* Logo Fixed at Top Left */}
             <Link to="/" className="fixed top-6 left-6 z-[60] flex items-center gap-3 group">
                 <img
                     src="/logo-select-dance-studio.webp"
-                    alt="Select Dance Studio"
+                    alt="Select Dance Studio, academia de danza en Palermo, CABA"
                     className="h-10 w-auto object-contain group-hover:opacity-80 transition-opacity bg-white rounded-sm p-0.5"
                 />
                 <span className={`hidden lg:block text-lg font-bold tracking-tighter uppercase transition-all duration-300 transform origin-left
@@ -135,6 +169,8 @@ const PublicLayout = () => {
                                 <li><Link to="/ballet-jazz-palermo" className="hover:text-red-500 transition-colors">Ballet, jazz y contemporáneo</Link></li>
                                 <li><Link to="/acro-dance-palermo" className="hover:text-red-500 transition-colors">Acro Dance</Link></li>
                                 <li><Link to="/gimnasia-acrobatica-palermo" className="hover:text-red-500 transition-colors">Gimnasia acrobática</Link></li>
+                                <li><Link to="/clases-danza-adultos-palermo" className="hover:text-red-500 transition-colors">Danza para adultos</Link></li>
+                                <li><Link to="/clases-particulares-danza-palermo" className="hover:text-red-500 transition-colors">Clases particulares</Link></li>
                                 <li><Link to="/alquiler-sala-danza-palermo" className="hover:text-red-500 transition-colors">Alquiler de sala</Link></li>
                             </ul>
                         </div>
@@ -155,7 +191,7 @@ const PublicLayout = () => {
                             ${isDarkPage ? 'border-white/10 text-gray-600' : 'border-gray-100 text-gray-400'}
                         `}>
                         <p>© {new Date().getFullYear()} Select Dance Studio. Palermo, Buenos Aires.</p>
-                        <p>Danza y Gimnasia de Alto Rendimiento.</p>
+                        <p>Danza y gimnasia acrobática en Palermo, CABA.</p>
                     </div>
                 </div>
             </footer>

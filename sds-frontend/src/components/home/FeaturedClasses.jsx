@@ -8,48 +8,67 @@ const DISCIPLINES = [
         title: 'BABY',
         img: '/baby-dance-palermo-select-dance-studio.webp',
         optimized: 'baby',
+        imageAlt: 'Clase de danza infantil Baby para niñas de 3 a 5 años en Palermo, Buenos Aires',
         desc: '3 - 5 AÑOS',
+        landing: '/danza-infantil-palermo',
+        linkLabel: 'Ver danza infantil desde los 3 años',
         details: 'Etapa de iniciación donde se desarrolla la relación con el movimiento, la música y el espacio, favoreciendo la coordinación y la confianza corporal desde edades tempranas.'
     },
     {
         title: 'MINI',
         img: '/mini-danza-palermo-select-dance-studio.webp',
         optimized: 'mini',
+        imageAlt: 'Clase de danza Mini para niñas de 6 a 8 años en Palermo, Buenos Aires',
         desc: '6 - 8 AÑOS',
+        landing: '/danza-infantil-palermo',
+        linkLabel: 'Ver clases de danza para niñas',
         details: 'Periodo de descubrimiento técnico en el que se incorporan nociones de ritmo, alineación y disciplina, estableciendo bases para la formación posterior.'
     },
     {
         title: 'JUNIOR',
         img: '/clase-junior-danza-palermo.webp',
         optimized: 'junior',
+        imageAlt: 'Clase de danza Junior para niñas de 9 a 12 años en Palermo, Buenos Aires',
         desc: '9 - 12 AÑOS',
+        landing: '/danza-infantil-palermo',
+        linkLabel: 'Ver formación Junior de danza',
         details: 'Fase de desarrollo en la que se consolida el control corporal, la musicalidad y la capacidad expresiva, acompañando el crecimiento técnico del estudiante.'
     },
     {
         title: 'TEEN',
         img: '/clase-teen-danza-palermo.webp',
         optimized: 'teen',
+        imageAlt: 'Clase de danza Teen para adolescentes en Palermo, Buenos Aires',
         desc: '13 - 17 AÑOS',
+        landing: '/danza-infantil-palermo',
+        linkLabel: 'Ver danza para adolescentes',
         details: 'Etapa de profundización orientada al perfeccionamiento técnico, la resistencia física y la construcción de identidad escénica.'
     },
     {
-        title: 'SENIOR',
+        title: 'ADULTOS',
         img: '/clase-senior-danza-palermo.webp',
         optimized: 'senior',
-        desc: '+ 18 AÑOS',
-        details: 'Instancia de formación continua destinada a jóvenes y adultos que buscan sostener y perfeccionar su práctica con un enfoque técnico y consciente.'
+        imageAlt: 'Clase de danza para personas adultas en Palermo, Buenos Aires',
+        desc: 'HEELS · FLEX · +18 AÑOS',
+        landing: '/clases-danza-adultos-palermo',
+        linkLabel: 'Ver clases de danza para adultos',
+        details: 'Clases de Heels y Flex para personas adultas que quieren comenzar, retomar o profundizar su práctica con un enfoque técnico, progresivo y consciente.'
     },
     {
         title: 'RECREATIVE',
         img: '/danza-recreativa-palermo-buenos-aires.webp',
         optimized: 'recreative',
+        imageAlt: 'Programa de danza recreativa desde los 3 años en Palermo, Buenos Aires',
         desc: 'DESDE LOS 3 AÑOS',
+        landing: '/danza-infantil-palermo',
+        linkLabel: 'Ver programas de danza infantil',
         details: 'Programa diseñado para niñas y niños que desean aprender danza como actividad recreativa, hacer amigos y adquirir habilidades físicas sin la presión de competir. Se trabaja coordinación, ritmo, postura, imaginación y trabajo en grupo mediante actividades lúdicas y progresivas. Es ideal para quienes desean iniciarse en la danza como deporte artístico, disfrutar del proceso y formar parte de la comunidad del estudio en un ambiente relajado y motivador.'
     },
     {
         title: 'COMPETITION',
         img: '/competicion-danza-select-dance-studio-palermo.webp',
         optimized: 'competition',
+        imageAlt: 'Equipo de competición de danza de Select Dance Studio en Palermo, Buenos Aires',
         desc: 'ENTRENAMIENTO DE ALTO RENDIMIENTO DESDE LOS 4 AÑOS',
         details: 'Programa selectivo destinado a alumnos con condiciones, potencial y proyección artística...',
         link: '/competencia-danza-palermo'
@@ -68,7 +87,7 @@ const ResponsiveDisciplineImage = ({ item, sizes }) => {
             <source type="image/webp" srcSet={srcSet('webp')} sizes={sizes} />
             <img
                 src={`${base}-768.webp`}
-                alt={item.title}
+                alt={item.imageAlt || item.title}
                 loading="lazy"
                 decoding="async"
                 className="absolute inset-0 w-full h-full object-cover"
@@ -116,6 +135,15 @@ const FlipCard = ({ item, className = "", height = "aspect-[4/5] sm:aspect-[3/4]
                     <div className="h-1 w-12 bg-red-500 mb-4 rounded-full" />
                     <h3 className="text-5xl font-bold text-white mb-2 tracking-tighter">{item.title}</h3>
                     <p className="text-gray-200 font-medium text-lg">{item.desc}</p>
+                    {item.landing && (
+                        <Link
+                            to={item.landing}
+                            onClick={(event) => event.stopPropagation()}
+                            className="mt-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-white underline decoration-red-500 underline-offset-4"
+                        >
+                            {item.linkLabel} <ArrowRightIcon className="h-4 w-4" />
+                        </Link>
+                    )}
                 </div>
             ) : (
                 <div className="absolute inset-0 bg-zinc-900/95 border border-red-500/30 p-10 flex flex-col items-center justify-center text-center z-20">
@@ -135,7 +163,7 @@ const FeaturedClasses = () => {
             <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-24">
                     <span className="text-red-500 tracking-[0.3em] text-xs font-bold uppercase">Trayectoria Formativa</span>
-                    <h2 className="text-4xl md:text-5xl font-bold mt-4 text-inherit">NEW GENERATION OF MOVEMENT</h2>
+                    <h2 className="text-4xl md:text-5xl font-bold mt-4 text-inherit">FORMACIÓN EN DANZA POR EDADES</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1 content-center">
                     {DISCIPLINES.map((item, index) => {
@@ -150,9 +178,12 @@ const FeaturedClasses = () => {
                         );
                     })}
                 </div>
-                <div className="text-center mt-16">
+                <div className="mt-16 flex flex-wrap items-center justify-center gap-6 text-center">
                     <Link to="/cursos" className="inline-flex items-center gap-2 text-inherit border-b border-red-500 pb-1 hover:text-red-500 uppercase tracking-widest text-xs font-bold">
                         Ver todos los horarios <ArrowRightIcon className="w-4 h-4" />
+                    </Link>
+                    <Link to="/clases-particulares-danza-palermo" className="inline-flex items-center gap-2 text-inherit border-b border-red-500 pb-1 hover:text-red-500 uppercase tracking-widest text-xs font-bold">
+                        Clases particulares de danza <ArrowRightIcon className="w-4 h-4" />
                     </Link>
                 </div>
             </div>

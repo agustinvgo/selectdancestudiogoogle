@@ -3,16 +3,19 @@ import WhatsAppCTA from '../public/WhatsAppCTA.jsx';
 import { WHATSAPP_MESSAGES } from '../../utils/whatsapp.js';
 import { trackPhoneClick } from '../../utils/contactTracking.js';
 
-const ContactSection = () => {
+const ContactSection = ({ headingLevel = 'h2', headingLines = ['Únete al', 'Estudio'] }) => {
+    const Heading = headingLevel;
     return (
         <section className="relative py-24 px-4 md:px-8 bg-transparent text-inherit transition-colors duration-500">
             <div className="max-w-7xl mx-auto">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                     <div>
                         <span className="block text-xs font-bold text-red-600 tracking-[0.2em] mb-4 uppercase">Contacto</span>
-                        <h2 className="text-5xl md:text-7xl font-bold tracking-tighter mb-8 uppercase leading-none">
-                            Únete al<br />Estudio
-                        </h2>
+                        <Heading className="text-5xl md:text-7xl font-bold tracking-tighter mb-8 uppercase leading-none">
+                            {headingLines.map((line) => (
+                                <span key={line} className="block">{line}</span>
+                            ))}
+                        </Heading>
                         <p className="text-inherit opacity-60 text-lg mb-12 max-w-md font-light transition-colors duration-500">
                             Estamos ubicados en el corazón de Palermo Hollywood. Ven a conocer nuestro estudio.
                         </p>

@@ -16,7 +16,7 @@ const HeroSection = () => {
                     <source type="image/webp" srcSet={heroSources.webp} sizes="100vw" />
                     <img
                         src="/optimized/home/hero-1024.webp"
-                        alt="Select Dance Studio Team"
+                        alt="Alumnas y equipo de Select Dance Studio en Palermo, Buenos Aires"
                         className="w-full h-full object-cover opacity-60 animate-ken-burns"
                         fetchPriority="high"
                         loading="eager"
@@ -32,9 +32,11 @@ const HeroSection = () => {
                     <p className="text-[10px] sm:text-xs md:text-base font-light tracking-[0.4em] md:tracking-[0.5em] uppercase text-gray-300 md:text-gray-600 mb-2 md:mb-6">
                         Est. 2024 • Buenos Aires
                     </p>
-                    <h1 className="text-fluid-h1 font-bold leading-none mb-4 md:mb-8 text-white mix-blend-overlay text-center w-full">
-                        <span className="sr-only">Select Dance Studio - Escuela de Danza y Gimnasia en Palermo</span>
+                    <div aria-hidden="true" className="text-fluid-h1 font-bold leading-none mb-4 text-white mix-blend-overlay text-center w-full">
                         SELECT<br />DANCE<br />STUDIO
+                    </div>
+                    <h1 className="mb-5 text-[10px] font-bold uppercase tracking-[0.2em] text-white/80 sm:text-xs md:mb-7 md:text-sm md:tracking-[0.28em]">
+                        Academia de danza en Palermo, CABA · Desde los 3 años
                     </h1>
                     <div className="w-16 md:w-24 h-1 bg-red-600 mx-auto mb-6 md:mb-8"></div>
 
